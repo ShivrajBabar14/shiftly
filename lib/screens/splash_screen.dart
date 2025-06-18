@@ -30,19 +30,19 @@ class _SplashScreenState extends State<SplashScreen> {
           children: [
             Image.asset(
               'assets/shift.png',
-              width: 100,
-              height: 100,
+              width: 200,
+              height: 200,
               fit: BoxFit.contain,
             ),
             const SizedBox(height: 20),
-            const Text(
-              'Shiftly',
-              style: TextStyle(
-                fontSize: 32,
-                fontWeight: FontWeight.bold,
-                color: Colors.black, // Black text for contrast
-              ),
-            ),
+            // const Text(
+            //   'Shiftly',
+            //   style: TextStyle(
+            //     fontSize: 32,
+            //     fontWeight: FontWeight.bold,
+            //     color: Colors.black, // Black text for contrast
+            //   ),
+            // ),
           ],
         ),
       ),

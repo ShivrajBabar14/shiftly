@@ -193,7 +193,10 @@ class _HomeScreenState extends State<HomeScreen> {
               actions: [
                 TextButton(
                   onPressed: () => Navigator.pop(context),
-                  child: const Text('Cancel', style: TextStyle(color: Colors.black),),
+                  child: const Text(
+                    'Cancel',
+                    style: TextStyle(color: Colors.black),
+                  ),
                 ),
                 ElevatedButton(
                   style: ElevatedButton.styleFrom(
@@ -256,11 +259,25 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Shiftly', style: TextStyle(color: Colors.white)),
-        backgroundColor: Colors.red[700],
+        backgroundColor: Colors.white,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.menu, color: Colors.deepPurple),
+          onPressed: () {
+            // You can open a Drawer or do something else here
+            Scaffold.of(context).openDrawer(); // if using a Drawer
+          },
+        ),
+        title: const Text(
+          'Shiftly',
+          style: TextStyle(
+            color: Colors.deepPurple,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.person_add, color: Colors.white),
+            icon: const Icon(Icons.person_add, color: Colors.deepPurple),
             onPressed: () async {
               final selectedEmployees = await Navigator.push<List<int>>(
                 context,
@@ -269,6 +286,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               );
               if (selectedEmployees != null) {
+                await _loadData();
                 setState(() {
                   final currentSet = _selectedEmployeesForShift.toSet();
                   final newSet = selectedEmployees.toSet();
@@ -277,16 +295,16 @@ class _HomeScreenState extends State<HomeScreen> {
                       .toList();
                 });
               }
-              await _loadData();
             },
           ),
         ],
       ),
+
       body: Column(
         children: [
           // Week Navigation
           Container(
-            color: Colors.red[50],
+            color: Colors.white,
             padding: const EdgeInsets.symmetric(vertical: 8),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -363,14 +381,17 @@ class _HomeScreenState extends State<HomeScreen> {
                 width: 120.0,
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
-                  color: Colors.red[100],
+                  color: Colors.deepPurple,
                   border: Border(
                     bottom: BorderSide(color: Colors.grey.shade300),
                   ),
                 ),
                 child: const Text(
                   'Employee',
-                  style: TextStyle(fontWeight: FontWeight.bold),
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
                 ),
               ),
               // Scrollable days header
@@ -381,7 +402,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   child: Container(
                     width: 100.0 * days.length,
                     decoration: BoxDecoration(
-                      color: Colors.red[100],
+                      color: Colors.deepPurple,
                       border: Border(
                         bottom: BorderSide(color: Colors.grey.shade300),
                       ),
@@ -399,10 +420,14 @@ class _HomeScreenState extends State<HomeScreen> {
                               Text(
                                 days[index],
                                 style: const TextStyle(
+                                  color: Colors.white,
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
-                              Text(dateFormat.format(dayDate)),
+                              Text(
+                                dateFormat.format(dayDate),
+                                style: TextStyle(color: Colors.white),
+                              ),
                             ],
                           ),
                         );
@@ -541,7 +566,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                         color:
                                             (shiftName != null &&
                                                 shiftName.isNotEmpty)
-                                            ? Colors.red[100]
+                                            ? Colors.deepPurple[100]
                                             : null,
                                         borderRadius:
                                             (shiftName != null &&

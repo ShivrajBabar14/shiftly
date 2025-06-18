@@ -67,7 +67,7 @@ class _AddEmployeeScreenState extends State<AddEmployeeScreen> {
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
                         content: Text('Employee ID already exists'),
-                        backgroundColor: Colors.red,
+                        backgroundColor: Colors.deepPurple,
                       ),
                     );
                   } else {
@@ -136,7 +136,7 @@ class _AddEmployeeScreenState extends State<AddEmployeeScreen> {
                 Navigator.pop(context);
                 await _loadEmployees();
               },
-              child: const Text('Delete', style: TextStyle(color: Colors.red)),
+              child: const Text('Delete', style: TextStyle(color: Colors.deepPurple)),
             ),
           ],
         );
@@ -150,11 +150,12 @@ class _AddEmployeeScreenState extends State<AddEmployeeScreen> {
       appBar: AppBar(
         title: const Text(
           'Add Employee',
-          style: TextStyle(color: Colors.white),
+          style: TextStyle(color: Colors.deepPurple, fontWeight: FontWeight.bold,),
         ),
-        backgroundColor: Colors.red[700],
-        iconTheme: const IconThemeData(color: Colors.white),
+        backgroundColor: Colors.white,
+        iconTheme: const IconThemeData(color: Colors.deepPurple),
       ),
+      
       body: Column(
         children: [
           Expanded(
@@ -203,7 +204,7 @@ class _AddEmployeeScreenState extends State<AddEmployeeScreen> {
                             value: _selectedEmployees.contains(
                               employee.employeeId,
                             ),
-                            activeColor: Colors.red,
+                            activeColor: Colors.deepPurple,
                             onChanged: (bool? value) {
                               setState(() {
                                 if (value == true) {
@@ -229,7 +230,7 @@ class _AddEmployeeScreenState extends State<AddEmployeeScreen> {
             padding: const EdgeInsets.all(16.0),
             child: ElevatedButton(
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.red[700],
+                backgroundColor: Colors.deepPurple,
                 minimumSize: const Size(double.infinity, 50),
               ),
               onPressed: () {
@@ -244,11 +245,11 @@ class _AddEmployeeScreenState extends State<AddEmployeeScreen> {
         ],
       ),
       floatingActionButton: Container(
-        margin: const EdgeInsets.only(bottom: 60, right: 10),
+        margin: const EdgeInsets.only(bottom: 60, right: 60),
         child: ClipRRect(
           borderRadius: BorderRadius.circular(30),
           child: FloatingActionButton(
-            backgroundColor: Colors.red[700],
+            backgroundColor: Colors.deepPurple,
             onPressed: _addEmployeeDialog,
             child: const Icon(Icons.add, color: Colors.white),
           ),
