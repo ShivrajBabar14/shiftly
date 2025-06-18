@@ -25,6 +25,7 @@ class _HomeScreenState extends State<HomeScreen> {
   List<Employee> _employees = [];
   List<Map<String, dynamic>> _shiftTimings = [];
   bool _showCalendar = false;
+  List<int> _selectedEmployeesForShift = [];
 
   @override
   void initState() {
@@ -279,15 +280,21 @@ class _HomeScreenState extends State<HomeScreen> {
         actions: [
           IconButton(
             icon: const Icon(Icons.person_add, color: Colors.white),
-            onPressed: () {
-              Navigator.push(
+            onPressed: () async {
+              final selectedEmployees = await Navigator.push<List<int>>(
                 context,
                 MaterialPageRoute(
                   builder: (context) => const AddEmployeeScreen(),
                 ),
-              ).then(
-                (_) => _loadData(),
-              ); // Refresh when returning from AddEmployeeScreen
+              );
+              if (selectedEmployees != null) {
+                setState(() {
+                  final currentSet = _selectedEmployeesForShift.toSet();
+                  final newSet = selectedEmployees.toSet();
+                  _selectedEmployeesForShift = currentSet.union(newSet).toList();
+                });
+              }
+              await _loadData();
             },
           ),
         ],
@@ -436,7 +443,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 SizedBox(
                   width: 120.0,
                   child: Column(
-                    children: _employees.map((employee) {
+                    children: _employees.where((employee) => _selectedEmployeesForShift.isEmpty || _selectedEmployeesForShift.contains(employee.employeeId)).map((employee) {
                       return Container(
                         height: 60.0,
                         child: Row(
@@ -465,7 +472,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     controller: _horizontalController,
                     scrollDirection: Axis.horizontal,
                     child: Column(
-                      children: _employees.map((employee) {
+                      children: _employees.where((employee) => _selectedEmployeesForShift.isEmpty || _selectedEmployeesForShift.contains(employee.employeeId)).map((employee) {
                         return Container(
                           height: 60.0,
                           decoration: BoxDecoration(
