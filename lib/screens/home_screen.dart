@@ -21,6 +21,7 @@ class _HomeScreenState extends State<HomeScreen> {
   late DateTime _currentWeekStart;
   late DateTime _currentWeekEnd;
   final ScrollController _horizontalController = ScrollController();
+  final ScrollController _verticalController = ScrollController();
   List<Employee> _employees = [];
   List<Map<String, dynamic>> _shiftTimings = [];
   bool _showCalendar = false;
@@ -43,6 +44,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void dispose() {
     _horizontalController.dispose();
+    _verticalController.dispose();
     super.dispose();
   }
 
@@ -338,12 +340,12 @@ class _HomeScreenState extends State<HomeScreen> {
       children: [
         // Header Row
         SizedBox(
-          height: 50.0, // Changed to double
+          height: 50.0,
           child: Row(
             children: [
               // Fixed employee header
               Container(
-                width: 120.0, // Changed to double
+                width: 120.0,
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
                   color: Colors.red[100],
@@ -362,7 +364,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   controller: _horizontalController,
                   scrollDirection: Axis.horizontal,
                   child: Container(
-                    width: 100.0 * days.length, // Changed to double
+                    width: 100.0 * days.length,
                     decoration: BoxDecoration(
                       color: Colors.red[100],
                       border: Border(
@@ -375,8 +377,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           Duration(days: index),
                         );
                         return SizedBox(
-                          // Added SizedBox for explicit width
-                          width: 100.0, // Changed to double
+                          width: 100.0,
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
@@ -399,111 +400,99 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ),
 
-        // Employee Rows
+        // Employee Rows and Days Columns
         Expanded(
           child: SingleChildScrollView(
-            child: Column(
-              children: _employees.map((employee) {
-                return SizedBox(
-                  height: 60.0, // Changed to double
-                  child: Row(
-                    children: [
-                      // Fixed employee name column
-                      Container(
-                        width: 120.0, // Changed to double
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8.0,
-                        ), // Changed to double
+            controller: _verticalController,
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Fixed employee column (scrolls vertically)
+                SizedBox(
+                  width: 120.0,
+                  child: Column(
+                    children: _employees.map((employee) {
+                      return Container(
+                        height: 60.0,
                         alignment: Alignment.centerLeft,
+                        padding: const EdgeInsets.symmetric(horizontal: 8.0),
                         decoration: BoxDecoration(
                           border: Border(
                             bottom: BorderSide(color: Colors.grey.shade300),
                           ),
                         ),
                         child: Text(employee.name),
-                      ),
-
-                      // Scrollable days columns
-                      Expanded(
-                        child: SingleChildScrollView(
-                          controller: _horizontalController,
-                          scrollDirection: Axis.horizontal,
-                          physics: const NeverScrollableScrollPhysics(),
-                          child: Container(
-                            width: 100.0 * days.length, // Changed to double
-                            child: Row(
-                              children: List.generate(days.length, (dayIndex) {
-                                final day = days[dayIndex];
-                                final shift = _shiftTimings.firstWhere(
-                                  (st) =>
-                                      st['employee_id'] ==
-                                          employee.employeeId &&
-                                      st['day'].toString().toLowerCase() ==
-                                          day.toLowerCase(),
-                                  orElse: () => {},
-                                );
-
-                                final shiftName = shift['shift_name']
-                                    ?.toString();
-                                final startTime = shift['start_time']
-                                    ?.toString();
-                                final endTime = shift['end_time']?.toString();
-
-                                return InkWell(
-                                  onTap: () {
-                                    _showShiftDialog(employee.employeeId!, day);
-                                  },
-                                  child: SizedBox(
-                                    // Added SizedBox for explicit width
-                                    width: 100.0, // Changed to double
-                                    child: Padding(
-                                      // Changed from Container with padding to SizedBox + Padding
-                                      padding: const EdgeInsets.all(
-                                        4.0,
-                                      ), // Changed to double
-                                      child:
-                                          (shiftName != null &&
-                                              shiftName.isNotEmpty)
-                                          ? Container(
-                                              padding: const EdgeInsets.all(
-                                                4.0,
-                                              ), // Changed to double
-                                              decoration: BoxDecoration(
-                                                color: Colors.red[100],
-                                                borderRadius:
-                                                    BorderRadius.circular(
-                                                      4.0, // Changed to double
-                                                    ),
-                                              ),
-                                              child: Text(
-                                                [
-                                                  shiftName,
-                                                  if (startTime != null &&
-                                                      endTime != null)
-                                                    '$startTime-$endTime',
-                                                ].join('\n'),
-                                                textAlign: TextAlign.center,
-                                                style: const TextStyle(
-                                                  fontSize: 12.0,
-                                                ), // Changed to double
-                                              ),
-                                            )
-                                          : const Icon(
-                                              Icons.add,
-                                              size: 16.0,
-                                            ), // Changed to double
-                                    ),
-                                  ),
-                                );
-                              }),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
+                      );
+                    }).toList(),
                   ),
-                );
-              }).toList(),
+                ),
+
+                // Scrollable days columns (scrolls horizontally)
+                Expanded(
+                  child: SingleChildScrollView(
+                    controller: _horizontalController,
+                    scrollDirection: Axis.horizontal,
+                    child: Column(
+                      children: _employees.map((employee) {
+                        return SizedBox(
+                          height: 60.0,
+                          child: Row(
+                            children: List.generate(days.length, (dayIndex) {
+                              final day = days[dayIndex];
+                              final shift = _shiftTimings.firstWhere(
+                                (st) =>
+                                    st['employee_id'] == employee.employeeId &&
+                                    st['day'].toString().toLowerCase() ==
+                                        day.toLowerCase(),
+                                orElse: () => {},
+                              );
+
+                              final shiftName = shift['shift_name']?.toString();
+                              final startTime = shift['start_time']?.toString();
+                              final endTime = shift['end_time']?.toString();
+
+                              return InkWell(
+                                onTap: () {
+                                  _showShiftDialog(employee.employeeId!, day);
+                                },
+                                child: Container(
+                                  width: 100.0,
+                                  padding: const EdgeInsets.all(4.0),
+                                  decoration: BoxDecoration(
+                                    color: (shiftName != null && shiftName.isNotEmpty)
+                                        ? Colors.red[100]
+                                        : null,
+                                    border: Border(
+                                      bottom: BorderSide(color: Colors.grey.shade300),
+                                      right: BorderSide(color: Colors.grey.shade300),
+                                    ),
+                                    borderRadius: (shiftName != null && shiftName.isNotEmpty)
+                                        ? BorderRadius.circular(4.0)
+                                        : null,
+                                  ),
+                                  child: (shiftName != null && shiftName.isNotEmpty)
+                                      ? Text(
+                                          [
+                                            shiftName,
+                                            if (startTime != null && endTime != null)
+                                              '$startTime-$endTime',
+                                          ].join('\n'),
+                                          textAlign: TextAlign.center,
+                                          style: const TextStyle(
+                                            fontSize: 12.0,
+                                          ),
+                                        )
+                                      : const Icon(Icons.add, size: 16.0),
+                                ),
+                              );
+                            }),
+                          ),
+                        );
+                      }).toList(),
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
         ),
