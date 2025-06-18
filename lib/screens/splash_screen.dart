@@ -23,23 +23,24 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.red[700],
+      backgroundColor: Colors.white, // White background
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(
-              Icons.schedule,
-              size: 100,
-              color: Colors.white,
+            Image.asset(
+              'assets/shift.png',
+              width: 100,
+              height: 100,
+              fit: BoxFit.contain,
             ),
             const SizedBox(height: 20),
-            Text(
+            const Text(
               'Shiftly',
               style: TextStyle(
                 fontSize: 32,
                 fontWeight: FontWeight.bold,
-                color: Colors.white,
+                color: Colors.black, // Black text for contrast
               ),
             ),
           ],

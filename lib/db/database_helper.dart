@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
+import 'package:shiftly/models/employee.dart';
+
 
 class DatabaseHelper {
   static final DatabaseHelper _instance = DatabaseHelper._internal();
@@ -48,6 +50,27 @@ class DatabaseHelper {
         // Future migrations go here
       }
     }
+  }
+
+  // Insert employee with custom ID
+  Future<int> insertEmployeeWithId(int id, String name) async {
+    final db = await database;
+    return await db.insert(
+      'employees',
+      {'employee_id': id, 'name': name},
+      conflictAlgorithm: ConflictAlgorithm.replace, // in case ID already exists
+    );
+  }
+
+  // Update employee name (ID is fixed)
+  Future<int> updateEmployee(Employee employee) async {
+    final db = await database;
+    return await db.update(
+      'employees',
+      {'name': employee.name},
+      where: 'employee_id = ?',
+      whereArgs: [employee.employeeId],
+    );
   }
 
   Future<void> _createTables(Database db) async {
@@ -132,21 +155,22 @@ class DatabaseHelper {
   }) async {
     final db = await database;
 
-    await db.insert(
-      'shift_timings',
-      {
-        'employee_id': employeeId,
-        'day': day.toLowerCase(),
-        'week_start': weekStart,
-        'shift_name': shiftName,
-        'start_time': startTime,
-        'end_time': endTime,
-      },
-      conflictAlgorithm: ConflictAlgorithm.replace,
-    );
+    await db.insert('shift_timings', {
+      'employee_id': employeeId,
+      'day': day.toLowerCase(),
+      'week_start': weekStart,
+      'shift_name': shiftName,
+      'start_time': startTime,
+      'end_time': endTime,
+    }, conflictAlgorithm: ConflictAlgorithm.replace);
   }
 
-  Future<void> updateShiftTiming(int employeeId, String day, int weekStart, String shiftValue) async {
+  Future<void> updateShiftTiming(
+    int employeeId,
+    String day,
+    int weekStart,
+    String shiftValue,
+  ) async {
     final parts = shiftValue.split('|');
     final shiftName = parts[0];
     int startTimeMillis = 0;
@@ -164,10 +188,12 @@ class DatabaseHelper {
           final endHour = int.tryParse(endParts[0]) ?? 0;
           final endMinute = int.tryParse(endParts[1]) ?? 0;
 
-          final startDateTime = DateTime.fromMillisecondsSinceEpoch(weekStart)
-              .add(Duration(hours: startHour, minutes: startMinute));
-          final endDateTime = DateTime.fromMillisecondsSinceEpoch(weekStart)
-              .add(Duration(hours: endHour, minutes: endMinute));
+          final startDateTime = DateTime.fromMillisecondsSinceEpoch(
+            weekStart,
+          ).add(Duration(hours: startHour, minutes: startMinute));
+          final endDateTime = DateTime.fromMillisecondsSinceEpoch(
+            weekStart,
+          ).add(Duration(hours: endHour, minutes: endMinute));
 
           startTimeMillis = startDateTime.millisecondsSinceEpoch;
           endTimeMillis = endDateTime.millisecondsSinceEpoch;
@@ -207,7 +233,9 @@ class DatabaseHelper {
   // ───── Debug Tools ─────
   Future<void> debugPrintSchema() async {
     final db = await database;
-    final tables = await db.rawQuery("SELECT name FROM sqlite_master WHERE type='table'");
+    final tables = await db.rawQuery(
+      "SELECT name FROM sqlite_master WHERE type='table'",
+    );
     for (var table in tables) {
       final tableName = table['name'];
       final columns = await db.rawQuery("PRAGMA table_info($tableName)");
