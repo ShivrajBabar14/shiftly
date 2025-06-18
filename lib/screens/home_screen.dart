@@ -187,30 +187,55 @@ class _HomeScreenState extends State<HomeScreen> {
                   onPressed: () => Navigator.pop(context),
                   child: const Text('Cancel'),
                 ),
-                ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.red[700],
+                  ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.red[700],
+                    ),
+                    onPressed: () async {
+                      if ((shiftNameController.text).trim().isNotEmpty) {
+                        int startTimeMillis = 0;
+                        int endTimeMillis = 0;
+
+                        if (startTime != null) {
+                          final startDateTime = DateTime(
+                            _selectedDay.year,
+                            _selectedDay.month,
+                            _selectedDay.day,
+                            startTime!.hour,
+                            startTime!.minute,
+                          );
+                          startTimeMillis = startDateTime.millisecondsSinceEpoch;
+                        }
+
+                        if (endTime != null) {
+                          final endDateTime = DateTime(
+                            _selectedDay.year,
+                            _selectedDay.month,
+                            _selectedDay.day,
+                            endTime!.hour,
+                            endTime!.minute,
+                          );
+                          endTimeMillis = endDateTime.millisecondsSinceEpoch;
+                        }
+
+                        await _dbHelper.insertOrUpdateShift(
+                          employeeId: employeeId,
+                          day: day.toLowerCase(),
+                          weekStart: weekStart,
+                          shiftName: shiftNameController.text.trim(),
+                          startTime: startTimeMillis,
+                          endTime: endTimeMillis,
+                        );
+                        await _loadData();
+                        if (!mounted) return;
+                        Navigator.pop(context);
+                      }
+                    },
+                    child: const Text(
+                      'Save',
+                      style: TextStyle(color: Colors.white),
+                    ),
                   ),
-                  onPressed: () async {
-                    if ((shiftNameController.text).trim().isNotEmpty) {
-                      await _dbHelper.insertOrUpdateShift(
-                        employeeId: employeeId,
-                        day: day.toLowerCase(),
-                        weekStart: weekStart,
-                        shiftName: shiftNameController.text.trim(),
-                        startTime: startTimeStr ?? '',
-                        endTime: endTimeStr ?? '',
-                      );
-                      await _loadData();
-                      if (!mounted) return;
-                      Navigator.pop(context);
-                    }
-                  },
-                  child: const Text(
-                    'Save',
-                    style: TextStyle(color: Colors.white),
-                  ),
-                ),
               ],
             );
           },
@@ -414,14 +439,21 @@ class _HomeScreenState extends State<HomeScreen> {
                     children: _employees.map((employee) {
                       return Container(
                         height: 60.0,
-                        alignment: Alignment.centerLeft,
-                        padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                        child: Row(
+                          children: [
+                            Container(
+                              width: 120.0,
+                              alignment: Alignment.centerLeft,
+                              padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                              child: Text(employee.name),
+                            ),
+                          ],
+                        ),
                         decoration: BoxDecoration(
                           border: Border(
-                            bottom: BorderSide(color: Colors.grey.shade300),
+                            bottom: BorderSide(color: Colors.grey.shade300, width: 1.0),
                           ),
                         ),
-                        child: Text(employee.name),
                       );
                     }).toList(),
                   ),
@@ -434,8 +466,13 @@ class _HomeScreenState extends State<HomeScreen> {
                     scrollDirection: Axis.horizontal,
                     child: Column(
                       children: _employees.map((employee) {
-                        return SizedBox(
+                        return Container(
                           height: 60.0,
+                          decoration: BoxDecoration(
+                            border: Border(
+                              bottom: BorderSide(color: Colors.grey.shade300, width: 1.0),
+                            ),
+                          ),
                           child: Row(
                             children: List.generate(days.length, (dayIndex) {
                               final day = days[dayIndex];
@@ -448,8 +485,19 @@ class _HomeScreenState extends State<HomeScreen> {
                               );
 
                               final shiftName = shift['shift_name']?.toString();
-                              final startTime = shift['start_time']?.toString();
-                              final endTime = shift['end_time']?.toString();
+                              final startTimeMillis = shift['start_time'];
+                              final endTimeMillis = shift['end_time'];
+
+                              String formatTime(int? millis) {
+                                if (millis == null) return '';
+                                final dt = DateTime.fromMillisecondsSinceEpoch(millis);
+                                final hour = dt.hour.toString().padLeft(2, '0');
+                                final minute = dt.minute.toString().padLeft(2, '0');
+                                return '$hour:$minute';
+                              }
+
+                              final startTime = formatTime(startTimeMillis);
+                              final endTime = formatTime(endTimeMillis);
 
                               return InkWell(
                                 onTap: () {
@@ -462,10 +510,6 @@ class _HomeScreenState extends State<HomeScreen> {
                                     color: (shiftName != null && shiftName.isNotEmpty)
                                         ? Colors.red[100]
                                         : null,
-                                    border: Border(
-                                      bottom: BorderSide(color: Colors.grey.shade300),
-                                      right: BorderSide(color: Colors.grey.shade300),
-                                    ),
                                     borderRadius: (shiftName != null && shiftName.isNotEmpty)
                                         ? BorderRadius.circular(4.0)
                                         : null,
@@ -474,7 +518,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                       ? Text(
                                           [
                                             shiftName,
-                                            if (startTime != null && endTime != null)
+                                            if (startTime.isNotEmpty && endTime.isNotEmpty)
                                               '$startTime-$endTime',
                                           ].join('\n'),
                                           textAlign: TextAlign.center,

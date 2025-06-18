@@ -20,7 +20,7 @@ class DatabaseHelper {
     final path = join(await getDatabasesPath(), 'shiftly.db');
 
     // ❗ Uncomment the next line during development to reset DB if issues occur
-    // await deleteDatabase(path);
+    await deleteDatabase(path);
 
     return await openDatabase(
       path,
@@ -65,8 +65,8 @@ class DatabaseHelper {
         day TEXT NOT NULL,
         week_start INTEGER NOT NULL,
         shift_name TEXT,
-        start_time TEXT,
-        end_time TEXT,
+        start_time INTEGER,
+        end_time INTEGER,
         FOREIGN KEY (employee_id) REFERENCES employees (employee_id) ON DELETE CASCADE,
         UNIQUE(employee_id, day, week_start) ON CONFLICT REPLACE
       )
@@ -84,15 +84,10 @@ class DatabaseHelper {
 
   Future<void> _migrateToVersion2(Database db) async {
     try {
-      // Add week_start column if needed
-      final columns = await db.rawQuery("PRAGMA table_info(shift_timings)");
-      final columnNames = columns.map((e) => e['name']).toList();
-
-      if (!columnNames.contains('week_start')) {
-        await db.execute('ALTER TABLE shift_timings ADD COLUMN week_start INTEGER DEFAULT 0');
-      }
+      // Drop and recreate shift_timings table to update schema for start_time and end_time as INTEGER
+      await db.execute('DROP TABLE IF EXISTS shift_timings');
+      await _createTables(db);
     } catch (e) {
-      // If migration fails, recreate
       print('Migration to v2 failed: $e — recreating tables.');
       await db.execute('DROP TABLE IF EXISTS shift_timings');
       await _createTables(db);
@@ -132,8 +127,8 @@ class DatabaseHelper {
     required String day,
     required int weekStart,
     required String shiftName,
-    required String startTime,
-    required String endTime,
+    required int startTime,
+    required int endTime,
   }) async {
     final db = await database;
 
@@ -154,14 +149,29 @@ class DatabaseHelper {
   Future<void> updateShiftTiming(int employeeId, String day, int weekStart, String shiftValue) async {
     final parts = shiftValue.split('|');
     final shiftName = parts[0];
-    String startTime = '';
-    String endTime = '';
+    int startTimeMillis = 0;
+    int endTimeMillis = 0;
 
     if (parts.length > 1 && parts[1].contains('-')) {
       final timeParts = parts[1].split('-');
       if (timeParts.length == 2) {
-        startTime = timeParts[0];
-        endTime = timeParts[1];
+        // Parse start and end time strings "HH:mm" to milliseconds since epoch for the weekStart day
+        final startParts = timeParts[0].split(':');
+        final endParts = timeParts[1].split(':');
+        if (startParts.length == 2 && endParts.length == 2) {
+          final startHour = int.tryParse(startParts[0]) ?? 0;
+          final startMinute = int.tryParse(startParts[1]) ?? 0;
+          final endHour = int.tryParse(endParts[0]) ?? 0;
+          final endMinute = int.tryParse(endParts[1]) ?? 0;
+
+          final startDateTime = DateTime.fromMillisecondsSinceEpoch(weekStart)
+              .add(Duration(hours: startHour, minutes: startMinute));
+          final endDateTime = DateTime.fromMillisecondsSinceEpoch(weekStart)
+              .add(Duration(hours: endHour, minutes: endMinute));
+
+          startTimeMillis = startDateTime.millisecondsSinceEpoch;
+          endTimeMillis = endDateTime.millisecondsSinceEpoch;
+        }
       }
     }
 
@@ -170,8 +180,8 @@ class DatabaseHelper {
       day: day.toLowerCase(),
       weekStart: weekStart,
       shiftName: shiftName,
-      startTime: startTime,
-      endTime: endTime,
+      startTime: startTimeMillis,
+      endTime: endTimeMillis,
     );
   }
 
