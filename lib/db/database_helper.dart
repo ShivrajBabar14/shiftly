@@ -20,7 +20,7 @@ class DatabaseHelper {
     final path = join(await getDatabasesPath(), 'shiftly.db');
 
     // ❗ Uncomment the next line during development to reset DB if issues occur
-    await deleteDatabase(path);
+    // await deleteDatabase(path);
 
     return await openDatabase(
       path,
