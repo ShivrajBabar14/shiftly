@@ -129,13 +129,20 @@ class _HomeScreenState extends State<HomeScreen> {
         return StatefulBuilder(
           builder: (context, setState) {
             return AlertDialog(
+              backgroundColor: Colors.white,
               title: Text('${employee.name} - ${day.toUpperCase()}'),
               content: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   TextField(
-                    decoration: const InputDecoration(labelText: 'Shift Name'),
+                    decoration: const InputDecoration(
+                      labelText: 'Shift Name',
+                      focusedBorder: UnderlineInputBorder(
+                        borderSide: BorderSide(color: Colors.red),
+                      ),
+                    ),
                     controller: shiftNameController,
+                    cursorColor: Colors.red,
                     onChanged: (value) => shiftName = value,
                   ),
                   const SizedBox(height: 16),
@@ -186,89 +193,63 @@ class _HomeScreenState extends State<HomeScreen> {
               actions: [
                 TextButton(
                   onPressed: () => Navigator.pop(context),
-                  child: const Text('Cancel'),
+                  child: const Text('Cancel', style: TextStyle(color: Colors.black),),
                 ),
-                  ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.red[700],
-                    ),
-                    onPressed: () async {
-                      if ((shiftNameController.text).trim().isNotEmpty) {
-                        int startTimeMillis = 0;
-                        int endTimeMillis = 0;
-
-                        if (startTime != null) {
-                          final startDateTime = DateTime(
-                            _selectedDay.year,
-                            _selectedDay.month,
-                            _selectedDay.day,
-                            startTime!.hour,
-                            startTime!.minute,
-                          );
-                          startTimeMillis = startDateTime.millisecondsSinceEpoch;
-                        }
-
-                        if (endTime != null) {
-                          final endDateTime = DateTime(
-                            _selectedDay.year,
-                            _selectedDay.month,
-                            _selectedDay.day,
-                            endTime!.hour,
-                            endTime!.minute,
-                          );
-                          endTimeMillis = endDateTime.millisecondsSinceEpoch;
-                        }
-
-                        await _dbHelper.insertOrUpdateShift(
-                          employeeId: employeeId,
-                          day: day.toLowerCase(),
-                          weekStart: weekStart,
-                          shiftName: shiftNameController.text.trim(),
-                          startTime: startTimeMillis,
-                          endTime: endTimeMillis,
-                        );
-                        await _loadData();
-                        if (!mounted) return;
-                        Navigator.pop(context);
-                      }
-                    },
-                    child: const Text(
-                      'Save',
-                      style: TextStyle(color: Colors.white),
-                    ),
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.red[700],
                   ),
+                  onPressed: () async {
+                    if ((shiftNameController.text).trim().isNotEmpty) {
+                      int startTimeMillis = 0;
+                      int endTimeMillis = 0;
+
+                      if (startTime != null) {
+                        final startDateTime = DateTime(
+                          _selectedDay.year,
+                          _selectedDay.month,
+                          _selectedDay.day,
+                          startTime!.hour,
+                          startTime!.minute,
+                        );
+                        startTimeMillis = startDateTime.millisecondsSinceEpoch;
+                      }
+
+                      if (endTime != null) {
+                        final endDateTime = DateTime(
+                          _selectedDay.year,
+                          _selectedDay.month,
+                          _selectedDay.day,
+                          endTime!.hour,
+                          endTime!.minute,
+                        );
+                        endTimeMillis = endDateTime.millisecondsSinceEpoch;
+                      }
+
+                      await _dbHelper.insertOrUpdateShift(
+                        employeeId: employeeId,
+                        day: day.toLowerCase(),
+                        weekStart: weekStart,
+                        shiftName: shiftNameController.text.trim(),
+                        startTime: startTimeMillis,
+                        endTime: endTimeMillis,
+                      );
+                      await _loadData();
+                      if (!mounted) return;
+                      Navigator.pop(context);
+                    }
+                  },
+                  child: const Text(
+                    'Save',
+                    style: TextStyle(color: Colors.white),
+                  ),
+                ),
               ],
             );
           },
         );
       },
     );
-  }
-
-  String? _getShiftForEmployeeDay(int employeeId, String day) {
-    try {
-      final shift = _shiftTimings.firstWhere(
-        (st) =>
-            st['employee_id'] == employeeId && st['day'] == day.toLowerCase(),
-      );
-
-      final shiftName = shift['shift_name']?.toString();
-      final startTime = shift['start_time']?.toString();
-      final endTime = shift['end_time']?.toString();
-
-      if (shiftName == null) return null;
-
-      if (startTime != null &&
-          startTime.isNotEmpty &&
-          endTime != null &&
-          endTime.isNotEmpty) {
-        return '$shiftName|$startTime-$endTime';
-      } else {
-        return shiftName;
-      }
-    } catch (e) {
-      return null;
-    }
   }
 
   @override
@@ -291,7 +272,9 @@ class _HomeScreenState extends State<HomeScreen> {
                 setState(() {
                   final currentSet = _selectedEmployeesForShift.toSet();
                   final newSet = selectedEmployees.toSet();
-                  _selectedEmployeesForShift = currentSet.union(newSet).toList();
+                  _selectedEmployeesForShift = currentSet
+                      .union(newSet)
+                      .toList();
                 });
               }
               await _loadData();
@@ -443,26 +426,40 @@ class _HomeScreenState extends State<HomeScreen> {
                 SizedBox(
                   width: 120.0,
                   child: Column(
-                    children: _employees.where((employee) => _selectedEmployeesForShift.isEmpty || _selectedEmployeesForShift.contains(employee.employeeId)).map((employee) {
-                      return Container(
-                        height: 60.0,
-                        child: Row(
-                          children: [
-                            Container(
-                              width: 120.0,
-                              alignment: Alignment.centerLeft,
-                              padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                              child: Text(employee.name),
+                    children: _employees
+                        .where(
+                          (employee) =>
+                              _selectedEmployeesForShift.isEmpty ||
+                              _selectedEmployeesForShift.contains(
+                                employee.employeeId,
+                              ),
+                        )
+                        .map((employee) {
+                          return Container(
+                            height: 60.0,
+                            child: Row(
+                              children: [
+                                Container(
+                                  width: 120.0,
+                                  alignment: Alignment.centerLeft,
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 8.0,
+                                  ),
+                                  child: Text(employee.name),
+                                ),
+                              ],
                             ),
-                          ],
-                        ),
-                        decoration: BoxDecoration(
-                          border: Border(
-                            bottom: BorderSide(color: Colors.grey.shade300, width: 1.0),
-                          ),
-                        ),
-                      );
-                    }).toList(),
+                            decoration: BoxDecoration(
+                              border: Border(
+                                bottom: BorderSide(
+                                  color: Colors.grey.shade300,
+                                  width: 1.0,
+                                ),
+                              ),
+                            ),
+                          );
+                        })
+                        .toList(),
                   ),
                 ),
 
@@ -472,74 +469,109 @@ class _HomeScreenState extends State<HomeScreen> {
                     controller: _horizontalController,
                     scrollDirection: Axis.horizontal,
                     child: Column(
-                      children: _employees.where((employee) => _selectedEmployeesForShift.isEmpty || _selectedEmployeesForShift.contains(employee.employeeId)).map((employee) {
-                        return Container(
-                          height: 60.0,
-                          decoration: BoxDecoration(
-                            border: Border(
-                              bottom: BorderSide(color: Colors.grey.shade300, width: 1.0),
-                            ),
-                          ),
-                          child: Row(
-                            children: List.generate(days.length, (dayIndex) {
-                              final day = days[dayIndex];
-                              final shift = _shiftTimings.firstWhere(
-                                (st) =>
-                                    st['employee_id'] == employee.employeeId &&
-                                    st['day'].toString().toLowerCase() ==
-                                        day.toLowerCase(),
-                                orElse: () => {},
-                              );
-
-                              final shiftName = shift['shift_name']?.toString();
-                              final startTimeMillis = shift['start_time'];
-                              final endTimeMillis = shift['end_time'];
-
-                              String formatTime(int? millis) {
-                                if (millis == null) return '';
-                                final dt = DateTime.fromMillisecondsSinceEpoch(millis);
-                                final hour = dt.hour.toString().padLeft(2, '0');
-                                final minute = dt.minute.toString().padLeft(2, '0');
-                                return '$hour:$minute';
-                              }
-
-                              final startTime = formatTime(startTimeMillis);
-                              final endTime = formatTime(endTimeMillis);
-
-                              return InkWell(
-                                onTap: () {
-                                  _showShiftDialog(employee.employeeId!, day);
-                                },
-                                child: Container(
-                                  width: 100.0,
-                                  padding: const EdgeInsets.all(4.0),
-                                  decoration: BoxDecoration(
-                                    color: (shiftName != null && shiftName.isNotEmpty)
-                                        ? Colors.red[100]
-                                        : null,
-                                    borderRadius: (shiftName != null && shiftName.isNotEmpty)
-                                        ? BorderRadius.circular(4.0)
-                                        : null,
-                                  ),
-                                  child: (shiftName != null && shiftName.isNotEmpty)
-                                      ? Text(
-                                          [
-                                            shiftName,
-                                            if (startTime.isNotEmpty && endTime.isNotEmpty)
-                                              '$startTime-$endTime',
-                                          ].join('\n'),
-                                          textAlign: TextAlign.center,
-                                          style: const TextStyle(
-                                            fontSize: 12.0,
-                                          ),
-                                        )
-                                      : const Icon(Icons.add, size: 16.0),
+                      children: _employees
+                          .where(
+                            (employee) =>
+                                _selectedEmployeesForShift.isEmpty ||
+                                _selectedEmployeesForShift.contains(
+                                  employee.employeeId,
                                 ),
-                              );
-                            }),
-                          ),
-                        );
-                      }).toList(),
+                          )
+                          .map((employee) {
+                            return Container(
+                              height: 60.0,
+                              decoration: BoxDecoration(
+                                border: Border(
+                                  bottom: BorderSide(
+                                    color: Colors.grey.shade300,
+                                    width: 1.0,
+                                  ),
+                                ),
+                              ),
+                              child: Row(
+                                children: List.generate(days.length, (
+                                  dayIndex,
+                                ) {
+                                  final day = days[dayIndex];
+                                  final shift = _shiftTimings.firstWhere(
+                                    (st) =>
+                                        st['employee_id'] ==
+                                            employee.employeeId &&
+                                        st['day'].toString().toLowerCase() ==
+                                            day.toLowerCase(),
+                                    orElse: () => {},
+                                  );
+
+                                  final shiftName = shift['shift_name']
+                                      ?.toString();
+                                  final startTimeMillis = shift['start_time'];
+                                  final endTimeMillis = shift['end_time'];
+
+                                  String formatTime(int? millis) {
+                                    if (millis == null) return '';
+                                    final dt =
+                                        DateTime.fromMillisecondsSinceEpoch(
+                                          millis,
+                                        );
+                                    final hour = dt.hour.toString().padLeft(
+                                      2,
+                                      '0',
+                                    );
+                                    final minute = dt.minute.toString().padLeft(
+                                      2,
+                                      '0',
+                                    );
+                                    return '$hour:$minute';
+                                  }
+
+                                  final startTime = formatTime(startTimeMillis);
+                                  final endTime = formatTime(endTimeMillis);
+
+                                  return InkWell(
+                                    onTap: () {
+                                      _showShiftDialog(
+                                        employee.employeeId!,
+                                        day,
+                                      );
+                                    },
+                                    child: Container(
+                                      width: 100.0,
+                                      padding: const EdgeInsets.all(4.0),
+                                      decoration: BoxDecoration(
+                                        color:
+                                            (shiftName != null &&
+                                                shiftName.isNotEmpty)
+                                            ? Colors.red[100]
+                                            : null,
+                                        borderRadius:
+                                            (shiftName != null &&
+                                                shiftName.isNotEmpty)
+                                            ? BorderRadius.circular(4.0)
+                                            : null,
+                                      ),
+                                      child:
+                                          (shiftName != null &&
+                                              shiftName.isNotEmpty)
+                                          ? Text(
+                                              [
+                                                shiftName,
+                                                if (startTime.isNotEmpty &&
+                                                    endTime.isNotEmpty)
+                                                  '$startTime-$endTime',
+                                              ].join('\n'),
+                                              textAlign: TextAlign.center,
+                                              style: const TextStyle(
+                                                fontSize: 12.0,
+                                              ),
+                                            )
+                                          : const Icon(Icons.add, size: 16.0),
+                                    ),
+                                  );
+                                }),
+                              ),
+                            );
+                          })
+                          .toList(),
                     ),
                   ),
                 ),

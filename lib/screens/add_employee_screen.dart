@@ -44,8 +44,14 @@ class _AddEmployeeScreenState extends State<AddEmployeeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Add Employee', style: TextStyle(color: Colors.white),),
+        title: const Text(
+          'Add Employee',
+          style: TextStyle(color: Colors.white),
+        ),
         backgroundColor: Colors.red[700],
+        iconTheme: const IconThemeData(
+          color: Colors.white, // Sets back arrow color to white
+        ),
       ),
       body: Column(
         children: [
@@ -56,20 +62,40 @@ class _AddEmployeeScreenState extends State<AddEmployeeScreen> {
                 Expanded(
                   child: TextField(
                     controller: _nameController,
+                    cursorColor: Colors.red, // Cursor color
                     decoration: const InputDecoration(
                       labelText: 'Employee Name',
-                      border: OutlineInputBorder(),
+                      labelStyle: TextStyle(
+                        color: Colors.grey,
+                      ), // Default label color
+                      focusedBorder: UnderlineInputBorder(
+                        borderSide: BorderSide(
+                          color: Colors.red,
+                        ), // Active bottom border
+                      ),
+                      enabledBorder: UnderlineInputBorder(
+                        borderSide: BorderSide(
+                          color: Colors.grey,
+                        ), // Default bottom border
+                      ),
+                      floatingLabelStyle: TextStyle(
+                        color: Colors.red,
+                      ), // Active label color
                     ),
                     onSubmitted: _addEmployee,
                   ),
                 ),
+
                 const SizedBox(width: 8),
                 ElevatedButton(
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.red[700],
                   ),
                   onPressed: () => _addEmployee(_nameController.text),
-                  child: const Text('Add', style: TextStyle(color: Colors.white)),
+                  child: const Text(
+                    'Add',
+                    style: TextStyle(color: Colors.white),
+                  ),
                 ),
               ],
             ),
@@ -83,6 +109,7 @@ class _AddEmployeeScreenState extends State<AddEmployeeScreen> {
                   title: Text(employee.name),
                   subtitle: Text('ID: ${employee.employeeId}'),
                   value: _selectedEmployees.contains(employee.employeeId),
+                  activeColor: Colors.red,
                   onChanged: (bool? value) {
                     setState(() {
                       if (value == true) {
