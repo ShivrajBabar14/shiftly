@@ -493,9 +493,10 @@ class _HomeScreenState extends State<HomeScreen> {
               // Fixed Employee Header
               Container(
                 width: 100.0,
-                alignment: Alignment.center,
+                alignment: Alignment.centerLeft,
+                padding: const EdgeInsets.symmetric(horizontal: 8.0),
                 decoration: BoxDecoration(
-                  color: Colors.deepPurple,
+                  color: Colors.deepPurple[300],
                   border: Border(
                     bottom: BorderSide(color: Colors.grey.shade300),
                   ),
@@ -517,7 +518,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   child: Container(
                     width: tableWidth,
                     decoration: BoxDecoration(
-                      color: Colors.deepPurple,
+                      color: Colors.deepPurple[300],
                       border: Border(
                         bottom: BorderSide(color: Colors.grey.shade300),
                       ),
