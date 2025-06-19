@@ -143,18 +143,17 @@ class _AddEmployeeScreenState extends State<AddEmployeeScreen> {
       context: context,
       builder: (_) {
         return AlertDialog(
-          title: const Text(
-            'Update Employee',
-            style: TextStyle(fontSize: 18), // Reduced title size
-          ),
+          title: const Text('Update Employee', style: TextStyle(fontSize: 18)),
           content: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 400), // Wider dialog
+            constraints: const BoxConstraints(maxWidth: 400),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
                 TextField(
                   controller: idController,
                   keyboardType: TextInputType.number,
+                  readOnly:
+                      true, // Make ID read-only since we shouldn't change it
                   decoration: const InputDecoration(labelText: 'Employee ID'),
                 ),
                 TextField(
@@ -169,20 +168,46 @@ class _AddEmployeeScreenState extends State<AddEmployeeScreen> {
               onPressed: () async {
                 final updatedName = nameController.text.trim();
                 if (updatedName.isNotEmpty) {
-                  await _dbHelper.updateEmployee(
-                    Employee(
-                      employeeId: employee.employeeId,
-                      name: updatedName,
-                    ),
+                  // Show loading indicator
+                  showDialog(
+                    context: context,
+                    barrierDismissible: false,
+                    builder: (context) =>
+                        const Center(child: CircularProgressIndicator()),
                   );
-                  Navigator.pop(context);
-                  await _loadEmployees();
+
+                  try {
+                    await _dbHelper.updateEmployee(
+                      Employee(
+                        employeeId: employee.employeeId,
+                        name: updatedName,
+                      ),
+                    );
+
+                    // Close both dialogs
+                    Navigator.of(
+                      context,
+                      rootNavigator: true,
+                    ).pop(); // Loading dialog
+                    Navigator.of(
+                      context,
+                      rootNavigator: true,
+                    ).pop(); // Update dialog
+
+                    // Refresh the list
+                    await _loadEmployees();
+                  } catch (e) {
+                    Navigator.of(
+                      context,
+                      rootNavigator: true,
+                    ).pop(); // Loading dialog
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Error updating employee: $e')),
+                    );
+                  }
                 }
               },
-              child: const Text(
-                'Update',
-                style: TextStyle(fontSize: 18), // Bigger Update button text
-              ),
+              child: const Text('Update', style: TextStyle(fontSize: 18)),
             ),
           ],
         );
@@ -194,31 +219,35 @@ class _AddEmployeeScreenState extends State<AddEmployeeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        titleSpacing: 0, // Aligns title right next to back arrow
+        titleSpacing: 0,
         leadingWidth: 40,
-        title: const Text(
-          'Add Employee',
-          style: TextStyle(
-            color: Colors.deepPurple,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
         backgroundColor: Colors.white,
         iconTheme: const IconThemeData(color: Colors.deepPurple),
+        title: Align(
+          alignment: Alignment.centerLeft,
+          child: const Text(
+            'Add Employee',
+            style: TextStyle(
+              color: Colors.deepPurple,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ),
       ),
       body: ListView.builder(
         itemCount: _employees.length,
         itemBuilder: (context, index) {
           final employee = _employees[index];
-          return GestureDetector(
-            onTap: () => _updateEmployeeDialog(employee),
-            onLongPress: () => _showDeleteEmployeeDialog(employee.employeeId!),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20.0),
+          return Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20.0),
+            child: InkWell(
+              onTap: () => _updateEmployeeDialog(employee),
+              onLongPress: () =>
+                  _showDeleteEmployeeDialog(employee.employeeId!),
               child: Column(
                 children: [
                   Container(
-                    alignment: Alignment.centerLeft,
+                    width: double.infinity, // Ensures full width
                     padding: const EdgeInsets.symmetric(vertical: 12.0),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,

@@ -44,10 +44,14 @@ class _SelectEmployeeForShiftScreenState
       .where((employee) => _selectedEmployeeIds.contains(employee.employeeId))
       .toList();
 
+  // Calculate start of the week (Monday) timestamp normalized to midnight
+  DateTime now = DateTime.now();
+  DateTime startOfWeek = DateTime(now.year, now.month, now.day)
+      .subtract(Duration(days: now.weekday - 1));
+  final int weekStart = startOfWeek.millisecondsSinceEpoch;
+
   // Example shift values — replace these with actual inputs as needed
   const String day = 'monday';
-  final int weekStart =
-      DateTime.now().millisecondsSinceEpoch; // Should be start of the week
   const String shiftName = 'Morning Shift';
   const int startTime =
       9 * 60 * 60 * 1000; // 9:00 AM in milliseconds from midnight
@@ -78,15 +82,18 @@ class _SelectEmployeeForShiftScreenState
       appBar: AppBar(
         titleSpacing: 0,
         leadingWidth: 40,
-        title: const Text(
-          'Select Employees',
-          style: TextStyle(
-            color: Colors.deepPurple,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
         backgroundColor: Colors.white,
         iconTheme: const IconThemeData(color: Colors.deepPurple),
+        title: Align(
+          alignment: Alignment.centerLeft,
+          child: const Text(
+            'Select Employee',
+            style: TextStyle(
+              color: Colors.deepPurple,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ),
       ),
       body: ListView.builder(
         itemCount: _employees.length,
