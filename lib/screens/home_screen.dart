@@ -499,6 +499,10 @@ class _HomeScreenState extends State<HomeScreen> {
                   color: Colors.deepPurple[300],
                   border: Border(
                     bottom: BorderSide(color: Colors.grey.shade300),
+                    right: BorderSide(
+                      color: Colors.grey.shade300,
+                      width: 1.0,
+                    ), // Added vertical divider
                   ),
                 ),
                 child: const Text(
@@ -532,7 +536,10 @@ class _HomeScreenState extends State<HomeScreen> {
                           width: cellWidth,
                           decoration: BoxDecoration(
                             border: Border(
-                              right: BorderSide(color: Colors.grey.shade300),
+                              right: BorderSide(
+                                color: Colors.grey.shade300,
+                                width: 1.0, // Continuous vertical divider
+                              ),
                             ),
                           ),
                           child: Column(
@@ -563,33 +570,74 @@ class _HomeScreenState extends State<HomeScreen> {
 
         // Employee Rows and Shift Cells
         Expanded(
-          child: SingleChildScrollView(
-            controller: _verticalController,
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Fixed Employee Column
-                SizedBox(
-                  width: 100.0,
-                  child: Column(
-                    children: _employees
-                        .where(
-                          (employee) =>
-                              _selectedEmployeesForShift.isEmpty ||
-                              _selectedEmployeesForShift.contains(
-                                employee.employeeId,
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Fixed Employee Column
+              SizedBox(
+                width: 100.0,
+                child: ListView(
+                  controller: _verticalController,
+                  children: _employees
+                      .where(
+                        (employee) =>
+                            _selectedEmployeesForShift.isEmpty ||
+                            _selectedEmployeesForShift.contains(
+                              employee.employeeId,
+                            ),
+                      )
+                      .map((employee) {
+                        return GestureDetector(
+                          onLongPress: () =>
+                              _showDeleteEmployeeDialog(employee.employeeId!),
+                          child: Container(
+                            height: rowHeight,
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8.0,
+                            ),
+                            alignment: Alignment.centerLeft,
+                            decoration: BoxDecoration(
+                              border: Border(
+                                bottom: BorderSide(color: Colors.grey.shade300),
+                                right: BorderSide(
+                                  // Added vertical divider
+                                  color: Colors.grey.shade300,
+                                  width: 1.0,
+                                ),
                               ),
-                        )
-                        .map((employee) {
-                          return GestureDetector(
-                            onLongPress: () =>
-                                _showDeleteEmployeeDialog(employee.employeeId!),
-                            child: Container(
+                            ),
+                            child: Text(
+                              employee.name,
+                              style: const TextStyle(fontSize: 14.0),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        );
+                      })
+                      .toList(),
+                ),
+              ),
+
+              // Scrollable Shift Cells
+              Expanded(
+                child: SingleChildScrollView(
+                  controller: _horizontalController,
+                  scrollDirection: Axis.horizontal,
+                  child: SizedBox(
+                    width: tableWidth,
+                    child: ListView(
+                      controller: _verticalController,
+                      children: _employees
+                          .where(
+                            (employee) =>
+                                _selectedEmployeesForShift.isEmpty ||
+                                _selectedEmployeesForShift.contains(
+                                  employee.employeeId,
+                                ),
+                          )
+                          .map((employee) {
+                            return Container(
                               height: rowHeight,
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 8.0,
-                              ),
-                              alignment: Alignment.centerLeft,
                               decoration: BoxDecoration(
                                 border: Border(
                                   bottom: BorderSide(
@@ -597,138 +645,96 @@ class _HomeScreenState extends State<HomeScreen> {
                                   ),
                                 ),
                               ),
-                              child: Text(
-                                employee.name,
-                                style: const TextStyle(fontSize: 14.0),
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                          );
-                        })
-                        .toList(),
-                  ),
-                ),
+                              child: Row(
+                                children: List.generate(days.length, (
+                                  dayIndex,
+                                ) {
+                                  final day = days[dayIndex];
+                                  final shift = _shiftTimings.firstWhere(
+                                    (st) =>
+                                        st['employee_id'] ==
+                                            employee.employeeId &&
+                                        st['day'].toString().toLowerCase() ==
+                                            day.toLowerCase(),
+                                    orElse: () => {},
+                                  );
 
-                // Scrollable Shift Cells
-                Expanded(
-                  child: SingleChildScrollView(
-                    controller: _horizontalController,
-                    scrollDirection: Axis.horizontal,
-                    child: SizedBox(
-                      width: tableWidth,
-                      child: Column(
-                        children: _employees
-                            .where(
-                              (employee) =>
-                                  _selectedEmployeesForShift.isEmpty ||
-                                  _selectedEmployeesForShift.contains(
-                                    employee.employeeId,
-                                  ),
-                            )
-                            .map((employee) {
-                              return Container(
-                                height: rowHeight,
-                                decoration: BoxDecoration(
-                                  border: Border(
-                                    bottom: BorderSide(
-                                      color: Colors.grey.shade300,
-                                    ),
-                                  ),
-                                ),
-                                child: Row(
-                                  children: List.generate(days.length, (
-                                    dayIndex,
-                                  ) {
-                                    final day = days[dayIndex];
-                                    final shift = _shiftTimings.firstWhere(
-                                      (st) =>
-                                          st['employee_id'] ==
-                                              employee.employeeId &&
-                                          st['day'].toString().toLowerCase() ==
-                                              day.toLowerCase(),
-                                      orElse: () => {},
-                                    );
+                                  final shiftName = shift['shift_name']
+                                      ?.toString();
+                                  final startTimeMillis = shift['start_time'];
+                                  final endTimeMillis = shift['end_time'];
 
-                                    final shiftName = shift['shift_name']
-                                        ?.toString();
-                                    final startTimeMillis = shift['start_time'];
-                                    final endTimeMillis = shift['end_time'];
+                                  String formatTime(int? millis) {
+                                    if (millis == null) return '';
+                                    final dt =
+                                        DateTime.fromMillisecondsSinceEpoch(
+                                          millis,
+                                        );
+                                    return '${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
+                                  }
 
-                                    String formatTime(int? millis) {
-                                      if (millis == null) return '';
-                                      final dt =
-                                          DateTime.fromMillisecondsSinceEpoch(
-                                            millis,
-                                          );
-                                      return '${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
-                                    }
+                                  final startTime = formatTime(startTimeMillis);
+                                  final endTime = formatTime(endTimeMillis);
 
-                                    final startTime = formatTime(
-                                      startTimeMillis,
-                                    );
-                                    final endTime = formatTime(endTimeMillis);
-
-                                    return Container(
-                                      width: cellWidth,
-                                      decoration: BoxDecoration(
-                                        border: Border(
-                                          right: BorderSide(
-                                            color: Colors.grey.shade300,
-                                          ),
+                                  return Container(
+                                    width: cellWidth,
+                                    decoration: BoxDecoration(
+                                      border: Border(
+                                        right: BorderSide(
+                                          color: Colors.grey.shade300,
+                                          width:
+                                              1.0, // Continuous vertical divider
                                         ),
                                       ),
-                                      child: InkWell(
-                                        onTap: () {
-                                          _showShiftDialog(
-                                            employee.employeeId!,
-                                            day,
-                                          );
-                                        },
-                                        child: Container(
-                                          padding: const EdgeInsets.all(4.0),
-                                          decoration: BoxDecoration(
-                                            color:
-                                                (shiftName != null &&
-                                                    shiftName.isNotEmpty)
-                                                ? Colors.deepPurple[100]
-                                                : null,
-                                            borderRadius: BorderRadius.circular(
-                                              4.0,
-                                            ),
-                                          ),
-                                          child:
+                                    ),
+                                    child: InkWell(
+                                      onTap: () {
+                                        _showShiftDialog(
+                                          employee.employeeId!,
+                                          day,
+                                        );
+                                      },
+                                      child: Container(
+                                        padding: const EdgeInsets.all(4.0),
+                                        decoration: BoxDecoration(
+                                          color:
                                               (shiftName != null &&
                                                   shiftName.isNotEmpty)
-                                              ? Text(
-                                                  [
-                                                    shiftName,
-                                                    if (startTime.isNotEmpty &&
-                                                        endTime.isNotEmpty)
-                                                      '$startTime-$endTime',
-                                                  ].join('\n'),
-                                                  textAlign: TextAlign.center,
-                                                  style: const TextStyle(
-                                                    fontSize: 10.0,
-                                                  ),
-                                                )
-                                              : const Icon(
-                                                  Icons.add,
-                                                  size: 14.0,
-                                                ),
+                                              ? Colors.deepPurple[100]
+                                              : null,
+                                          borderRadius: BorderRadius.circular(
+                                            4.0,
+                                          ),
                                         ),
+                                        child:
+                                            (shiftName != null &&
+                                                shiftName.isNotEmpty)
+                                            ? Text(
+                                                [
+                                                  shiftName,
+                                                  if (startTime.isNotEmpty &&
+                                                      endTime.isNotEmpty)
+                                                    '$startTime-$endTime',
+                                                ].join('\n'),
+                                                textAlign: TextAlign.center,
+                                                style: const TextStyle(
+                                                  fontSize: 10.0,
+                                                ),
+                                              )
+                                            : const Icon(Icons.add, size: 14.0),
                                       ),
-                                    );
-                                  }),
-                                ),
-                              );
-                            })
-                            .toList(),
-                      ),
+                                    ),
+                                  );
+                                }),
+                              ),
+                            );
+                          })
+                          .toList(),
                     ),
                   ),
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ],
