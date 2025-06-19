@@ -179,7 +179,6 @@ class _HomeScreenState extends State<HomeScreen> {
         return StatefulBuilder(
           builder: (context, setState) {
             return AlertDialog(
-              backgroundColor: Colors.white,
               title: Text('${employee.name} - ${day.toUpperCase()}'),
               content: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -188,11 +187,11 @@ class _HomeScreenState extends State<HomeScreen> {
                     decoration: const InputDecoration(
                       labelText: 'Shift Name',
                       focusedBorder: UnderlineInputBorder(
-                        borderSide: BorderSide(color: Colors.red),
+                        borderSide: BorderSide(color: Colors.deepPurple),
                       ),
                     ),
                     controller: shiftNameController,
-                    cursorColor: Colors.red,
+                    cursorColor: Colors.deepPurple,
                     onChanged: (value) => shiftName = value,
                   ),
                   const SizedBox(height: 16),
@@ -250,7 +249,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
                 ElevatedButton(
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.red[700],
+                    backgroundColor: Colors.deepPurple[700],
                   ),
                   onPressed: () async {
                     if ((shiftNameController.text).trim().isNotEmpty) {
@@ -480,7 +479,6 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildShiftTable() {
     const List<String> days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
     final dateFormat = DateFormat('d');
-    const double minVisibleDays = 4;
     const double cellWidth = 75.0;
     const double rowHeight = 50.0;
     final double tableWidth = cellWidth * days.length;
