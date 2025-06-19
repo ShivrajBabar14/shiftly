@@ -12,7 +12,6 @@ class AddEmployeeScreen extends StatefulWidget {
 class _AddEmployeeScreenState extends State<AddEmployeeScreen> {
   final DatabaseHelper _dbHelper = DatabaseHelper();
   List<Employee> _employees = [];
-  final List<int> _selectedEmployees = [];
 
   @override
   void initState() {
@@ -40,20 +39,26 @@ class _AddEmployeeScreenState extends State<AddEmployeeScreen> {
       context: context,
       builder: (_) {
         return AlertDialog(
-          title: const Text('Add Employee'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: idController,
-                keyboardType: TextInputType.number,
-                decoration: const InputDecoration(labelText: 'Employee ID'),
-              ),
-              TextField(
-                controller: nameController,
-                decoration: const InputDecoration(labelText: 'Employee Name'),
-              ),
-            ],
+          title: const Text(
+            'Add Employee',
+            style: TextStyle(fontSize: 18), // Reduced text size
+          ),
+          content: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 400), // Wider dialog
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(
+                  controller: idController,
+                  keyboardType: TextInputType.number,
+                  decoration: const InputDecoration(labelText: 'Employee ID'),
+                ),
+                TextField(
+                  controller: nameController,
+                  decoration: const InputDecoration(labelText: 'Employee Name'),
+                ),
+              ],
+            ),
           ),
           actions: [
             TextButton(
@@ -77,7 +82,48 @@ class _AddEmployeeScreenState extends State<AddEmployeeScreen> {
                   }
                 }
               },
-              child: const Text('Add'),
+              child: const Text(
+                'Add',
+                style: TextStyle(fontSize: 18), // Bigger Add button text
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> _showDeleteEmployeeDialog(int employeeId) async {
+    final employee = _employees.firstWhere((e) => e.employeeId == employeeId);
+
+    return showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Delete Employee'),
+          content: SingleChildScrollView(
+            child: ListBody(
+              children: <Widget>[
+                Text('Are you sure you want to delete ${employee.name}?'),
+              ],
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('No'),
+              onPressed: () {
+                Navigator.of(context).pop(); // just close dialog
+              },
+            ),
+            TextButton(
+              child: const Text('Yes'),
+              onPressed: () async {
+                await _dbHelper.deleteEmployee(employeeId);
+                await _dbHelper.deleteShiftsForEmployee(employeeId);
+                Navigator.of(context).pop(); // close dialog first
+                await _loadEmployees(); // refresh list
+              },
             ),
           ],
         );
@@ -97,21 +143,26 @@ class _AddEmployeeScreenState extends State<AddEmployeeScreen> {
       context: context,
       builder: (_) {
         return AlertDialog(
-          title: const Text('Update Employee'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: idController,
-                keyboardType: TextInputType.number,
-                enabled: false, // Prevent changing ID on update
-                decoration: const InputDecoration(labelText: 'Employee ID'),
-              ),
-              TextField(
-                controller: nameController,
-                decoration: const InputDecoration(labelText: 'Employee Name'),
-              ),
-            ],
+          title: const Text(
+            'Update Employee',
+            style: TextStyle(fontSize: 18), // Reduced title size
+          ),
+          content: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 400), // Wider dialog
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(
+                  controller: idController,
+                  keyboardType: TextInputType.number,
+                  decoration: const InputDecoration(labelText: 'Employee ID'),
+                ),
+                TextField(
+                  controller: nameController,
+                  decoration: const InputDecoration(labelText: 'Employee Name'),
+                ),
+              ],
+            ),
           ),
           actions: [
             TextButton(
@@ -128,15 +179,10 @@ class _AddEmployeeScreenState extends State<AddEmployeeScreen> {
                   await _loadEmployees();
                 }
               },
-              child: const Text('Update'),
-            ),
-            TextButton(
-              onPressed: () async {
-                await _dbHelper.deleteEmployee(employee.employeeId!);
-                Navigator.pop(context);
-                await _loadEmployees();
-              },
-              child: const Text('Delete', style: TextStyle(color: Colors.deepPurple)),
+              child: const Text(
+                'Update',
+                style: TextStyle(fontSize: 18), // Bigger Update button text
+              ),
             ),
           ],
         );
@@ -148,104 +194,61 @@ class _AddEmployeeScreenState extends State<AddEmployeeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        titleSpacing: 0, // Aligns title right next to back arrow
+        leadingWidth: 40,
         title: const Text(
           'Add Employee',
-          style: TextStyle(color: Colors.deepPurple, fontWeight: FontWeight.bold,),
+          style: TextStyle(
+            color: Colors.deepPurple,
+            fontWeight: FontWeight.bold,
+          ),
         ),
         backgroundColor: Colors.white,
         iconTheme: const IconThemeData(color: Colors.deepPurple),
       ),
-      
-      body: Column(
-        children: [
-          Expanded(
-            child: ListView.builder(
-              itemCount: _employees.length,
-              itemBuilder: (context, index) {
-                final employee = _employees[index];
-                return Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                  child: Column(
-                    children: [
-                      Row(
-                        children: [
-                          // Employee info section (tappable)
-                          Expanded(
-                            child: GestureDetector(
-                              onTap: () => _updateEmployeeDialog(employee),
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(
-                                  vertical: 12.0,
-                                ),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      employee.name,
-                                      style: const TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.w500,
-                                      ),
-                                    ),
-                                    Text(
-                                      'ID: ${employee.employeeId}',
-                                      style: const TextStyle(
-                                        fontSize: 12,
-                                        color: Colors.grey,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
+      body: ListView.builder(
+        itemCount: _employees.length,
+        itemBuilder: (context, index) {
+          final employee = _employees[index];
+          return GestureDetector(
+            onTap: () => _updateEmployeeDialog(employee),
+            onLongPress: () => _showDeleteEmployeeDialog(employee.employeeId!),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20.0),
+              child: Column(
+                children: [
+                  Container(
+                    alignment: Alignment.centerLeft,
+                    padding: const EdgeInsets.symmetric(vertical: 12.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          employee.name,
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500,
                           ),
-                          // Checkbox on the right
-                          Checkbox(
-                            value: _selectedEmployees.contains(
-                              employee.employeeId,
-                            ),
-                            activeColor: Colors.deepPurple,
-                            onChanged: (bool? value) {
-                              setState(() {
-                                if (value == true) {
-                                  _selectedEmployees.add(employee.employeeId!);
-                                } else {
-                                  _selectedEmployees.remove(
-                                    employee.employeeId,
-                                  );
-                                }
-                              });
-                            },
+                        ),
+                        Text(
+                          'ID: ${employee.employeeId}',
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: Colors.grey,
                           ),
-                        ],
-                      ),
-                      const Divider(height: 1, color: Colors.grey),
-                    ],
+                        ),
+                      ],
+                    ),
                   ),
-                );
-              },
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.deepPurple,
-                minimumSize: const Size(double.infinity, 50),
-              ),
-              onPressed: () {
-                Navigator.pop(context, _selectedEmployees);
-              },
-              child: const Text(
-                'Add Selected to Shift',
-                style: TextStyle(color: Colors.white, fontSize: 16),
+                  const Divider(height: 1, color: Colors.grey),
+                ],
               ),
             ),
-          ),
-        ],
+          );
+        },
       ),
       floatingActionButton: Container(
-        margin: const EdgeInsets.only(bottom: 60, right: 60),
+        margin: const EdgeInsets.only(bottom: 20),
         child: ClipRRect(
           borderRadius: BorderRadius.circular(30),
           child: FloatingActionButton(

@@ -144,6 +144,16 @@ class DatabaseHelper {
     return await db.query('week_info');
   }
 
+  // Add this method to your DatabaseHelper class
+Future<void> deleteShiftsForEmployee(int employeeId) async {
+  final db = await database;
+  await db.delete(
+    'shift_timings',
+    where: 'employee_id = ?',
+    whereArgs: [employeeId],
+  );
+}
+
   // ───── Shift Timings ─────
   Future<void> insertOrUpdateShift({
     required int employeeId,

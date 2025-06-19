@@ -30,8 +30,8 @@ class _SplashScreenState extends State<SplashScreen> {
           children: [
             Image.asset(
               'assets/shift.png',
-              width: 200,
-              height: 200,
+              width: 150,
+              height: 150,
               fit: BoxFit.contain,
             ),
             const SizedBox(height: 20),
