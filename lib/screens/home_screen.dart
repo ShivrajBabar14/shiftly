@@ -97,8 +97,13 @@ class _HomeScreenState extends State<HomeScreen> {
                     );
                   } else {
                     await _dbHelper.insertEmployeeWithId(id, name);
+                    // Add the employee to current week immediately after creation
+                    await _dbHelper.addEmployeeToWeek(
+                      id,
+                      _currentWeekStart.millisecondsSinceEpoch,
+                    );
                     Navigator.pop(dialogContext); // ✅ closes the dialog
-                    await _loadEmployees(); // refresh UI
+                    await _loadData(); // refresh UI
                   }
                 }
               },
@@ -123,12 +128,19 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _loadData() async {
-    final employees = await _dbHelper.getEmployees();
     final weekStart = _currentWeekStart.millisecondsSinceEpoch;
+
+    // Get employees assigned to this week (as maps)
+    final weekEmployeeMaps = await _dbHelper.getEmployeesForWeek(weekStart);
     final shiftTimings = await _dbHelper.getShiftsForWeek(weekStart);
 
+    // Convert maps to Employee objects
+    final weekEmployees = weekEmployeeMaps
+        .map((e) => Employee.fromMap(e))
+        .toList();
+
     setState(() {
-      _employees = employees.map((e) => Employee.fromMap(e)).toList();
+      _employees = weekEmployees;
       _shiftTimings = shiftTimings;
     });
   }
@@ -150,57 +162,58 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
-  Future<void> _showDeleteEmployeeDialog(int employeeId) async {
-    final employee = _employees.firstWhere((e) => e.employeeId == employeeId);
+ Future<void> _showDeleteEmployeeDialog(int employeeId) async {
+  final employee = _employees.firstWhere(
+    (e) => e.employeeId == employeeId,
+    orElse: () => Employee(employeeId: employeeId, name: 'Unknown'),
+  );
 
-    return showDialog<void>(
-      context: context,
-      barrierDismissible: false,
-      builder: (BuildContext dialogContext) {
-        return AlertDialog(
-          title: const Text('Remove Employee from Week'),
-          content: SingleChildScrollView(
-            child: ListBody(
-              children: <Widget>[
-                // Text('Remove ${employee.name} from all shifts?'),
-                const SizedBox(height: 8),
-                const Text('(Employee will remain in your employee list)'),
-              ],
-            ),
+  // Use exact week start (Monday) from helper
+  final weekStart = _dbHelper.getStartOfWeek(_currentWeekStart);
+  print('🗓️ Calculated week start timestamp (Monday): $weekStart');
+
+  return showDialog<void>(
+    context: context,
+    barrierDismissible: false,
+    builder: (BuildContext dialogContext) {
+      return AlertDialog(
+        title: const Text('Remove Employee from This Week', style: TextStyle(fontSize: 18),),
+        content: SingleChildScrollView(
+          child: ListBody(
+            children: <Widget>[
+              Text(
+                'Are you sure you want to remove ${employee.name} from this week\'s shift table?',
+              ),
+              const SizedBox(height: 8),
+              const Text('(Employee will remain in your main employee list)'),
+            ],
           ),
-          actions: <Widget>[
-            TextButton(
-              child: const Text('Cancel'),
-              onPressed: () {
-                Navigator.of(dialogContext).pop();
-              },
-            ),
-            TextButton(
-              child: const Text('Remove'),
-              onPressed: () async {
-                // Delete all shift data for this employee in current week only
-                await _dbHelper.removeEmployeeFromWeek(
-                  employeeId,
-                  _currentWeekStart.millisecondsSinceEpoch,
-                );
+        ),
+        actions: <Widget>[
+          TextButton(
+            child: const Text('Cancel'),
+            onPressed: () {
+              Navigator.of(dialogContext).pop();
+            },
+          ),
+          TextButton(
+            child: const Text('Remove'),
+            onPressed: () async {
+              await _dbHelper.removeEmployeeFromWeek(
+                employeeId,
+                weekStart,
+              );
+              await _loadData();
 
-                // Refresh data and UI
-                await _loadData();
-
-                // Optionally remove from selected list (if used for UI highlight)
-                setState(() {
-                  _selectedEmployeesForShift.remove(employeeId);
-                });
-
-                if (!mounted) return;
-                Navigator.of(dialogContext).pop(); // Close the dialog
-              },
-            ),
-          ],
-        );
-      },
-    );
-  }
+              if (!mounted) return;
+              Navigator.of(dialogContext).pop();
+            },
+          ),
+        ],
+      );
+    },
+  );
+}
 
   void _showShiftDialog(int employeeId, String day) async {
     final employee = _employees.firstWhere((e) => e.employeeId == employeeId);
@@ -417,115 +430,243 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ],
       ),
-      body: _employees.isEmpty
-          ? Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Text(
-                    'Your shift tracking will appear here.',
-                    style: TextStyle(fontSize: 18),
-                  ),
-                  const Text(
-                    'Tap below to begin.',
-                    style: TextStyle(fontSize: 18),
-                  ),
-                  const SizedBox(height: 20),
-                  ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.deepPurple,
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 30,
-                        vertical: 15,
-                      ),
-                    ),
-                    onPressed: () {
-                      _showAddEmployeeDialog(); // 👈 Open the same dialog
-                    },
-                    child: const Text(
-                      'Add Employee',
-                      style: TextStyle(color: Colors.white, fontSize: 16),
-                    ),
-                  ),
-                ],
-              ),
-            )
-          : Column(
+      body: Column(
+        children: [
+          // Week Navigation
+          Container(
+            color: Colors.white,
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                // Week Navigation
-                Container(
-                  color: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 8),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
+                IconButton(
+                  icon: const Icon(Icons.chevron_left),
+                  onPressed: () {
+                    _onWeekChanged(
+                      _currentWeekStart.subtract(const Duration(days: 7)),
+                    );
+                  },
+                ),
+                GestureDetector(
+                  onTap: () {
+                    setState(() {
+                      _showCalendar = !_showCalendar;
+                    });
+                  },
+                  child: Text(
+                    '${DateFormat('MMM d').format(_currentWeekStart)} - ${DateFormat('MMM d').format(_currentWeekEnd)}',
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.chevron_right),
+                  onPressed: () {
+                    _onWeekChanged(
+                      _currentWeekStart.add(const Duration(days: 7)),
+                    );
+                  },
+                ),
+              ],
+            ),
+          ),
+          // Calendar
+          if (_showCalendar)
+            TableCalendar(
+              firstDay: _firstDay,
+              lastDay: _lastDay,
+              focusedDay: _focusedDay,
+              selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
+              onDaySelected: _onDaySelected,
+              onPageChanged: (focusedDay) {
+                _focusedDay = focusedDay;
+              },
+              calendarFormat: CalendarFormat.week,
+              headerVisible: false,
+              availableCalendarFormats: const {CalendarFormat.week: 'Week'},
+              startingDayOfWeek: StartingDayOfWeek.monday,
+            ),
+          // Shift Table or Empty State
+          Expanded(
+            child: _employees.isEmpty
+                ? Stack(
                     children: [
-                      IconButton(
-                        icon: const Icon(Icons.chevron_left),
-                        onPressed: () {
-                          _onWeekChanged(
-                            _currentWeekStart.subtract(const Duration(days: 7)),
-                          );
-                        },
-                      ),
-                      GestureDetector(
-                        onTap: () {
-                          setState(() {
-                            _showCalendar = !_showCalendar;
-                          });
-                        },
-                        child: Text(
-                          '${DateFormat('MMM d').format(_currentWeekStart)} - ${DateFormat('MMM d').format(_currentWeekEnd)}',
-                          style: const TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                          ),
+                      _buildEmptyShiftTable(),
+                      Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Text(
+                              'Your shift tracking will appear here.',
+                              style: TextStyle(fontSize: 15),
+                            ),
+                            const Text(
+                              'Tap below to begin.',
+                              style: TextStyle(fontSize: 15),
+                            ),
+                            const SizedBox(height: 20),
+                            ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.deepPurple,
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 30,
+                                  vertical: 15,
+                                ),
+                              ),
+                              onPressed: () {
+                                _showAddEmployeeDialog();
+                              },
+                              child: const Text(
+                                'Add Employee',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 14,
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
-                      IconButton(
-                        icon: const Icon(Icons.chevron_right),
-                        onPressed: () {
-                          _onWeekChanged(
-                            _currentWeekStart.add(const Duration(days: 7)),
-                          );
-                        },
+                    ],
+                  )
+                : _buildShiftTable(),
+          ),
+        ],
+      ),
+      floatingActionButton: FloatingActionButton(
+        backgroundColor: Colors.deepPurple,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(30.0),
+        ),
+        onPressed: () {
+          _showAddEmployeeDialog();
+        },
+        child: const Icon(Icons.add, color: Colors.white),
+      ),
+    );
+  }
+
+  Widget _buildEmptyShiftTable() {
+    const List<String> days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    final dateFormat = DateFormat('d');
+    const double cellWidth = 75.0;
+    const double rowHeight = 50.0;
+    final double tableWidth = cellWidth * days.length;
+
+    return Opacity(
+      opacity: 0.5,
+      child: Row(
+        children: [
+          // Fixed Employee Column
+          SizedBox(
+            width: 100.0,
+            child: Column(
+              children: [
+                // Employee Header
+                Container(
+                  height: rowHeight,
+                  alignment: Alignment.centerLeft,
+                  padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                  decoration: BoxDecoration(
+                    color: Colors.deepPurple[300],
+                    border: Border(
+                      bottom: BorderSide(color: Colors.grey.shade300),
+                      right: BorderSide(
+                        color: Colors.grey.shade300,
+                        width: 1.0,
+                      ),
+                    ),
+                  ),
+                  child: const Text(
+                    'Employee',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+                // Empty Employee Names (No vertical divider anymore)
+                Expanded(
+                  child: Container(), // ← no border
+                ),
+              ],
+            ),
+          ),
+
+          // Scrollable Shift Table
+          Expanded(
+            child: Scrollbar(
+              thumbVisibility: true,
+              controller: _horizontalController,
+              child: SingleChildScrollView(
+                controller: _horizontalController,
+                scrollDirection: Axis.horizontal,
+                child: SizedBox(
+                  width: tableWidth,
+                  child: Column(
+                    children: [
+                      // Days Header
+                      SizedBox(
+                        height: rowHeight,
+                        child: Row(
+                          children: List.generate(days.length, (index) {
+                            final dayDate = _currentWeekStart.add(
+                              Duration(days: index),
+                            );
+                            return Container(
+                              width: cellWidth,
+                              decoration: BoxDecoration(
+                                color: Colors.deepPurple[300],
+                                border: Border(
+                                  bottom: BorderSide(
+                                    color: Colors.grey.shade300,
+                                  ),
+                                  right: BorderSide(
+                                    color: Colors.grey.shade300,
+                                    width: 1.0,
+                                  ),
+                                ),
+                              ),
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Text(
+                                    days[index],
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  Text(
+                                    dateFormat.format(dayDate),
+                                    style: const TextStyle(color: Colors.white),
+                                  ),
+                                ],
+                              ),
+                            );
+                          }),
+                        ),
+                      ),
+                      // Empty Shift Cells
+                      Expanded(
+                        child: Container(
+                          decoration: BoxDecoration(
+                            border: Border(
+                              bottom: BorderSide(color: Colors.grey.shade300),
+                            ),
+                          ),
+                        ),
                       ),
                     ],
                   ),
                 ),
-                // Calendar
-                if (_showCalendar)
-                  TableCalendar(
-                    firstDay: _firstDay,
-                    lastDay: _lastDay,
-                    focusedDay: _focusedDay,
-                    selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
-                    onDaySelected: _onDaySelected,
-                    onPageChanged: (focusedDay) {
-                      _focusedDay = focusedDay;
-                    },
-                    calendarFormat: CalendarFormat.week,
-                    headerVisible: false,
-                    availableCalendarFormats: const {
-                      CalendarFormat.week: 'Week',
-                    },
-                    startingDayOfWeek: StartingDayOfWeek.monday,
-                  ),
-                // Shift Table
-                Expanded(child: _buildShiftTable()),
-              ],
-            ),
-      floatingActionButton: _employees.isNotEmpty
-          ? FloatingActionButton(
-              backgroundColor: Colors.deepPurple,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(30.0),
               ),
-              onPressed: () {
-                _showAddEmployeeDialog(); // 👈 this opens the custom dialog directly
-              },
-              child: const Icon(Icons.add, color: Colors.white),
-            )
-          : null,
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -536,14 +677,20 @@ class _HomeScreenState extends State<HomeScreen> {
     const double rowHeight = 50.0;
     final double tableWidth = cellWidth * days.length;
 
+    final visibleEmployees = _selectedEmployeesForShift.isEmpty
+        ? _employees
+        : _employees
+              .where((e) => _selectedEmployeesForShift.contains(e.employeeId))
+              .toList();
+
     return Row(
       children: [
-        // Fixed Employee Column
+        // Employee Name Column
         SizedBox(
           width: 100.0,
           child: Column(
             children: [
-              // Employee Header
+              // Header
               Container(
                 height: rowHeight,
                 alignment: Alignment.centerLeft,
@@ -563,34 +710,29 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ),
               ),
-              // Employee Names
+              // Employee Rows
               Expanded(
                 child: ListView.builder(
                   controller: _verticalController,
-                  itemCount: _employees.length,
+                  itemCount: visibleEmployees.length,
                   itemBuilder: (context, index) {
-                    final employee = _employees[index];
-                    if (_selectedEmployeesForShift.isNotEmpty &&
-                        !_selectedEmployeesForShift.contains(
-                          employee.employeeId,
-                        )) {
-                      return const SizedBox.shrink();
-                    }
+                    final employee = visibleEmployees[index];
                     return GestureDetector(
                       onLongPress: () =>
                           _showDeleteEmployeeDialog(employee.employeeId!),
                       child: Container(
                         height: rowHeight,
-                        padding: const EdgeInsets.symmetric(horizontal: 8.0),
                         alignment: Alignment.centerLeft,
+                        padding: const EdgeInsets.symmetric(horizontal: 8.0),
                         decoration: BoxDecoration(
+                          color: index.isEven
+                              ? Colors.grey.shade100
+                              : Colors.grey.shade200,
                           border: Border(
-                            bottom: BorderSide(
-                              color: Colors.grey.shade300,
-                            ), // Horizontal divider
+                            bottom: BorderSide(color: Colors.grey.shade300),
                             right: BorderSide(
                               color: Colors.grey.shade300,
-                              width: 1.0, // Vertical divider
+                              width: 1.0,
                             ),
                           ),
                         ),
@@ -608,7 +750,7 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ),
 
-        // Scrollable Shift Table
+        // Shift Table
         Expanded(
           child: Scrollbar(
             thumbVisibility: true,
@@ -621,7 +763,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 child: Column(
                   children: [
                     // Days Header
-                    SizedBox(
+                    Container(
                       height: rowHeight,
                       child: Row(
                         children: List.generate(days.length, (index) {
@@ -660,27 +802,19 @@ class _HomeScreenState extends State<HomeScreen> {
                         }),
                       ),
                     ),
-                    // Shift Cells
+
+                    // Shift Rows
                     Expanded(
                       child: ListView.builder(
                         controller: _verticalController,
-                        itemCount: _employees.length,
+                        itemCount: visibleEmployees.length,
                         itemBuilder: (context, index) {
-                          final employee = _employees[index];
-                          if (_selectedEmployeesForShift.isNotEmpty &&
-                              !_selectedEmployeesForShift.contains(
-                                employee.employeeId,
-                              )) {
-                            return const SizedBox.shrink();
-                          }
-
+                          final employee = visibleEmployees[index];
                           return Container(
                             height: rowHeight,
                             decoration: BoxDecoration(
                               border: Border(
-                                bottom: BorderSide(
-                                  color: Colors.grey.shade300,
-                                ), // Horizontal divider
+                                bottom: BorderSide(color: Colors.grey.shade300),
                               ),
                             ),
                             child: Row(
@@ -695,8 +829,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                   orElse: () => {},
                                 );
 
-                                final shiftName = shift['shift_name']
-                                    ?.toString();
+                                final shiftName =
+                                    shift['shift_name']?.toString() ?? '';
                                 final startTimeMillis = shift['start_time'];
                                 final endTimeMillis = shift['end_time'];
 
@@ -718,7 +852,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                     border: Border(
                                       right: BorderSide(
                                         color: Colors.grey.shade300,
-                                        width: 1.0, // Vertical divider
+                                        width: 1.0,
                                       ),
                                     ),
                                   ),
@@ -732,18 +866,14 @@ class _HomeScreenState extends State<HomeScreen> {
                                     child: Container(
                                       padding: const EdgeInsets.all(4.0),
                                       decoration: BoxDecoration(
-                                        color:
-                                            (shiftName != null &&
-                                                shiftName.isNotEmpty)
+                                        color: shiftName.isNotEmpty
                                             ? Colors.deepPurple[100]
                                             : null,
                                         borderRadius: BorderRadius.circular(
                                           4.0,
                                         ),
                                       ),
-                                      child:
-                                          (shiftName != null &&
-                                              shiftName.isNotEmpty)
+                                      child: shiftName.isNotEmpty
                                           ? Text(
                                               [
                                                 shiftName,
@@ -798,11 +928,15 @@ class _HomeScreenState extends State<HomeScreen> {
         .where((e) => !currentWeekEmployeeIds.contains(e.employeeId))
         .toList();
 
-    
+    // If no employees available, show add employee dialog directly
+    if (availableEmployees.isEmpty) {
+      await _addEmployeeDialog(context);
+      return;
+    }
 
     List<int> selectedEmployeeIds = [];
 
-    showDialog(
+    await showDialog(
       context: context,
       builder: (context) {
         return StatefulBuilder(
@@ -814,7 +948,7 @@ class _HomeScreenState extends State<HomeScreen> {
               title: const Text('Select Employees'),
               content: Container(
                 width: double.maxFinite,
-                height: 400,
+                height: 250,
                 padding: const EdgeInsets.symmetric(vertical: 4),
                 child: ListView.builder(
                   itemCount: availableEmployees.length,

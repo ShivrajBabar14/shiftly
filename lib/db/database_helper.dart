@@ -6,7 +6,13 @@ import 'package:shiftly/models/employee.dart';
 class DatabaseHelper {
   static final DatabaseHelper _instance = DatabaseHelper._internal();
   static Database? _database;
-  static const int _databaseVersion = 2;
+  static const int _databaseVersion = 3;
+
+  int getStartOfWeek(DateTime date) {
+  final monday = date.subtract(Duration(days: date.weekday - 1));
+  final startOfDay = DateTime(monday.year, monday.month, monday.day);
+  return startOfDay.millisecondsSinceEpoch;
+}
 
   factory DatabaseHelper() => _instance;
   DatabaseHelper._internal();
@@ -21,7 +27,7 @@ class DatabaseHelper {
     final path = join(await getDatabasesPath(), 'shiftly.db');
 
     // ❗ Uncomment the next line during development to reset DB if issues occur
-    // await deleteDatabase(path);
+    await deleteDatabase(path);
 
     return await openDatabase(
       path,
@@ -32,36 +38,45 @@ class DatabaseHelper {
     );
   }
 
+  // Get employees for current week
+  // Get employees for current week
   Future<List<Map<String, dynamic>>> getEmployeesForWeek(int weekStart) async {
     final db = await database;
-    return await db.rawQuery(
+    final results = await db.rawQuery(
       '''
-    SELECT DISTINCT e.*
-    FROM employees e
-    INNER JOIN shift_timings s ON e.employee_id = s.employee_id
-    WHERE s.week_start = ?
+    SELECT employees.* 
+    FROM week_assignments
+    INNER JOIN employees 
+    ON week_assignments.employee_id = employees.employee_id
+    WHERE week_assignments.week_start = ?
   ''',
       [weekStart],
     );
+    return results;
   }
 
   Future<void> addEmployeeToWeek(int employeeId, int weekStart) async {
     final db = await database;
-    await db.insert(
-      'shift_timings',
-      {
+
+    // First add to week_assignments
+    await db.insert('week_assignments', {
+      'employee_id': employeeId,
+      'week_start': weekStart,
+    }, conflictAlgorithm: ConflictAlgorithm.ignore);
+
+    // Then create empty shift records
+    const days = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
+    for (final day in days) {
+      await db.insert('shift_timings', {
         'employee_id': employeeId,
         'week_start': weekStart,
-        'monday_shift': '',
-        'tuesday_shift': '',
-        'wednesday_shift': '',
-        'thursday_shift': '',
-        'friday_shift': '',
-        'saturday_shift': '',
-        'sunday_shift': '',
-      },
-      conflictAlgorithm: ConflictAlgorithm.ignore, // prevents duplicate entries
-    );
+        'day': day,
+        'shift_name': null,
+        'start_time': null,
+        'end_time': null,
+      }, conflictAlgorithm: ConflictAlgorithm.replace);
+    }
+    print('✅ Added employee $employeeId to week $weekStart');
   }
 
   Future<void> _onConfigure(Database db) async {
@@ -78,9 +93,24 @@ class DatabaseHelper {
         case 2:
           await _migrateToVersion2(db);
           break;
-        // Future migrations go here
+        case 3:
+          await _migrateToVersion3(db);
+          break;
       }
     }
+  }
+
+  Future<void> _migrateToVersion3(Database db) async {
+    // Create the week_assignments table if it doesn't exist
+    await db.execute('''
+    CREATE TABLE IF NOT EXISTS week_assignments (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      employee_id INTEGER NOT NULL,
+      week_start INTEGER NOT NULL,
+      FOREIGN KEY (employee_id) REFERENCES employees (employee_id),
+      UNIQUE (employee_id, week_start)
+    )
+  ''');
   }
 
   // Insert employee with custom ID
@@ -134,16 +164,54 @@ class DatabaseHelper {
         table_name TEXT
       )
     ''');
+
+    await db.execute('''
+  CREATE TABLE IF NOT EXISTS week_assignments (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    employee_id INTEGER NOT NULL,
+    week_start INTEGER NOT NULL,
+    FOREIGN KEY (employee_id) REFERENCES employees (employee_id),
+    UNIQUE (employee_id, week_start)
+  )
+''');
   }
 
   Future<void> removeEmployeeFromWeek(int employeeId, int weekStart) async {
     final db = await database;
-    await db.delete(
-      'shift_timings',
-      where: 'employee_id = ? AND week_start = ?',
-      whereArgs: [employeeId, weekStart],
+
+    // Temporary check - remove after fixing the schema
+    final tables = await db.rawQuery(
+      "SELECT name FROM sqlite_master WHERE type='table' AND name='week_assignments'",
     );
+    if (tables.isEmpty) {
+      print('⚠️ week_assignments table missing - creating now');
+      await _migrateToVersion3(db);
+    }
+
+    // Rest of your existing code...
   }
+
+  // Future<void> removeEmployeeFromWeek(int employeeId, int weekStart) async {
+  //   final db = await database;
+
+  //   // First remove from week assignments
+  //   final deletedAssignments = await db.delete(
+  //     'week_assignments',
+  //     where: 'employee_id = ? AND week_start = ?',
+  //     whereArgs: [employeeId, weekStart],
+  //   );
+
+  //   // Then remove any shift data
+  //   final deletedShifts = await db.delete(
+  //     'shift_timings',
+  //     where: 'employee_id = ? AND week_start = ?',
+  //     whereArgs: [employeeId, weekStart],
+  //   );
+
+  //   print(
+  //     '🗑️ Removed $deletedAssignments assignments and $deletedShifts shifts',
+  //   );
+  // }
 
   Future<void> _migrateToVersion2(Database db) async {
     try {
@@ -283,15 +351,17 @@ class DatabaseHelper {
   // ───── Debug Tools ─────
   Future<void> debugPrintSchema() async {
     final db = await database;
+    print('📊 Database version: ${await db.getVersion()}');
     final tables = await db.rawQuery(
       "SELECT name FROM sqlite_master WHERE type='table'",
     );
+    print('📋 All tables:');
     for (var table in tables) {
       final tableName = table['name'];
+      print(' - $tableName');
       final columns = await db.rawQuery("PRAGMA table_info($tableName)");
-      print('Table: $tableName');
       for (var column in columns) {
-        print('  ${column['name']} (${column['type']})');
+        print('   ${column['name']} (${column['type']})');
       }
     }
   }
