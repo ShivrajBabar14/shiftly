@@ -3,7 +3,6 @@ import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:shiftly/models/employee.dart';
 
-
 class DatabaseHelper {
   static final DatabaseHelper _instance = DatabaseHelper._internal();
   static Database? _database;
@@ -30,6 +29,38 @@ class DatabaseHelper {
       onCreate: _onCreate,
       onUpgrade: _onUpgrade,
       onConfigure: _onConfigure,
+    );
+  }
+
+  Future<List<Map<String, dynamic>>> getEmployeesForWeek(int weekStart) async {
+    final db = await database;
+    return await db.rawQuery(
+      '''
+    SELECT DISTINCT e.*
+    FROM employees e
+    INNER JOIN shift_timings s ON e.employee_id = s.employee_id
+    WHERE s.week_start = ?
+  ''',
+      [weekStart],
+    );
+  }
+
+  Future<void> addEmployeeToWeek(int employeeId, int weekStart) async {
+    final db = await database;
+    await db.insert(
+      'shift_timings',
+      {
+        'employee_id': employeeId,
+        'week_start': weekStart,
+        'monday_shift': '',
+        'tuesday_shift': '',
+        'wednesday_shift': '',
+        'thursday_shift': '',
+        'friday_shift': '',
+        'saturday_shift': '',
+        'sunday_shift': '',
+      },
+      conflictAlgorithm: ConflictAlgorithm.ignore, // prevents duplicate entries
     );
   }
 
@@ -105,6 +136,15 @@ class DatabaseHelper {
     ''');
   }
 
+  Future<void> removeEmployeeFromWeek(int employeeId, int weekStart) async {
+    final db = await database;
+    await db.delete(
+      'shift_timings',
+      where: 'employee_id = ? AND week_start = ?',
+      whereArgs: [employeeId, weekStart],
+    );
+  }
+
   Future<void> _migrateToVersion2(Database db) async {
     try {
       // Drop and recreate shift_timings table to update schema for start_time and end_time as INTEGER
@@ -145,14 +185,14 @@ class DatabaseHelper {
   }
 
   // Add this method to your DatabaseHelper class
-Future<void> deleteShiftsForEmployee(int employeeId) async {
-  final db = await database;
-  await db.delete(
-    'shift_timings',
-    where: 'employee_id = ?',
-    whereArgs: [employeeId],
-  );
-}
+  Future<void> deleteShiftsForEmployee(int employeeId) async {
+    final db = await database;
+    await db.delete(
+      'shift_timings',
+      where: 'employee_id = ?',
+      whereArgs: [employeeId],
+    );
+  }
 
   // ───── Shift Timings ─────
   Future<void> insertOrUpdateShift({

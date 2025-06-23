@@ -93,44 +93,6 @@ class _AddEmployeeScreenState extends State<AddEmployeeScreen> {
     );
   }
 
-  Future<void> _showDeleteEmployeeDialog(int employeeId) async {
-    final employee = _employees.firstWhere((e) => e.employeeId == employeeId);
-
-    return showDialog<void>(
-      context: context,
-      barrierDismissible: false,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Delete Employee'),
-          content: SingleChildScrollView(
-            child: ListBody(
-              children: <Widget>[
-                Text('Are you sure you want to delete ${employee.name}?'),
-              ],
-            ),
-          ),
-          actions: <Widget>[
-            TextButton(
-              child: const Text('No'),
-              onPressed: () {
-                Navigator.of(context).pop(); // just close dialog
-              },
-            ),
-            TextButton(
-              child: const Text('Yes'),
-              onPressed: () async {
-                await _dbHelper.deleteEmployee(employeeId);
-                await _dbHelper.deleteShiftsForEmployee(employeeId);
-                Navigator.of(context).pop(); // close dialog first
-                await _loadEmployees(); // refresh list
-              },
-            ),
-          ],
-        );
-      },
-    );
-  }
-
   Future<void> _updateEmployeeDialog(Employee employee) async {
     final TextEditingController nameController = TextEditingController(
       text: employee.name,
@@ -242,8 +204,6 @@ class _AddEmployeeScreenState extends State<AddEmployeeScreen> {
             padding: const EdgeInsets.symmetric(horizontal: 20.0),
             child: InkWell(
               onTap: () => _updateEmployeeDialog(employee),
-              onLongPress: () =>
-                  _showDeleteEmployeeDialog(employee.employeeId!),
               child: Column(
                 children: [
                   Container(
