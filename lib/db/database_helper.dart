@@ -388,8 +388,30 @@ class DatabaseHelper {
       );
     } catch (e) {
       print('Error getting shifts: $e');
-      return await db.query('shift_timings');
+      return [];
     }
+  }
+
+  Future<List<Map<String, dynamic>>> getEmployeesWithShiftsForWeek(
+    int weekStart,
+  ) async {
+    final db = await database;
+    return await db.rawQuery(
+      '''
+    SELECT 
+      e.employee_id,
+      e.name,
+      st.day,
+      st.shift_name,
+      st.start_time,
+      st.end_time
+    FROM employees e
+    JOIN week_assignments wa ON e.employee_id = wa.employee_id AND wa.week_start = ?
+    LEFT JOIN shift_timings st ON e.employee_id = st.employee_id AND st.week_start = ?
+    ORDER BY e.employee_id, st.day
+  ''',
+      [weekStart, weekStart],
+    );
   }
 
   Future<List<Map<String, dynamic>>> getShiftTimings() async {

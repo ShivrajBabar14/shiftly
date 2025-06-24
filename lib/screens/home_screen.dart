@@ -4,6 +4,7 @@ import 'package:table_calendar/table_calendar.dart';
 import 'package:shiftly/db/database_helper.dart';
 import 'package:shiftly/models/employee.dart';
 import 'package:shiftly/screens/add_employee_screen.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -26,7 +27,7 @@ class _HomeScreenState extends State<HomeScreen> {
   List<Map<String, dynamic>> _shiftTimings = [];
   bool _showCalendar = false;
   List<int> _selectedEmployeesForShift = [];
-
+  bool _isLoading = true;
   @override
   void initState() {
     super.initState();
@@ -36,6 +37,7 @@ class _HomeScreenState extends State<HomeScreen> {
     _focusedDay = DateTime.now();
     _firstDay = DateTime.now().subtract(const Duration(days: 365));
     _lastDay = DateTime.now().add(const Duration(days: 365));
+    _initWeekStartAndLoadData();
     _calculateWeekRange(_selectedDay);
 
     // Load shift data or employees
@@ -52,6 +54,42 @@ class _HomeScreenState extends State<HomeScreen> {
   void _calculateWeekRange(DateTime date) {
     _currentWeekStart = date.subtract(Duration(days: date.weekday - 1));
     _currentWeekEnd = _currentWeekStart.add(const Duration(days: 6));
+  }
+
+  Future<void> _initWeekStartAndLoadData() async {
+    try {
+      setState(() => _isLoading = true);
+
+      final prefs = await SharedPreferences.getInstance();
+      final savedWeekStartMillis = prefs.getInt('selectedWeekStart');
+
+      // Calculate week start based on saved preference or current date
+      _currentWeekStart = savedWeekStartMillis != null
+          ? DateTime.fromMillisecondsSinceEpoch(savedWeekStartMillis)
+          : DateTime.now().subtract(Duration(days: DateTime.now().weekday - 1));
+
+      _currentWeekEnd = _currentWeekStart.add(const Duration(days: 6));
+      _selectedDay = _currentWeekStart;
+      _focusedDay = _currentWeekStart;
+
+      // Ensure we have the proper week assignments
+      await _ensureWeekAssignments();
+
+      // Load data for the week
+      await _loadData();
+
+      // Save current week start to SharedPreferences
+      await prefs.setInt(
+        'selectedWeekStart',
+        _currentWeekStart.millisecondsSinceEpoch,
+      );
+    } catch (e, st) {
+      print('Error in _initWeekStartAndLoadData: $e\n$st');
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
   }
 
   Future<void> _addEmployeeDialog(BuildContext context) async {
@@ -120,29 +158,41 @@ class _HomeScreenState extends State<HomeScreen> {
     return employees.any((e) => e['employee_id'] == id);
   }
 
-  Future<void> _loadEmployees() async {
-    final employees = await _dbHelper.getEmployees();
-    setState(() {
-      _employees = employees.map((e) => Employee.fromMap(e)).toList();
-    });
-  }
-
   Future<void> _loadData() async {
-    final weekStart = _currentWeekStart.millisecondsSinceEpoch;
+    try {
+      final weekStart = _currentWeekStart.millisecondsSinceEpoch;
+      final weekData = await _dbHelper.getEmployeesWithShiftsForWeek(weekStart);
 
-    // Get employees assigned to this week (as maps)
-    final weekEmployeeMaps = await _dbHelper.getEmployeesForWeek(weekStart);
-    final shiftTimings = await _dbHelper.getShiftsForWeek(weekStart);
+      final employees = <Employee>[];
+      final shiftTimings = <Map<String, dynamic>>[];
 
-    // Convert maps to Employee objects
-    final weekEmployees = weekEmployeeMaps
-        .map((e) => Employee.fromMap(e))
-        .toList();
+      for (final row in weekData) {
+        final employeeId = row['employee_id'] as int;
+        final employeeName = row['name'] as String;
 
-    setState(() {
-      _employees = weekEmployees;
-      _shiftTimings = shiftTimings;
-    });
+        if (!employees.any((e) => e.employeeId == employeeId)) {
+          employees.add(Employee(employeeId: employeeId, name: employeeName));
+        }
+
+        if (row['day'] != null) {
+          shiftTimings.add({
+            'employee_id': employeeId,
+            'day': row['day'],
+            'week_start': weekStart,
+            'shift_name': row['shift_name'],
+            'start_time': row['start_time'],
+            'end_time': row['end_time'],
+          });
+        }
+      }
+
+      setState(() {
+        _employees = employees;
+        _shiftTimings = shiftTimings;
+      });
+    } catch (e, st) {
+      print('Error in _loadData: $e\n$st');
+    }
   }
 
   void _onDaySelected(DateTime selectedDay, DateTime focusedDay) {
@@ -155,86 +205,113 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
-  Future<void> _onWeekChanged(DateTime startOfWeek) async {
-    final currentWeekStart = _currentWeekStart.millisecondsSinceEpoch;
+  Future<void> _ensureWeekAssignments() async {
+    final weekStart = _currentWeekStart.millisecondsSinceEpoch;
+    final currentEmployees = await _dbHelper.getEmployeesForWeek(weekStart);
 
-    // Calculate new week range
-    _calculateWeekRange(startOfWeek);
-    final newWeekStart = _currentWeekStart.millisecondsSinceEpoch;
+    if (currentEmployees.isEmpty) {
+      // If no employees assigned to this week, check if we should copy from previous week
+      final prevWeekStart = _currentWeekStart
+          .subtract(const Duration(days: 7))
+          .millisecondsSinceEpoch;
+      final prevWeekEmployees = await _dbHelper.getEmployeesForWeek(
+        prevWeekStart,
+      );
 
-    // Only copy employees if moving forward to next week
-    if (newWeekStart > currentWeekStart) {
-      final currentWeekEmployeesMaps = await _dbHelper.getEmployeesForWeek(currentWeekStart);
-      final currentWeekEmployees = currentWeekEmployeesMaps.map((e) => Employee.fromMap(e)).toList();
-
-      for (final employee in currentWeekEmployees) {
-        // Check if employee already assigned to new week to avoid duplicates
-        final newWeekEmployeesMaps = await _dbHelper.getEmployeesForWeek(newWeekStart);
-        final newWeekEmployeeIds = newWeekEmployeesMaps.map((e) => e['employee_id'] as int).toSet();
-
-        if (!newWeekEmployeeIds.contains(employee.employeeId)) {
-          await _dbHelper.addEmployeeToWeek(employee.employeeId!, newWeekStart);
-        }
+      for (final employee in prevWeekEmployees) {
+        await _dbHelper.addEmployeeToWeek(
+          employee['employee_id'] as int,
+          weekStart,
+        );
       }
     }
-
-    setState(() {
-      _loadData();
-    });
   }
 
- Future<void> _showDeleteEmployeeDialog(int employeeId) async {
-  final employee = _employees.firstWhere(
-    (e) => e.employeeId == employeeId,
-    orElse: () => Employee(employeeId: employeeId, name: 'Unknown'),
-  );
+  Future<void> _onWeekChanged(DateTime startOfWeek) async {
+    final newWeekStart = startOfWeek.subtract(
+      Duration(days: startOfWeek.weekday - 1),
+    );
 
-  // Use exact week start (Monday) from helper
-  final weekStart = _dbHelper.getStartOfWeek(_currentWeekStart);
-  print('🗓️ Calculated week start timestamp (Monday): $weekStart');
+    if (newWeekStart == _currentWeekStart) return;
 
-  return showDialog<void>(
-    context: context,
-    barrierDismissible: false,
-    builder: (BuildContext dialogContext) {
-      return AlertDialog(
-        title: const Text('Remove Employee from This Week', style: TextStyle(fontSize: 18),),
-        content: SingleChildScrollView(
-          child: ListBody(
-            children: <Widget>[
-              Text(
-                'Are you sure you want to remove ${employee.name} from this week\'s shift table?',
-              ),
-              const SizedBox(height: 8),
-              const Text('(Employee will remain in your main employee list)'),
-            ],
-          ),
-        ),
-        actions: <Widget>[
-          TextButton(
-            child: const Text('Cancel'),
-            onPressed: () {
-              Navigator.of(dialogContext).pop();
-            },
-          ),
-          TextButton(
-            child: const Text('Remove'),
-            onPressed: () async {
-              await _dbHelper.removeEmployeeFromWeek(
-                employeeId,
-                weekStart,
-              );
-              await _loadData();
+    setState(() {
+      _currentWeekStart = newWeekStart;
+      _currentWeekEnd = newWeekStart.add(const Duration(days: 6));
+      _selectedDay = newWeekStart;
+      _focusedDay = newWeekStart;
+      _isLoading = true;
+    });
 
-              if (!mounted) return;
-              Navigator.of(dialogContext).pop();
-            },
-          ),
-        ],
+    try {
+      await _ensureWeekAssignments();
+      await _loadData();
+
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setInt(
+        'selectedWeekStart',
+        newWeekStart.millisecondsSinceEpoch,
       );
-    },
-  );
-}
+    } catch (e, st) {
+      print('Error in _onWeekChanged: $e\n$st');
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
+  }
+
+  Future<void> _showDeleteEmployeeDialog(int employeeId) async {
+    final employee = _employees.firstWhere(
+      (e) => e.employeeId == employeeId,
+      orElse: () => Employee(employeeId: employeeId, name: 'Unknown'),
+    );
+
+    // Use exact week start (Monday) from helper
+    final weekStart = _dbHelper.getStartOfWeek(_currentWeekStart);
+    print('🗓️ Calculated week start timestamp (Monday): $weekStart');
+
+    return showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext dialogContext) {
+        return AlertDialog(
+          title: const Text(
+            'Remove Employee from This Week',
+            style: TextStyle(fontSize: 18),
+          ),
+          content: SingleChildScrollView(
+            child: ListBody(
+              children: <Widget>[
+                Text(
+                  'Are you sure you want to remove ${employee.name} from this week\'s shift table?',
+                ),
+                const SizedBox(height: 8),
+                const Text('(Employee will remain in your main employee list)'),
+              ],
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('Cancel'),
+              onPressed: () {
+                Navigator.of(dialogContext).pop();
+              },
+            ),
+            TextButton(
+              child: const Text('Remove'),
+              onPressed: () async {
+                await _dbHelper.removeEmployeeFromWeek(employeeId, weekStart);
+                await _loadData();
+
+                if (!mounted) return;
+                Navigator.of(dialogContext).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
 
   void _showShiftDialog(int employeeId, String day) async {
     final employee = _employees.firstWhere((e) => e.employeeId == employeeId);
@@ -700,8 +777,8 @@ class _HomeScreenState extends State<HomeScreen> {
     final visibleEmployees = _selectedEmployeesForShift.isEmpty
         ? _employees
         : _employees
-            .where((e) => _selectedEmployeesForShift.contains(e.employeeId))
-            .toList();
+              .where((e) => _selectedEmployeesForShift.contains(e.employeeId))
+              .toList();
 
     return Row(
       children: [
@@ -716,7 +793,8 @@ class _HomeScreenState extends State<HomeScreen> {
                 alignment: Alignment.centerLeft,
                 padding: const EdgeInsets.symmetric(horizontal: 8.0),
                 decoration: BoxDecoration(
-                  color: Colors.deepPurple[300], // Darker purple for employee header
+                  color: Colors
+                      .deepPurple[300], // Darker purple for employee header
                   border: Border(
                     bottom: BorderSide(color: Colors.grey.shade300),
                     right: BorderSide(color: Colors.grey.shade400, width: 1.5),
@@ -746,8 +824,10 @@ class _HomeScreenState extends State<HomeScreen> {
                         padding: const EdgeInsets.symmetric(horizontal: 8.0),
                         decoration: BoxDecoration(
                           color: index.isEven
-                              ? Colors.deepPurple[50] // Light purple shade for even rows
-                              : Colors.deepPurple[100], // Slightly darker for odd rows
+                              ? Colors
+                                    .deepPurple[50] // Light purple shade for even rows
+                              : Colors
+                                    .deepPurple[100], // Slightly darker for odd rows
                           border: Border(
                             bottom: BorderSide(color: Colors.grey.shade300),
                             right: BorderSide(
@@ -785,8 +865,13 @@ class _HomeScreenState extends State<HomeScreen> {
                     // Days Header
                     Table(
                       border: TableBorder(
-                        horizontalInside: BorderSide(color: Colors.grey.shade300),
-                        verticalInside: BorderSide(color: Colors.grey.shade300, width: 1.0),
+                        horizontalInside: BorderSide(
+                          color: Colors.grey.shade300,
+                        ),
+                        verticalInside: BorderSide(
+                          color: Colors.grey.shade300,
+                          width: 1.0,
+                        ),
                         bottom: BorderSide(color: Colors.grey.shade300),
                       ),
                       columnWidths: {
@@ -795,9 +880,13 @@ class _HomeScreenState extends State<HomeScreen> {
                       },
                       children: [
                         TableRow(
-                          decoration: BoxDecoration(color: Colors.deepPurple[300]),
+                          decoration: BoxDecoration(
+                            color: Colors.deepPurple[300],
+                          ),
                           children: List.generate(days.length, (index) {
-                            final dayDate = _currentWeekStart.add(Duration(days: index));
+                            final dayDate = _currentWeekStart.add(
+                              Duration(days: index),
+                            );
                             return Container(
                               height: rowHeight,
                               alignment: Alignment.center,
@@ -832,8 +921,13 @@ class _HomeScreenState extends State<HomeScreen> {
                           final employee = visibleEmployees[index];
                           return Table(
                             border: TableBorder(
-                              horizontalInside: BorderSide(color: Colors.grey.shade300),
-                              verticalInside: BorderSide(color: Colors.grey.shade300, width: 1.0),
+                              horizontalInside: BorderSide(
+                                color: Colors.grey.shade300,
+                              ),
+                              verticalInside: BorderSide(
+                                color: Colors.grey.shade300,
+                                width: 1.0,
+                              ),
                               bottom: BorderSide(color: Colors.grey.shade300),
                             ),
                             columnWidths: {
@@ -843,24 +937,34 @@ class _HomeScreenState extends State<HomeScreen> {
                             children: [
                               TableRow(
                                 decoration: BoxDecoration(
-                                  color: index.isEven ? Colors.grey.shade100 : Colors.grey.shade200,
+                                  color: index.isEven
+                                      ? Colors.grey.shade100
+                                      : Colors.grey.shade200,
                                 ),
-                                children: List.generate(days.length, (dayIndex) {
+                                children: List.generate(days.length, (
+                                  dayIndex,
+                                ) {
                                   final day = days[dayIndex];
                                   final shift = _shiftTimings.firstWhere(
                                     (st) =>
-                                        st['employee_id'] == employee.employeeId &&
-                                        st['day'].toString().toLowerCase() == day.toLowerCase(),
+                                        st['employee_id'] ==
+                                            employee.employeeId &&
+                                        st['day'].toString().toLowerCase() ==
+                                            day.toLowerCase(),
                                     orElse: () => {},
                                   );
 
-                                  final shiftName = shift['shift_name']?.toString() ?? '';
+                                  final shiftName =
+                                      shift['shift_name']?.toString() ?? '';
                                   final startTimeMillis = shift['start_time'];
                                   final endTimeMillis = shift['end_time'];
 
                                   String formatTime(int? millis) {
                                     if (millis == null) return '';
-                                    final dt = DateTime.fromMillisecondsSinceEpoch(millis);
+                                    final dt =
+                                        DateTime.fromMillisecondsSinceEpoch(
+                                          millis,
+                                        );
                                     return '${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
                                   }
 
@@ -869,25 +973,35 @@ class _HomeScreenState extends State<HomeScreen> {
 
                                   return InkWell(
                                     onTap: () {
-                                      _showShiftDialog(employee.employeeId!, day);
+                                      _showShiftDialog(
+                                        employee.employeeId!,
+                                        day,
+                                      );
                                     },
                                     child: Container(
                                       height: rowHeight,
                                       alignment: Alignment.center,
                                       padding: const EdgeInsets.all(4.0),
                                       decoration: BoxDecoration(
-                                        color: shiftName.isNotEmpty ? Colors.purple[100] : null,
-                                        borderRadius: BorderRadius.circular(4.0),
+                                        color: shiftName.isNotEmpty
+                                            ? Colors.purple[100]
+                                            : null,
+                                        borderRadius: BorderRadius.circular(
+                                          4.0,
+                                        ),
                                       ),
                                       child: shiftName.isNotEmpty
                                           ? Text(
                                               [
                                                 shiftName,
-                                                if (startTime.isNotEmpty && endTime.isNotEmpty)
+                                                if (startTime.isNotEmpty &&
+                                                    endTime.isNotEmpty)
                                                   '$startTime-$endTime',
                                               ].join('\n'),
                                               textAlign: TextAlign.center,
-                                              style: const TextStyle(fontSize: 10.0),
+                                              style: const TextStyle(
+                                                fontSize: 10.0,
+                                              ),
                                             )
                                           : const Icon(Icons.add, size: 14.0),
                                     ),
@@ -1022,27 +1136,29 @@ class _HomeScreenState extends State<HomeScreen> {
                     style: TextStyle(fontWeight: FontWeight.bold),
                   ),
                 ),
-                    TextButton(
-                      onPressed: () async {
-                        for (int empId in selectedEmployeeIds) {
-                          await _dbHelper.addEmployeeToWeek(empId, weekStart);
-                        }
-                        // Add new employees to existing selected employees instead of replacing
-                        final currentSet = _selectedEmployeesForShift.toSet();
-                        final newSet = selectedEmployeeIds.toSet();
-                        _selectedEmployeesForShift = currentSet.union(newSet).toList();
+                TextButton(
+                  onPressed: () async {
+                    for (int empId in selectedEmployeeIds) {
+                      await _dbHelper.addEmployeeToWeek(empId, weekStart);
+                    }
+                    // Add new employees to existing selected employees instead of replacing
+                    final currentSet = _selectedEmployeesForShift.toSet();
+                    final newSet = selectedEmployeeIds.toSet();
+                    _selectedEmployeesForShift = currentSet
+                        .union(newSet)
+                        .toList();
 
-                        await _loadData();
-                        if (context.mounted) Navigator.pop(context);
-                      },
-                      child: const Text(
-                        'Add',
-                        style: TextStyle(
-                          color: Colors.deepPurple,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
+                    await _loadData();
+                    if (context.mounted) Navigator.pop(context);
+                  },
+                  child: const Text(
+                    'Add',
+                    style: TextStyle(
+                      color: Colors.deepPurple,
+                      fontWeight: FontWeight.bold,
                     ),
+                  ),
+                ),
               ],
             );
           },
