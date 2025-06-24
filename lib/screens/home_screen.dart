@@ -716,10 +716,10 @@ class _HomeScreenState extends State<HomeScreen> {
                 alignment: Alignment.centerLeft,
                 padding: const EdgeInsets.symmetric(horizontal: 8.0),
                 decoration: BoxDecoration(
-                  color: Colors.deepPurple[300],
+                  color: Colors.deepPurple[300], // Darker purple for employee header
                   border: Border(
                     bottom: BorderSide(color: Colors.grey.shade300),
-                    right: BorderSide(color: Colors.grey.shade300, width: 1.0),
+                    right: BorderSide(color: Colors.grey.shade400, width: 1.5),
                   ),
                 ),
                 child: const Text(
@@ -746,13 +746,13 @@ class _HomeScreenState extends State<HomeScreen> {
                         padding: const EdgeInsets.symmetric(horizontal: 8.0),
                         decoration: BoxDecoration(
                           color: index.isEven
-                              ? Colors.grey.shade100
-                              : Colors.grey.shade200,
+                              ? Colors.deepPurple[50] // Light purple shade for even rows
+                              : Colors.deepPurple[100], // Slightly darker for odd rows
                           border: Border(
                             bottom: BorderSide(color: Colors.grey.shade300),
                             right: BorderSide(
-                              color: Colors.grey.shade300,
-                              width: 1.0,
+                              color: Colors.grey.shade400,
+                              width: 1.5,
                             ),
                           ),
                         ),
@@ -876,7 +876,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                       alignment: Alignment.center,
                                       padding: const EdgeInsets.all(4.0),
                                       decoration: BoxDecoration(
-                                        color: shiftName.isNotEmpty ? Colors.deepPurple[100] : null,
+                                        color: shiftName.isNotEmpty ? Colors.purple[100] : null,
                                         borderRadius: BorderRadius.circular(4.0),
                                       ),
                                       child: shiftName.isNotEmpty
