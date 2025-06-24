@@ -28,6 +28,9 @@ class _HomeScreenState extends State<HomeScreen> {
   bool _showCalendar = false;
   List<int> _selectedEmployeesForShift = [];
   bool _isLoading = true;
+  int? _currentWeekId;
+  final dbHelper = DatabaseHelper();
+
   @override
   void initState() {
     super.initState();
@@ -56,40 +59,31 @@ class _HomeScreenState extends State<HomeScreen> {
     _currentWeekEnd = _currentWeekStart.add(const Duration(days: 6));
   }
 
-  Future<void> _initWeekStartAndLoadData() async {
+  void _initWeekStartAndLoadData() async {
     try {
-      setState(() => _isLoading = true);
-
       final prefs = await SharedPreferences.getInstance();
-      final savedWeekStartMillis = prefs.getInt('selectedWeekStart');
+      int? storedWeekId = prefs.getInt('current_week_id');
 
-      // Calculate week start based on saved preference or current date
-      _currentWeekStart = savedWeekStartMillis != null
-          ? DateTime.fromMillisecondsSinceEpoch(savedWeekStartMillis)
-          : DateTime.now().subtract(Duration(days: DateTime.now().weekday - 1));
+      storedWeekId ??= await dbHelper.getCurrentWeekId();
 
-      _currentWeekEnd = _currentWeekStart.add(const Duration(days: 6));
-      _selectedDay = _currentWeekStart;
-      _focusedDay = _currentWeekStart;
+      setState(() {
+        _currentWeekId = storedWeekId!;
+      });
 
-      // Ensure we have the proper week assignments
-      await _ensureWeekAssignments();
-
-      // Load data for the week
-      await _loadData();
-
-      // Save current week start to SharedPreferences
-      await prefs.setInt(
-        'selectedWeekStart',
-        _currentWeekStart.millisecondsSinceEpoch,
-      );
-    } catch (e, st) {
-      print('Error in _initWeekStartAndLoadData: $e\n$st');
-    } finally {
-      if (mounted) {
-        setState(() => _isLoading = false);
-      }
+      _loadEmployeesForWeek(_currentWeekId!);
+    } catch (e) {
+      print("❌ Error in _initWeekStartAndLoadData: $e");
     }
+  }
+
+  Future<void> _loadEmployeesForWeek(int weekId) async {
+    final employeeMaps = await dbHelper.getEmployeesForWeek(weekId);
+
+    final employees = employeeMaps.map((map) => Employee.fromMap(map)).toList();
+
+    setState(() {
+      _employees = employees;
+    });
   }
 
   Future<void> _addEmployeeDialog(BuildContext context) async {
@@ -300,11 +294,19 @@ class _HomeScreenState extends State<HomeScreen> {
             TextButton(
               child: const Text('Remove'),
               onPressed: () async {
-                await _dbHelper.removeEmployeeFromWeek(employeeId, weekStart);
-                await _loadData();
+                Navigator.of(context).pop();
 
-                if (!mounted) return;
-                Navigator.of(dialogContext).pop();
+                final weekStart = _currentWeekStart.millisecondsSinceEpoch;
+                await _dbHelper.removeEmployeeFromWeek(employeeId, weekStart);
+
+                final deleted = await _dbHelper.removeEmployeeFromWeek(
+                  employeeId,
+                  weekStart,
+                );
+
+                print("🗑️ Removed employee $employeeId from week $weekStart");
+
+                await _loadData();
               },
             ),
           ],

@@ -3,16 +3,16 @@ import 'dart:io';
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:shiftly/models/employee.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class DatabaseHelper {
   static final DatabaseHelper _instance = DatabaseHelper._internal();
   static Database? _database;
   static const int _databaseVersion = 3;
 
-  int getStartOfWeek(DateTime date) {
+  DateTime getStartOfWeek(DateTime date) {
     final monday = date.subtract(Duration(days: date.weekday - 1));
-    final startOfDay = DateTime(monday.year, monday.month, monday.day);
-    return startOfDay.millisecondsSinceEpoch;
+    return DateTime(monday.year, monday.month, monday.day);
   }
 
   factory DatabaseHelper() => _instance;
@@ -22,6 +22,37 @@ class DatabaseHelper {
     if (_database != null) return _database!;
     _database = await _initDatabase();
     return _database!;
+  }
+
+  Future<int> getCurrentWeekId() async {
+    final db = await database;
+
+    // Get start and end of current week as DateTime
+    final DateTime startOfWeek = getStartOfWeek(DateTime.now());
+    final DateTime endOfWeek = startOfWeek.add(const Duration(days: 6));
+
+    // Query the Week table using ISO 8601 string date format
+    final List<Map<String, dynamic>> result = await db.query(
+      'Week',
+      where: 'start_date = ? AND end_date = ?',
+      whereArgs: [startOfWeek.toIso8601String(), endOfWeek.toIso8601String()],
+    );
+
+    int weekId;
+    if (result.isNotEmpty) {
+      weekId = result.first['week_id'] as int;
+    } else {
+      weekId = await db.insert('Week', {
+        'start_date': startOfWeek.toIso8601String(),
+        'end_date': endOfWeek.toIso8601String(),
+      });
+    }
+
+    // Save the current weekId to SharedPreferences
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt('current_week_id', weekId);
+
+    return weekId;
   }
 
   Future<Database> _initDatabase() async {
@@ -96,24 +127,19 @@ class DatabaseHelper {
   }
 
   Future<void> _onCreate(Database db, int version) async {
-    print('🛠️ onCreate called with version $version');
-    await _createTables(db);
+    await db.execute('''
+    CREATE TABLE Employee (
+      employee_id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT
+    )
+  ''');
   }
 
   Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
-    print('🛠️ onUpgrade called from version $oldVersion to $newVersion');
-    for (int version = oldVersion + 1; version <= newVersion; version++) {
-      switch (version) {
-        case 2:
-          print('🛠️ Migrating to version 2');
-          await _migrateToVersion2(db);
-          break;
-        case 3:
-          print('🛠️ Migrating to version 3');
-          await _migrateToVersion3(db);
-          break;
-      }
-    }
+    await db.execute('DROP TABLE IF EXISTS Employee');
+    await db.execute('DROP TABLE IF EXISTS Shift');
+    await db.execute('DROP TABLE IF EXISTS Week');
+    await _onCreate(db, newVersion);
   }
 
   Future<void> _migrateToVersion3(Database db) async {
@@ -192,25 +218,12 @@ class DatabaseHelper {
 ''');
   }
 
-  Future<void> removeEmployeeFromWeek(int employeeId, int weekStart) async {
+  Future<int> removeEmployeeFromWeek(int employeeId, int weekStart) async {
     final db = await database;
-
-    // Remove from week_assignments for the specific week
-    final deletedAssignments = await db.delete(
+    return await db.delete(
       'week_assignments',
       where: 'employee_id = ? AND week_start = ?',
       whereArgs: [employeeId, weekStart],
-    );
-
-    // Remove shift data for the employee for the specific week
-    final deletedShifts = await db.delete(
-      'shift_timings',
-      where: 'employee_id = ? AND week_start = ?',
-      whereArgs: [employeeId, weekStart],
-    );
-
-    print(
-      '🗑️ Removed $deletedAssignments assignments and $deletedShifts shifts for employee $employeeId in week $weekStart',
     );
   }
 
