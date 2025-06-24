@@ -696,13 +696,12 @@ class _HomeScreenState extends State<HomeScreen> {
     final dateFormat = DateFormat('d');
     const double cellWidth = 75.0;
     const double rowHeight = 50.0;
-    final double tableWidth = cellWidth * days.length;
 
     final visibleEmployees = _selectedEmployeesForShift.isEmpty
         ? _employees
         : _employees
-              .where((e) => _selectedEmployeesForShift.contains(e.employeeId))
-              .toList();
+            .where((e) => _selectedEmployeesForShift.contains(e.employeeId))
+            .toList();
 
     return Row(
       children: [
@@ -780,48 +779,48 @@ class _HomeScreenState extends State<HomeScreen> {
               controller: _horizontalController,
               scrollDirection: Axis.horizontal,
               child: SizedBox(
-                width: tableWidth,
+                width: cellWidth * days.length,
                 child: Column(
                   children: [
                     // Days Header
-                    Container(
-                      height: rowHeight,
-                      child: Row(
-                        children: List.generate(days.length, (index) {
-                          final dayDate = _currentWeekStart.add(
-                            Duration(days: index),
-                          );
-                          return Container(
-                            width: cellWidth,
-                            decoration: BoxDecoration(
-                              color: Colors.deepPurple[300],
-                              border: Border(
-                                bottom: BorderSide(color: Colors.grey.shade300),
-                                right: BorderSide(
-                                  color: Colors.grey.shade300,
-                                  width: 1.0,
-                                ),
-                              ),
-                            ),
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Text(
-                                  days[index],
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                                Text(
-                                  dateFormat.format(dayDate),
-                                  style: const TextStyle(color: Colors.white),
-                                ),
-                              ],
-                            ),
-                          );
-                        }),
+                    Table(
+                      border: TableBorder(
+                        horizontalInside: BorderSide(color: Colors.grey.shade300),
+                        verticalInside: BorderSide(color: Colors.grey.shade300, width: 1.0),
+                        bottom: BorderSide(color: Colors.grey.shade300),
                       ),
+                      columnWidths: {
+                        for (int i = 0; i < days.length; i++)
+                          i: FixedColumnWidth(cellWidth),
+                      },
+                      children: [
+                        TableRow(
+                          decoration: BoxDecoration(color: Colors.deepPurple[300]),
+                          children: List.generate(days.length, (index) {
+                            final dayDate = _currentWeekStart.add(Duration(days: index));
+                            return Container(
+                              height: rowHeight,
+                              alignment: Alignment.center,
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Text(
+                                    days[index],
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  Text(
+                                    dateFormat.format(dayDate),
+                                    style: const TextStyle(color: Colors.white),
+                                  ),
+                                ],
+                              ),
+                            );
+                          }),
+                        ),
+                      ],
                     ),
 
                     // Shift Rows
@@ -831,88 +830,71 @@ class _HomeScreenState extends State<HomeScreen> {
                         itemCount: visibleEmployees.length,
                         itemBuilder: (context, index) {
                           final employee = visibleEmployees[index];
-                          return Container(
-                            height: rowHeight,
-                            decoration: BoxDecoration(
-                              border: Border(
-                                bottom: BorderSide(color: Colors.grey.shade300),
-                              ),
+                          return Table(
+                            border: TableBorder(
+                              horizontalInside: BorderSide(color: Colors.grey.shade300),
+                              verticalInside: BorderSide(color: Colors.grey.shade300, width: 1.0),
+                              bottom: BorderSide(color: Colors.grey.shade300),
                             ),
-                            child: Row(
-                              children: List.generate(days.length, (dayIndex) {
-                                final day = days[dayIndex];
-                                final shift = _shiftTimings.firstWhere(
-                                  (st) =>
-                                      st['employee_id'] ==
-                                          employee.employeeId &&
-                                      st['day'].toString().toLowerCase() ==
-                                          day.toLowerCase(),
-                                  orElse: () => {},
-                                );
+                            columnWidths: {
+                              for (int i = 0; i < days.length; i++)
+                                i: FixedColumnWidth(cellWidth),
+                            },
+                            children: [
+                              TableRow(
+                                decoration: BoxDecoration(
+                                  color: index.isEven ? Colors.grey.shade100 : Colors.grey.shade200,
+                                ),
+                                children: List.generate(days.length, (dayIndex) {
+                                  final day = days[dayIndex];
+                                  final shift = _shiftTimings.firstWhere(
+                                    (st) =>
+                                        st['employee_id'] == employee.employeeId &&
+                                        st['day'].toString().toLowerCase() == day.toLowerCase(),
+                                    orElse: () => {},
+                                  );
 
-                                final shiftName =
-                                    shift['shift_name']?.toString() ?? '';
-                                final startTimeMillis = shift['start_time'];
-                                final endTimeMillis = shift['end_time'];
+                                  final shiftName = shift['shift_name']?.toString() ?? '';
+                                  final startTimeMillis = shift['start_time'];
+                                  final endTimeMillis = shift['end_time'];
 
-                                String formatTime(int? millis) {
-                                  if (millis == null) return '';
-                                  final dt =
-                                      DateTime.fromMillisecondsSinceEpoch(
-                                        millis,
-                                      );
-                                  return '${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
-                                }
+                                  String formatTime(int? millis) {
+                                    if (millis == null) return '';
+                                    final dt = DateTime.fromMillisecondsSinceEpoch(millis);
+                                    return '${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
+                                  }
 
-                                final startTime = formatTime(startTimeMillis);
-                                final endTime = formatTime(endTimeMillis);
+                                  final startTime = formatTime(startTimeMillis);
+                                  final endTime = formatTime(endTimeMillis);
 
-                                return Container(
-                                  width: cellWidth,
-                                  decoration: BoxDecoration(
-                                    border: Border(
-                                      right: BorderSide(
-                                        color: Colors.grey.shade300,
-                                        width: 1.0,
-                                      ),
-                                    ),
-                                  ),
-                                  child: InkWell(
+                                  return InkWell(
                                     onTap: () {
-                                      _showShiftDialog(
-                                        employee.employeeId!,
-                                        day,
-                                      );
+                                      _showShiftDialog(employee.employeeId!, day);
                                     },
                                     child: Container(
+                                      height: rowHeight,
+                                      alignment: Alignment.center,
                                       padding: const EdgeInsets.all(4.0),
                                       decoration: BoxDecoration(
-                                        color: shiftName.isNotEmpty
-                                            ? Colors.deepPurple[100]
-                                            : null,
-                                        borderRadius: BorderRadius.circular(
-                                          4.0,
-                                        ),
+                                        color: shiftName.isNotEmpty ? Colors.deepPurple[100] : null,
+                                        borderRadius: BorderRadius.circular(4.0),
                                       ),
                                       child: shiftName.isNotEmpty
                                           ? Text(
                                               [
                                                 shiftName,
-                                                if (startTime.isNotEmpty &&
-                                                    endTime.isNotEmpty)
+                                                if (startTime.isNotEmpty && endTime.isNotEmpty)
                                                   '$startTime-$endTime',
                                               ].join('\n'),
                                               textAlign: TextAlign.center,
-                                              style: const TextStyle(
-                                                fontSize: 10.0,
-                                              ),
+                                              style: const TextStyle(fontSize: 10.0),
                                             )
                                           : const Icon(Icons.add, size: 14.0),
                                     ),
-                                  ),
-                                );
-                              }),
-                            ),
+                                  );
+                                }),
+                              ),
+                            ],
                           );
                         },
                       ),
