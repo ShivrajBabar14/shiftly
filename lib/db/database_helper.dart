@@ -8,7 +8,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 class DatabaseHelper {
   static final DatabaseHelper _instance = DatabaseHelper._internal();
   static Database? _database;
-  static const int _databaseVersion = 3;
+  static const int _databaseVersion = 4;
 
   DateTime getStartOfWeek(DateTime date) {
     final monday = date.subtract(Duration(days: date.weekday - 1));
@@ -31,9 +31,9 @@ class DatabaseHelper {
     final DateTime startOfWeek = getStartOfWeek(DateTime.now());
     final DateTime endOfWeek = startOfWeek.add(const Duration(days: 6));
 
-    // Query the Week table using ISO 8601 string date format
+    // Query the week_info table using ISO 8601 string date format
     final List<Map<String, dynamic>> result = await db.query(
-      'Week',
+      'week_info',
       where: 'start_date = ? AND end_date = ?',
       whereArgs: [startOfWeek.toIso8601String(), endOfWeek.toIso8601String()],
     );
@@ -42,7 +42,7 @@ class DatabaseHelper {
     if (result.isNotEmpty) {
       weekId = result.first['week_id'] as int;
     } else {
-      weekId = await db.insert('Week', {
+      weekId = await db.insert('week_info', {
         'start_date': startOfWeek.toIso8601String(),
         'end_date': endOfWeek.toIso8601String(),
       });
@@ -127,19 +127,15 @@ class DatabaseHelper {
   }
 
   Future<void> _onCreate(Database db, int version) async {
-    await db.execute('''
-    CREATE TABLE Employee (
-      employee_id INTEGER PRIMARY KEY AUTOINCREMENT,
-      name TEXT
-    )
-  ''');
+    await _createTables(db);
   }
 
   Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
-    await db.execute('DROP TABLE IF EXISTS Employee');
-    await db.execute('DROP TABLE IF EXISTS Shift');
-    await db.execute('DROP TABLE IF EXISTS Week');
-    await _onCreate(db, newVersion);
+    await db.execute('DROP TABLE IF EXISTS employees');
+    await db.execute('DROP TABLE IF EXISTS shift_timings');
+    await db.execute('DROP TABLE IF EXISTS week_info');
+    await db.execute('DROP TABLE IF EXISTS week_assignments');
+    await _createTables(db);
   }
 
   Future<void> _migrateToVersion3(Database db) async {
