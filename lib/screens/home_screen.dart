@@ -155,9 +155,30 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
-  void _onWeekChanged(DateTime startOfWeek) {
+  Future<void> _onWeekChanged(DateTime startOfWeek) async {
+    final currentWeekStart = _currentWeekStart.millisecondsSinceEpoch;
+
+    // Calculate new week range
+    _calculateWeekRange(startOfWeek);
+    final newWeekStart = _currentWeekStart.millisecondsSinceEpoch;
+
+    // Only copy employees if moving forward to next week
+    if (newWeekStart > currentWeekStart) {
+      final currentWeekEmployeesMaps = await _dbHelper.getEmployeesForWeek(currentWeekStart);
+      final currentWeekEmployees = currentWeekEmployeesMaps.map((e) => Employee.fromMap(e)).toList();
+
+      for (final employee in currentWeekEmployees) {
+        // Check if employee already assigned to new week to avoid duplicates
+        final newWeekEmployeesMaps = await _dbHelper.getEmployeesForWeek(newWeekStart);
+        final newWeekEmployeeIds = newWeekEmployeesMaps.map((e) => e['employee_id'] as int).toSet();
+
+        if (!newWeekEmployeeIds.contains(employee.employeeId)) {
+          await _dbHelper.addEmployeeToWeek(employee.employeeId!, newWeekStart);
+        }
+      }
+    }
+
     setState(() {
-      _calculateWeekRange(startOfWeek);
       _loadData();
     });
   }
@@ -1019,22 +1040,27 @@ class _HomeScreenState extends State<HomeScreen> {
                     style: TextStyle(fontWeight: FontWeight.bold),
                   ),
                 ),
-                TextButton(
-                  onPressed: () async {
-                    for (int empId in selectedEmployeeIds) {
-                      await _dbHelper.addEmployeeToWeek(empId, weekStart);
-                    }
-                    await _loadData();
-                    if (context.mounted) Navigator.pop(context);
-                  },
-                  child: const Text(
-                    'Add',
-                    style: TextStyle(
-                      color: Colors.deepPurple,
-                      fontWeight: FontWeight.bold,
+                    TextButton(
+                      onPressed: () async {
+                        for (int empId in selectedEmployeeIds) {
+                          await _dbHelper.addEmployeeToWeek(empId, weekStart);
+                        }
+                        // Add new employees to existing selected employees instead of replacing
+                        final currentSet = _selectedEmployeesForShift.toSet();
+                        final newSet = selectedEmployeeIds.toSet();
+                        _selectedEmployeesForShift = currentSet.union(newSet).toList();
+
+                        await _loadData();
+                        if (context.mounted) Navigator.pop(context);
+                      },
+                      child: const Text(
+                        'Add',
+                        style: TextStyle(
+                          color: Colors.deepPurple,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
                     ),
-                  ),
-                ),
               ],
             );
           },

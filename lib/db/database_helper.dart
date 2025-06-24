@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:shiftly/models/employee.dart';
@@ -9,10 +10,10 @@ class DatabaseHelper {
   static const int _databaseVersion = 3;
 
   int getStartOfWeek(DateTime date) {
-  final monday = date.subtract(Duration(days: date.weekday - 1));
-  final startOfDay = DateTime(monday.year, monday.month, monday.day);
-  return startOfDay.millisecondsSinceEpoch;
-}
+    final monday = date.subtract(Duration(days: date.weekday - 1));
+    final startOfDay = DateTime(monday.year, monday.month, monday.day);
+    return startOfDay.millisecondsSinceEpoch;
+  }
 
   factory DatabaseHelper() => _instance;
   DatabaseHelper._internal();
@@ -26,8 +27,19 @@ class DatabaseHelper {
   Future<Database> _initDatabase() async {
     final path = join(await getDatabasesPath(), 'shiftly.db');
 
+    print('🔍 Database path: $path');
+    final file = File(path);
+    final exists = await file.exists();
+    print('🔍 Database file exists: $exists');
+
+    if (!exists) {
+      print('🆕 Database does not exist, creating new database.');
+    } else {
+      print('✅ Database exists, opening existing database.');
+    }
+
     // ❗ Uncomment the next line during development to reset DB if issues occur
-    await deleteDatabase(path);
+    // await deleteDatabase(path);
 
     return await openDatabase(
       path,
@@ -84,16 +96,20 @@ class DatabaseHelper {
   }
 
   Future<void> _onCreate(Database db, int version) async {
+    print('🛠️ onCreate called with version $version');
     await _createTables(db);
   }
 
   Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
+    print('🛠️ onUpgrade called from version $oldVersion to $newVersion');
     for (int version = oldVersion + 1; version <= newVersion; version++) {
       switch (version) {
         case 2:
+          print('🛠️ Migrating to version 2');
           await _migrateToVersion2(db);
           break;
         case 3:
+          print('🛠️ Migrating to version 3');
           await _migrateToVersion3(db);
           break;
       }
@@ -179,16 +195,23 @@ class DatabaseHelper {
   Future<void> removeEmployeeFromWeek(int employeeId, int weekStart) async {
     final db = await database;
 
-    // Temporary check - remove after fixing the schema
-    final tables = await db.rawQuery(
-      "SELECT name FROM sqlite_master WHERE type='table' AND name='week_assignments'",
+    // Remove from week_assignments for the specific week
+    final deletedAssignments = await db.delete(
+      'week_assignments',
+      where: 'employee_id = ? AND week_start = ?',
+      whereArgs: [employeeId, weekStart],
     );
-    if (tables.isEmpty) {
-      print('⚠️ week_assignments table missing - creating now');
-      await _migrateToVersion3(db);
-    }
 
-    // Rest of your existing code...
+    // Remove shift data for the employee for the specific week
+    final deletedShifts = await db.delete(
+      'shift_timings',
+      where: 'employee_id = ? AND week_start = ?',
+      whereArgs: [employeeId, weekStart],
+    );
+
+    print(
+      '🗑️ Removed $deletedAssignments assignments and $deletedShifts shifts for employee $employeeId in week $weekStart',
+    );
   }
 
   // Future<void> removeEmployeeFromWeek(int employeeId, int weekStart) async {
@@ -217,11 +240,37 @@ class DatabaseHelper {
     try {
       // Drop and recreate shift_timings table to update schema for start_time and end_time as INTEGER
       await db.execute('DROP TABLE IF EXISTS shift_timings');
-      await _createTables(db);
+
+      await db.execute('''
+  CREATE TABLE shift_timings (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    employee_id INTEGER NOT NULL,
+    day TEXT NOT NULL,
+    week_start INTEGER NOT NULL,
+    shift_name TEXT,
+    start_time INTEGER,
+    end_time INTEGER,
+    FOREIGN KEY (employee_id) REFERENCES employees (employee_id) ON DELETE CASCADE,
+    UNIQUE(employee_id, day, week_start) ON CONFLICT REPLACE
+  )
+''');
     } catch (e) {
       print('Migration to v2 failed: $e — recreating tables.');
       await db.execute('DROP TABLE IF EXISTS shift_timings');
-      await _createTables(db);
+
+      await db.execute('''
+  CREATE TABLE shift_timings (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    employee_id INTEGER NOT NULL,
+    day TEXT NOT NULL,
+    week_start INTEGER NOT NULL,
+    shift_name TEXT,
+    start_time INTEGER,
+    end_time INTEGER,
+    FOREIGN KEY (employee_id) REFERENCES employees (employee_id) ON DELETE CASCADE,
+    UNIQUE(employee_id, day, week_start) ON CONFLICT REPLACE
+  )
+''');
     }
   }
 
