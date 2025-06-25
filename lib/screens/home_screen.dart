@@ -604,48 +604,50 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           // Shift Table or Empty State
           Expanded(
-            child: _employees.isEmpty
-                ? Stack(
-                    children: [
-                      _buildEmptyShiftTable(),
-                      Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            const Text(
-                              'Your shift tracking will appear here.',
-                              style: TextStyle(fontSize: 15),
-                            ),
-                            const Text(
-                              'Tap below to begin.',
-                              style: TextStyle(fontSize: 15),
-                            ),
-                            const SizedBox(height: 20),
-                            ElevatedButton(
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.deepPurple,
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 30,
-                                  vertical: 15,
+            child: _isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : (_employees.isEmpty
+                    ? Stack(
+                        children: [
+                          _buildEmptyShiftTable(),
+                          Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                const Text(
+                                  'Your shift tracking will appear here.',
+                                  style: TextStyle(fontSize: 15),
                                 ),
-                              ),
-                              onPressed: () {
-                                _showAddEmployeeDialog();
-                              },
-                              child: const Text(
-                                'Add Employee',
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 14,
+                                const Text(
+                                  'Tap below to begin.',
+                                  style: TextStyle(fontSize: 15),
                                 ),
-                              ),
+                                const SizedBox(height: 20),
+                                ElevatedButton(
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.deepPurple,
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 30,
+                                      vertical: 15,
+                                    ),
+                                  ),
+                                  onPressed: () {
+                                    _showAddEmployeeDialog();
+                                  },
+                                  child: const Text(
+                                    'Add Employee',
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 14,
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  )
-                : _buildShiftTable(),
+                          ),
+                        ],
+                      )
+                    : _buildShiftTable()),
           ),
         ],
       ),
