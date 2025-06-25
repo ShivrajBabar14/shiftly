@@ -1156,18 +1156,20 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
                 TextButton(
                   onPressed: () async {
-                    for (int empId in selectedEmployeeIds) {
-                      await _dbHelper.addEmployeeToWeek(empId, weekStart);
-                    }
-                    // Add new employees to existing selected employees instead of replacing
-                    final currentSet = _selectedEmployeesForShift.toSet();
-                    final newSet = selectedEmployeeIds.toSet();
-                    _selectedEmployeesForShift = currentSet
-                        .union(newSet)
-                        .toList();
+                for (int empId in selectedEmployeeIds) {
+                  await _dbHelper.addEmployeeToWeek(empId, weekStart);
+                }
+                // Add new employees to existing selected employees instead of replacing
+                final currentSet = _selectedEmployeesForShift.toSet();
+                final newSet = selectedEmployeeIds.toSet();
+                _selectedEmployeesForShift = currentSet
+                    .union(newSet)
+                    .toList();
 
-                    await _loadData();
-                    if (context.mounted) Navigator.pop(context);
+                await _loadData();
+                // Clear the selected employees filter to show all employees after adding
+                _selectedEmployeesForShift = [];
+                if (context.mounted) Navigator.pop(context);
                   },
                   child: const Text(
                     'Add',
