@@ -24,6 +24,7 @@ class DatabaseHelper {
     return _database!;
   }
 
+
   Future<int> getCurrentWeekId() async {
     final db = await database;
 
@@ -31,28 +32,32 @@ class DatabaseHelper {
     final DateTime startOfWeek = getStartOfWeek(DateTime.now());
     final DateTime endOfWeek = startOfWeek.add(const Duration(days: 6));
 
-    // Query the week_info table using ISO 8601 string date format
+    final int startOfWeekMillis = startOfWeek.millisecondsSinceEpoch;
+    final int endOfWeekMillis = endOfWeek.millisecondsSinceEpoch;
+
+    // Query the week_info table using integer timestamps
     final List<Map<String, dynamic>> result = await db.query(
       'week_info',
       where: 'start_date = ? AND end_date = ?',
-      whereArgs: [startOfWeek.toIso8601String(), endOfWeek.toIso8601String()],
+      whereArgs: [startOfWeekMillis, endOfWeekMillis],
     );
 
-    int weekId;
+    int weekStart;
     if (result.isNotEmpty) {
-      weekId = result.first['week_id'] as int;
+      weekStart = result.first['start_date'] as int;
     } else {
-      weekId = await db.insert('week_info', {
-        'start_date': startOfWeek.toIso8601String(),
-        'end_date': endOfWeek.toIso8601String(),
+      await db.insert('week_info', {
+        'start_date': startOfWeekMillis,
+        'end_date': endOfWeekMillis,
       });
+      weekStart = startOfWeekMillis;
     }
 
-    // Save the current weekId to SharedPreferences
+    // Save the current weekStart to SharedPreferences
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setInt('current_week_id', weekId);
+    await prefs.setInt('current_week_id', weekStart);
 
-    return weekId;
+    return weekStart;
   }
 
   Future<Database> _initDatabase() async {
@@ -131,11 +136,14 @@ class DatabaseHelper {
   }
 
   Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
-    await db.execute('DROP TABLE IF EXISTS employees');
-    await db.execute('DROP TABLE IF EXISTS shift_timings');
-    await db.execute('DROP TABLE IF EXISTS week_info');
-    await db.execute('DROP TABLE IF EXISTS week_assignments');
-    await _createTables(db);
+    // Implement proper migration strategy to preserve data
+    if (oldVersion < 2 && newVersion >= 2) {
+      await _migrateToVersion2(db);
+    }
+    if (oldVersion < 3 && newVersion >= 3) {
+      await _migrateToVersion3(db);
+    }
+    // Add further migrations here as needed
   }
 
   Future<void> _migrateToVersion3(Database db) async {

@@ -40,11 +40,12 @@ class _HomeScreenState extends State<HomeScreen> {
     _focusedDay = DateTime.now();
     _firstDay = DateTime.now().subtract(const Duration(days: 365));
     _lastDay = DateTime.now().add(const Duration(days: 365));
-    _initWeekStartAndLoadData();
+
+    // Initialize week range first
     _calculateWeekRange(_selectedDay);
 
-    // Load shift data or employees
-    _loadData();
+    // Then load data
+    _initWeekStartAndLoadData();
   }
 
   @override
@@ -61,16 +62,25 @@ class _HomeScreenState extends State<HomeScreen> {
 
   void _initWeekStartAndLoadData() async {
     try {
-      final prefs = await SharedPreferences.getInstance();
-      int? storedWeekId = prefs.getInt('current_week_id');
+      // Get the current week ID from database (this will create if doesn't exist)
+      final weekStartMillis = await dbHelper.getCurrentWeekId();
 
-      storedWeekId ??= await dbHelper.getCurrentWeekId();
+      // Update the week range based on the database week
+      final weekStartDate = DateTime.fromMillisecondsSinceEpoch(
+        weekStartMillis,
+      );
+      _calculateWeekRange(weekStartDate);
 
       setState(() {
-        _currentWeekId = storedWeekId!;
+        _currentWeekId = weekStartMillis;
+        _currentWeekStart = weekStartDate;
+        _currentWeekEnd = weekStartDate.add(const Duration(days: 6));
+        _selectedDay = weekStartDate;
+        _focusedDay = weekStartDate;
       });
 
-      _loadEmployeesForWeek(_currentWeekId!);
+      await _ensureWeekAssignments();
+      await _loadData();
     } catch (e) {
       print("❌ Error in _initWeekStartAndLoadData: $e");
     }
@@ -154,6 +164,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> _loadData() async {
     try {
+      if (_currentWeekStart == null) return;
+
       final weekStart = _currentWeekStart.millisecondsSinceEpoch;
       final weekData = await _dbHelper.getEmployeesWithShiftsForWeek(weekStart);
 
@@ -183,9 +195,11 @@ class _HomeScreenState extends State<HomeScreen> {
       setState(() {
         _employees = employees;
         _shiftTimings = shiftTimings;
+        _isLoading = false;
       });
     } catch (e, st) {
       print('Error in _loadData: $e\n$st');
+      setState(() => _isLoading = false);
     }
   }
 
