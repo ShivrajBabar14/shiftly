@@ -104,7 +104,7 @@ class _HomeScreenState extends State<HomeScreen> {
       context: context,
       builder: (BuildContext dialogContext) {
         return AlertDialog(
-          title: const Text('Add Employee', style: TextStyle(fontSize: 18)),
+          title: const Text('Add Employee', style: TextStyle(fontSize: 24)),
           content: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 400),
             child: Column(
@@ -149,7 +149,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   }
                 }
               },
-              child: const Text('Add', style: TextStyle(fontSize: 18)),
+              child: const Text('Add', style: TextStyle(fontSize: 20)),
             ),
           ],
         );
@@ -1141,7 +1141,7 @@ class _HomeScreenState extends State<HomeScreen> {
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(16),
               ),
-              title: const Text('Select Employees'),
+              title: const Text('Select Employees', style: TextStyle(fontSize: 24)),
               content: Container(
                 width: double.maxFinite,
                 height: 250,
@@ -1211,8 +1211,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     }
                   },
                   child: const Text(
-                    'Add New',
-                    style: TextStyle(fontWeight: FontWeight.bold),
+                    'Add New', style: TextStyle(fontSize: 20)
                   ),
                 ),
                 TextButton(
@@ -1236,7 +1235,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     'Add',
                     style: TextStyle(
                       color: Colors.deepPurple,
-                      fontWeight: FontWeight.bold,
+                      fontSize: 20
                     ),
                   ),
                 ),
