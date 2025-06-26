@@ -802,6 +802,9 @@ class _HomeScreenState extends State<HomeScreen> {
     const double rowHeight = 70.0;
     final today = DateTime.now();
 
+    // Calculate todayIndex relative to _currentWeekStart
+    final todayIndex = today.difference(_currentWeekStart).inDays;
+
     final visibleEmployees = _selectedEmployeesForShift.isEmpty
         ? _employees
         : _employees
@@ -886,7 +889,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 width: cellWidth * days.length,
                 child: Column(
                   children: [
-                    // Days Header (unchanged)
+                    // Days Header
                     Table(
                       border: TableBorder(
                         horizontalInside: BorderSide(
@@ -914,14 +917,18 @@ class _HomeScreenState extends State<HomeScreen> {
                             return Container(
                               height: rowHeight,
                               decoration: BoxDecoration(
-                                color: isToday
+                                color: index == todayIndex
+                                    ? Colors
+                                          .deepPurple
+                                          .shade300 // Different background for current day column header
+                                    : isToday
                                     ? Colors.deepPurple.shade700
                                     : isPast
-                                    ? Colors.deepPurple[100]
+                                    ? Colors.deepPurple[200]
                                     : Colors.deepPurple[300],
-                                border: isToday
+                                border: index == todayIndex
                                     ? Border.all(
-                                        color: Colors.deepPurple,
+                                        color: Colors.deepPurple.shade400,
                                         width: 2,
                                       )
                                     : Border.all(color: Colors.grey.shade300),
@@ -954,7 +961,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       ],
                     ),
 
-                    // Shift Rows (updated display logic)
+                    // Shift Rows
                     Expanded(
                       child: ListView.builder(
                         controller: _verticalController,
@@ -978,11 +985,6 @@ class _HomeScreenState extends State<HomeScreen> {
                             },
                             children: [
                               TableRow(
-                                // decoration: BoxDecoration(
-                                //   color: index.isEven
-                                //       ? Colors.grey.shade100
-                                //       : Colors.grey.shade200,
-                                // ),
                                 children: List.generate(days.length, (
                                   dayIndex,
                                 ) {
@@ -1029,6 +1031,12 @@ class _HomeScreenState extends State<HomeScreen> {
                                       height: rowHeight,
                                       alignment: Alignment.center,
                                       padding: const EdgeInsets.all(4.0),
+                                      decoration: BoxDecoration(
+                                        // Highlight entire column for current day with faint purple
+                                        color: dayIndex == todayIndex
+                                            ? Colors.deepPurple.shade100
+                                            : null,
+                                      ),
                                       child: (hasName || hasTime)
                                           ? Container(
                                               padding:
