@@ -563,13 +563,20 @@ class _HomeScreenState extends State<HomeScreen> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 IconButton(
-                  icon: const Icon(Icons.chevron_left),
+                  icon: const Icon(
+                    Icons.chevron_left,
+                    size: 30,
+                  ), // Increased size
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                  ), // Added padding
                   onPressed: () {
                     _onWeekChanged(
                       _currentWeekStart.subtract(const Duration(days: 7)),
                     );
                   },
                 ),
+                const SizedBox(width: 8), // Added spacing
                 GestureDetector(
                   onTap: () {
                     setState(() {
@@ -584,8 +591,15 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   ),
                 ),
+                const SizedBox(width: 8), // Added spacing
                 IconButton(
-                  icon: const Icon(Icons.chevron_right),
+                  icon: const Icon(
+                    Icons.chevron_right,
+                    size: 30
+                  ), // Increased size
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                  ), // Added padding
                   onPressed: () {
                     _onWeekChanged(
                       _currentWeekStart.add(const Duration(days: 7)),
