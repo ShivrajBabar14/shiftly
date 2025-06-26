@@ -41,7 +41,7 @@ class _AddEmployeeScreenState extends State<AddEmployeeScreen> {
         return AlertDialog(
           title: const Text(
             'Add Employee',
-            style: TextStyle(fontSize: 18), // Reduced text size
+            style: TextStyle(fontSize: 24), // Reduced text size
           ),
           content: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 400), // Wider dialog
@@ -84,7 +84,7 @@ class _AddEmployeeScreenState extends State<AddEmployeeScreen> {
               },
               child: const Text(
                 'Add',
-                style: TextStyle(fontSize: 18), // Bigger Add button text
+                style: TextStyle(fontSize: 20), // Bigger Add button text
               ),
             ),
           ],
@@ -105,9 +105,9 @@ class _AddEmployeeScreenState extends State<AddEmployeeScreen> {
       context: context,
       builder: (_) {
         return AlertDialog(
-          title: const Text('Update Employee', style: TextStyle(fontSize: 18)),
+          title: const Text('Update Employee', style: TextStyle(fontSize: 24)),
           content: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 400),
+            constraints: const BoxConstraints(maxWidth: 500),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -169,7 +169,7 @@ class _AddEmployeeScreenState extends State<AddEmployeeScreen> {
                   }
                 }
               },
-              child: const Text('Update', style: TextStyle(fontSize: 18)),
+              child: const Text('Update', style: TextStyle(fontSize: 20)),
             ),
           ],
         );
