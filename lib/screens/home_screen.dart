@@ -978,11 +978,11 @@ class _HomeScreenState extends State<HomeScreen> {
                             },
                             children: [
                               TableRow(
-                                decoration: BoxDecoration(
-                                  color: index.isEven
-                                      ? Colors.grey.shade100
-                                      : Colors.grey.shade200,
-                                ),
+                                // decoration: BoxDecoration(
+                                //   color: index.isEven
+                                //       ? Colors.grey.shade100
+                                //       : Colors.grey.shade200,
+                                // ),
                                 children: List.generate(days.length, (
                                   dayIndex,
                                 ) {
