@@ -377,7 +377,7 @@ class _HomeScreenState extends State<HomeScreen> {
         return StatefulBuilder(
           builder: (context, setState) {
             return AlertDialog(
-              title: Text('${employee.name} - ${day.toUpperCase()}'),
+              title: Text('${employee.name} - ${day.toUpperCase()}', style: TextStyle(fontSize: 24)),
               content: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -595,7 +595,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 IconButton(
                   icon: const Icon(
                     Icons.chevron_right,
-                    size: 30
+                    size: 30,
                   ), // Increased size
                   padding: const EdgeInsets.symmetric(
                     horizontal: 16,
@@ -1103,19 +1103,16 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _showAddEmployeeDialog() async {
-    // Fetch all employees
     final rawAllEmployees = await _dbHelper.getEmployees();
     final allEmployees = rawAllEmployees
         .map((e) => Employee.fromMap(e))
         .toList();
 
-    // Fetch current week employees
     final weekStart = _currentWeekStart.millisecondsSinceEpoch;
     final rawWeekEmployees = await _dbHelper.getEmployeesForWeek(weekStart);
     final currentWeekEmployees = rawWeekEmployees
         .map((e) => Employee.fromMap(e))
         .toList();
-
     final currentWeekEmployeeIds = currentWeekEmployees
         .map((e) => e.employeeId!)
         .toSet();
@@ -1124,7 +1121,6 @@ class _HomeScreenState extends State<HomeScreen> {
         .where((e) => !currentWeekEmployeeIds.contains(e.employeeId))
         .toList();
 
-    // If no employees available, show add employee dialog directly
     if (availableEmployees.isEmpty) {
       await _addEmployeeDialog(context);
       return;
@@ -1137,109 +1133,149 @@ class _HomeScreenState extends State<HomeScreen> {
       builder: (context) {
         return StatefulBuilder(
           builder: (context, setState) {
-            return AlertDialog(
+            return Dialog(
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(16),
               ),
-              title: const Text('Select Employees', style: TextStyle(fontSize: 24)),
-              content: Container(
-                width: double.maxFinite,
-                height: 250,
-                padding: const EdgeInsets.symmetric(vertical: 4),
-                child: ListView.builder(
-                  itemCount: availableEmployees.length,
-                  itemBuilder: (context, index) {
-                    final employee = availableEmployees[index];
-                    final isSelected = selectedEmployeeIds.contains(
-                      employee.employeeId,
-                    );
+              child: Container(
+                width: 500,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Padding(
+                      padding: EdgeInsets.only(bottom: 12),
+                      child: Align(
+                        alignment: Alignment.centerLeft,
+                        child: Text(
+                          'Select Employees',
+                          style: TextStyle(
+                            fontSize: 24
+                          ),
+                        ),
+                      ),
+                    ),
+                    ConstrainedBox(
+                      constraints: const BoxConstraints(maxHeight: 220),
+                      child: ListView.builder(
+                        shrinkWrap: true,
+                        itemCount: availableEmployees.length,
+                        itemBuilder: (context, index) {
+                          final employee = availableEmployees[index];
+                          final isSelected = selectedEmployeeIds.contains(
+                            employee.employeeId,
+                          );
 
-                    return Container(
-                      padding: const EdgeInsets.symmetric(vertical: 4),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
+                          return Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 4),
+                            child: Row(
                               children: [
-                                Text(
-                                  employee.name ?? '',
-                                  style: const TextStyle(fontSize: 15),
-                                ),
-                                const SizedBox(height: 2),
-                                Text(
-                                  'ID ${employee.employeeId?.toString().padLeft(4, '0') ?? ''}',
-                                  style: const TextStyle(
-                                    fontSize: 12,
-                                    color: Colors.grey,
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        employee.name ?? '',
+                                        style: const TextStyle(fontSize: 15),
+                                      ),
+                                      const SizedBox(height: 2),
+                                      Text(
+                                        'ID ${employee.employeeId?.toString().padLeft(4, '0') ?? ''}',
+                                        style: const TextStyle(
+                                          fontSize: 12,
+                                          color: Colors.grey,
+                                        ),
+                                      ),
+                                    ],
                                   ),
+                                ),
+                                Checkbox(
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(4),
+                                  ),
+                                  value: isSelected,
+                                  activeColor: Colors.deepPurple,
+                                  onChanged: (value) {
+                                    setState(() {
+                                      if (value == true) {
+                                        selectedEmployeeIds.add(
+                                          employee.employeeId!,
+                                        );
+                                      } else {
+                                        selectedEmployeeIds.remove(
+                                          employee.employeeId,
+                                        );
+                                      }
+                                    });
+                                  },
                                 ),
                               ],
                             ),
-                          ),
-                          Checkbox(
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(4),
-                            ),
-                            value: isSelected,
-                            activeColor: Colors.deepPurple,
-                            onChanged: (value) {
-                              setState(() {
-                                if (value == true) {
-                                  selectedEmployeeIds.add(employee.employeeId!);
-                                } else {
-                                  selectedEmployeeIds.remove(
-                                    employee.employeeId,
-                                  );
-                                }
-                              });
-                            },
-                          ),
-                        ],
+                          );
+                        },
                       ),
-                    );
-                  },
+                    ),
+                    const SizedBox(height: 16),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        TextButton(
+                          onPressed: () async {
+                            Navigator.pop(context);
+                            await Future.delayed(
+                              const Duration(milliseconds: 150),
+                            );
+                            if (context.mounted) {
+                              await _addEmployeeDialog(context);
+                            }
+                          },
+                          child: const Text(
+                            'Add New',
+                            style: TextStyle(fontSize: 18),
+                          ),
+                        ),
+                        TextButton(
+                          onPressed: selectedEmployeeIds.isEmpty
+                              ? null
+                              : () async {
+                                  for (int empId in selectedEmployeeIds) {
+                                    await _dbHelper.addEmployeeToWeek(
+                                      empId,
+                                      weekStart,
+                                    );
+                                  }
+
+                                  final currentSet = _selectedEmployeesForShift
+                                      .toSet();
+                                  final newSet = selectedEmployeeIds.toSet();
+                                  _selectedEmployeesForShift = currentSet
+                                      .union(newSet)
+                                      .toList();
+
+                                  await _loadData();
+                                  _selectedEmployeesForShift = [];
+
+                                  if (context.mounted) Navigator.pop(context);
+                                },
+                          child: Text(
+                            'Add',
+                            style: TextStyle(
+                              color: selectedEmployeeIds.isEmpty
+                                  ? Colors.grey
+                                  : Colors.deepPurple,
+                              fontSize: 18,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
               ),
-              actions: [
-                TextButton(
-                  onPressed: () async {
-                    Navigator.pop(context);
-                    await Future.delayed(const Duration(milliseconds: 150));
-                    if (mounted) {
-                      await _addEmployeeDialog(context);
-                    }
-                  },
-                  child: const Text(
-                    'Add New', style: TextStyle(fontSize: 20)
-                  ),
-                ),
-                TextButton(
-                  onPressed: () async {
-                    for (int empId in selectedEmployeeIds) {
-                      await _dbHelper.addEmployeeToWeek(empId, weekStart);
-                    }
-                    // Add new employees to existing selected employees instead of replacing
-                    final currentSet = _selectedEmployeesForShift.toSet();
-                    final newSet = selectedEmployeeIds.toSet();
-                    _selectedEmployeesForShift = currentSet
-                        .union(newSet)
-                        .toList();
-
-                    await _loadData();
-                    // Clear the selected employees filter to show all employees after adding
-                    _selectedEmployeesForShift = [];
-                    if (context.mounted) Navigator.pop(context);
-                  },
-                  child: const Text(
-                    'Add',
-                    style: TextStyle(
-                      color: Colors.deepPurple,
-                      fontSize: 20
-                    ),
-                  ),
-                ),
-              ],
             );
           },
         );
