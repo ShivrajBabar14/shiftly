@@ -660,16 +660,18 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton(
-        backgroundColor: Colors.deepPurple,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(30.0),
-        ),
-        onPressed: () {
-          _showAddEmployeeDialog();
-        },
-        child: const Icon(Icons.add, color: Colors.white),
-      ),
+      floatingActionButton: _employees.isEmpty
+          ? null // Don't show FAB when empty state is showing
+          : FloatingActionButton(
+              backgroundColor: Colors.deepPurple,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(30.0),
+              ),
+              onPressed: () {
+                _showAddEmployeeDialog();
+              },
+              child: const Icon(Icons.add, color: Colors.white),
+            ),
     );
   }
 
