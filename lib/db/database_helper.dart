@@ -24,7 +24,6 @@ class DatabaseHelper {
     return _database!;
   }
 
-
   Future<int> getCurrentWeekId() async {
     final db = await database;
 
@@ -333,9 +332,9 @@ class DatabaseHelper {
     required int employeeId,
     required String day,
     required int weekStart,
-    required String shiftName,
-    required int startTime,
-    required int endTime,
+    String? shiftName,
+    int? startTime,
+    int? endTime,
   }) async {
     final db = await database;
 

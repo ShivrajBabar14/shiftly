@@ -333,7 +333,6 @@ class _HomeScreenState extends State<HomeScreen> {
     final employee = _employees.firstWhere((e) => e.employeeId == employeeId);
     final weekStart = _currentWeekStart.millisecondsSinceEpoch;
 
-    // Find existing shift for this employee and day
     final existingShift = _shiftTimings.firstWhere(
       (st) =>
           st['employee_id'] == employeeId &&
@@ -348,22 +347,24 @@ class _HomeScreenState extends State<HomeScreen> {
     TimeOfDay? startTime;
     TimeOfDay? endTime;
 
-    if (startTimeStr != null && startTimeStr.contains(':')) {
+    if (startTimeStr != null &&
+        startTimeStr.isNotEmpty &&
+        startTimeStr != 'null') {
       final parts = startTimeStr.split(':');
       if (parts.length == 2) {
         startTime = TimeOfDay(
-          hour: int.parse(parts[0]),
-          minute: int.parse(parts[1]),
+          hour: int.tryParse(parts[0]) ?? 0,
+          minute: int.tryParse(parts[1]) ?? 0,
         );
       }
     }
 
-    if (endTimeStr != null && endTimeStr.contains(':')) {
+    if (endTimeStr != null && endTimeStr.isNotEmpty && endTimeStr != 'null') {
       final parts = endTimeStr.split(':');
       if (parts.length == 2) {
         endTime = TimeOfDay(
-          hour: int.parse(parts[0]),
-          minute: int.parse(parts[1]),
+          hour: int.tryParse(parts[0]) ?? 0,
+          minute: int.tryParse(parts[1]) ?? 0,
         );
       }
     }
@@ -395,7 +396,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   ListTile(
                     title: Text(
                       startTime != null
-                          ? 'Start Time: ${startTime?.format(context) ?? 'Select Start Time'}'
+                          ? 'Start Time: ${startTime!.format(context)}'
                           : 'Select Start Time',
                     ),
                     trailing: const Icon(Icons.access_time),
@@ -407,8 +408,6 @@ class _HomeScreenState extends State<HomeScreen> {
                       if (picked != null) {
                         setState(() {
                           startTime = picked;
-                          startTimeStr =
-                              '${picked.hour.toString().padLeft(2, '0')}:${picked.minute.toString().padLeft(2, '0')}';
                         });
                       }
                     },
@@ -416,7 +415,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   ListTile(
                     title: Text(
                       endTime != null
-                          ? 'End Time: ${endTime?.format(context) ?? 'Select End Time'}'
+                          ? 'End Time: ${endTime!.format(context)}'
                           : 'Select End Time',
                     ),
                     trailing: const Icon(Icons.access_time),
@@ -428,8 +427,6 @@ class _HomeScreenState extends State<HomeScreen> {
                       if (picked != null) {
                         setState(() {
                           endTime = picked;
-                          endTimeStr =
-                              '${picked.hour.toString().padLeft(2, '0')}:${picked.minute.toString().padLeft(2, '0')}';
                         });
                       }
                     },
@@ -449,11 +446,15 @@ class _HomeScreenState extends State<HomeScreen> {
                     backgroundColor: Colors.deepPurple[700],
                   ),
                   onPressed: () async {
-                    if ((shiftNameController.text).trim().isNotEmpty) {
-                      int startTimeMillis = 0;
-                      int endTimeMillis = 0;
+                    final name = shiftNameController.text.trim();
+                    final hasName = name.isNotEmpty;
+                    final hasTime = startTime != null && endTime != null;
 
-                      if (startTime != null) {
+                    if (hasName || hasTime) {
+                      int? startTimeMillis;
+                      int? endTimeMillis;
+
+                      if (hasTime) {
                         final startDateTime = DateTime(
                           _selectedDay.year,
                           _selectedDay.month,
@@ -462,9 +463,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           startTime!.minute,
                         );
                         startTimeMillis = startDateTime.millisecondsSinceEpoch;
-                      }
 
-                      if (endTime != null) {
                         final endDateTime = DateTime(
                           _selectedDay.year,
                           _selectedDay.month,
@@ -479,13 +478,23 @@ class _HomeScreenState extends State<HomeScreen> {
                         employeeId: employeeId,
                         day: day.toLowerCase(),
                         weekStart: weekStart,
-                        shiftName: shiftNameController.text.trim(),
+                        shiftName: hasName ? name : null,
                         startTime: startTimeMillis,
                         endTime: endTimeMillis,
                       );
+
                       await _loadData();
                       if (!mounted) return;
                       Navigator.pop(context);
+                    } else {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text(
+                            'Please enter a shift name or time range.',
+                          ),
+                          backgroundColor: Colors.redAccent,
+                        ),
+                      );
                     }
                   },
                   child: const Text(
@@ -607,47 +616,47 @@ class _HomeScreenState extends State<HomeScreen> {
             child: _isLoading
                 ? const Center(child: CircularProgressIndicator())
                 : (_employees.isEmpty
-                    ? Stack(
-                        children: [
-                          _buildEmptyShiftTable(),
-                          Center(
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                const Text(
-                                  'Your shift tracking will appear here.',
-                                  style: TextStyle(fontSize: 15),
-                                ),
-                                const Text(
-                                  'Tap below to begin.',
-                                  style: TextStyle(fontSize: 15),
-                                ),
-                                const SizedBox(height: 20),
-                                ElevatedButton(
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: Colors.deepPurple,
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 30,
-                                      vertical: 15,
+                      ? Stack(
+                          children: [
+                            _buildEmptyShiftTable(),
+                            Center(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  const Text(
+                                    'Your shift tracking will appear here.',
+                                    style: TextStyle(fontSize: 15),
+                                  ),
+                                  const Text(
+                                    'Tap below to begin.',
+                                    style: TextStyle(fontSize: 15),
+                                  ),
+                                  const SizedBox(height: 20),
+                                  ElevatedButton(
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: Colors.deepPurple,
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 30,
+                                        vertical: 15,
+                                      ),
+                                    ),
+                                    onPressed: () {
+                                      _showAddEmployeeDialog();
+                                    },
+                                    child: const Text(
+                                      'Add Employee',
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 14,
+                                      ),
                                     ),
                                   ),
-                                  onPressed: () {
-                                    _showAddEmployeeDialog();
-                                  },
-                                  child: const Text(
-                                    'Add Employee',
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 14,
-                                    ),
-                                  ),
-                                ),
-                              ],
+                                ],
+                              ),
                             ),
-                          ),
-                        ],
-                      )
-                    : _buildShiftTable()),
+                          ],
+                        )
+                      : _buildShiftTable()),
           ),
         ],
       ),
@@ -790,7 +799,8 @@ class _HomeScreenState extends State<HomeScreen> {
     const List<String> days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
     final dateFormat = DateFormat('d');
     const double cellWidth = 75.0;
-    const double rowHeight = 50.0;
+    const double rowHeight = 70.0;
+    final today = DateTime.now();
 
     final visibleEmployees = _selectedEmployeesForShift.isEmpty
         ? _employees
@@ -800,19 +810,17 @@ class _HomeScreenState extends State<HomeScreen> {
 
     return Row(
       children: [
-        // Employee Name Column
+        // Employee Name Column (unchanged)
         SizedBox(
           width: 100.0,
           child: Column(
             children: [
-              // Header
               Container(
                 height: rowHeight,
                 alignment: Alignment.centerLeft,
                 padding: const EdgeInsets.symmetric(horizontal: 8.0),
                 decoration: BoxDecoration(
-                  color: Colors
-                      .deepPurple[300], // Darker purple for employee header
+                  color: Colors.deepPurple[300],
                   border: Border(
                     bottom: BorderSide(color: Colors.grey.shade300),
                     right: BorderSide(color: Colors.grey.shade400, width: 1.5),
@@ -826,7 +834,6 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ),
               ),
-              // Employee Rows
               Expanded(
                 child: ListView.builder(
                   controller: _verticalController,
@@ -842,10 +849,8 @@ class _HomeScreenState extends State<HomeScreen> {
                         padding: const EdgeInsets.symmetric(horizontal: 8.0),
                         decoration: BoxDecoration(
                           color: index.isEven
-                              ? Colors
-                                    .deepPurple[50] // Light purple shade for even rows
-                              : Colors
-                                    .deepPurple[100], // Slightly darker for odd rows
+                              ? Colors.deepPurple[50]
+                              : Colors.deepPurple[100],
                           border: Border(
                             bottom: BorderSide(color: Colors.grey.shade300),
                             right: BorderSide(
@@ -857,6 +862,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         child: Text(
                           employee.name,
                           style: const TextStyle(fontSize: 14.0),
+                          maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
@@ -880,7 +886,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 width: cellWidth * days.length,
                 child: Column(
                   children: [
-                    // Days Header
+                    // Days Header (unchanged)
                     Table(
                       border: TableBorder(
                         horizontalInside: BorderSide(
@@ -898,29 +904,47 @@ class _HomeScreenState extends State<HomeScreen> {
                       },
                       children: [
                         TableRow(
-                          decoration: BoxDecoration(
-                            color: Colors.deepPurple[300],
-                          ),
                           children: List.generate(days.length, (index) {
                             final dayDate = _currentWeekStart.add(
                               Duration(days: index),
                             );
+                            final isToday = DateUtils.isSameDay(dayDate, today);
+                            final isPast = dayDate.isBefore(today);
+
                             return Container(
                               height: rowHeight,
+                              decoration: BoxDecoration(
+                                color: isToday
+                                    ? Colors.deepPurple.shade700
+                                    : isPast
+                                    ? Colors.deepPurple[100]
+                                    : Colors.deepPurple[300],
+                                border: isToday
+                                    ? Border.all(
+                                        color: Colors.deepPurple,
+                                        width: 2,
+                                      )
+                                    : Border.all(color: Colors.grey.shade300),
+                              ),
                               alignment: Alignment.center,
                               child: Column(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
                                   Text(
                                     days[index],
-                                    style: const TextStyle(
+                                    style: TextStyle(
                                       color: Colors.white,
                                       fontWeight: FontWeight.bold,
+                                      fontSize: 14.0,
                                     ),
                                   ),
+                                  const SizedBox(height: 4),
                                   Text(
                                     dateFormat.format(dayDate),
-                                    style: const TextStyle(color: Colors.white),
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 13.0,
+                                    ),
                                   ),
                                 ],
                               ),
@@ -930,7 +954,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       ],
                     ),
 
-                    // Shift Rows
+                    // Shift Rows (updated display logic)
                     Expanded(
                       child: ListView.builder(
                         controller: _verticalController,
@@ -989,6 +1013,11 @@ class _HomeScreenState extends State<HomeScreen> {
                                   final startTime = formatTime(startTimeMillis);
                                   final endTime = formatTime(endTimeMillis);
 
+                                  final hasName = shiftName.isNotEmpty;
+                                  final hasTime =
+                                      startTime.isNotEmpty &&
+                                      endTime.isNotEmpty;
+
                                   return InkWell(
                                     onTap: () {
                                       _showShiftDialog(
@@ -1000,28 +1029,36 @@ class _HomeScreenState extends State<HomeScreen> {
                                       height: rowHeight,
                                       alignment: Alignment.center,
                                       padding: const EdgeInsets.all(4.0),
-                                      decoration: BoxDecoration(
-                                        color: shiftName.isNotEmpty
-                                            ? Colors.purple[100]
-                                            : null,
-                                        borderRadius: BorderRadius.circular(
-                                          4.0,
-                                        ),
-                                      ),
-                                      child: shiftName.isNotEmpty
-                                          ? Text(
-                                              [
-                                                shiftName,
-                                                if (startTime.isNotEmpty &&
-                                                    endTime.isNotEmpty)
-                                                  '$startTime-$endTime',
-                                              ].join('\n'),
-                                              textAlign: TextAlign.center,
-                                              style: const TextStyle(
-                                                fontSize: 10.0,
+                                      child: (hasName || hasTime)
+                                          ? Container(
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                    vertical: 4.0,
+                                                    horizontal: 6.0,
+                                                  ),
+                                              decoration: BoxDecoration(
+                                                color: Colors.purple.shade50,
+                                                borderRadius:
+                                                    BorderRadius.circular(4.0),
+                                              ),
+                                              child: Text(
+                                                hasName && hasTime
+                                                    ? '$shiftName\n($startTime-$endTime)'
+                                                    : hasName
+                                                    ? shiftName
+                                                    : '$startTime-$endTime',
+                                                textAlign: TextAlign.center,
+                                                style: const TextStyle(
+                                                  fontSize: 12.5,
+                                                  color: Colors.black,
+                                                ),
                                               ),
                                             )
-                                          : const Icon(Icons.add, size: 14.0),
+                                          : Icon(
+                                              Icons.add,
+                                              size: 16.0,
+                                              color: Colors.grey[300],
+                                            ),
                                     ),
                                   );
                                 }),
@@ -1156,20 +1193,20 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
                 TextButton(
                   onPressed: () async {
-                for (int empId in selectedEmployeeIds) {
-                  await _dbHelper.addEmployeeToWeek(empId, weekStart);
-                }
-                // Add new employees to existing selected employees instead of replacing
-                final currentSet = _selectedEmployeesForShift.toSet();
-                final newSet = selectedEmployeeIds.toSet();
-                _selectedEmployeesForShift = currentSet
-                    .union(newSet)
-                    .toList();
+                    for (int empId in selectedEmployeeIds) {
+                      await _dbHelper.addEmployeeToWeek(empId, weekStart);
+                    }
+                    // Add new employees to existing selected employees instead of replacing
+                    final currentSet = _selectedEmployeesForShift.toSet();
+                    final newSet = selectedEmployeeIds.toSet();
+                    _selectedEmployeesForShift = currentSet
+                        .union(newSet)
+                        .toList();
 
-                await _loadData();
-                // Clear the selected employees filter to show all employees after adding
-                _selectedEmployeesForShift = [];
-                if (context.mounted) Navigator.pop(context);
+                    await _loadData();
+                    // Clear the selected employees filter to show all employees after adding
+                    _selectedEmployeesForShift = [];
+                    if (context.mounted) Navigator.pop(context);
                   },
                   child: const Text(
                     'Add',
