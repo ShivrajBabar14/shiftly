@@ -84,7 +84,7 @@ class _AddEmployeeScreenState extends State<AddEmployeeScreen> {
               },
               child: const Text(
                 'Add',
-                style: TextStyle(fontSize: 20), // Bigger Add button text
+                style: TextStyle(fontSize: 20), 
               ),
             ),
           ],

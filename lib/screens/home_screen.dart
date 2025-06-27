@@ -5,6 +5,7 @@ import 'package:shiftly/db/database_helper.dart';
 import 'package:shiftly/models/employee.dart';
 import 'package:shiftly/screens/add_employee_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'sidbar.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -30,6 +31,7 @@ class _HomeScreenState extends State<HomeScreen> {
   bool _isLoading = true;
   int? _currentWeekId;
   final dbHelper = DatabaseHelper();
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
   @override
   void initState() {
@@ -377,7 +379,10 @@ class _HomeScreenState extends State<HomeScreen> {
         return StatefulBuilder(
           builder: (context, setState) {
             return AlertDialog(
-              title: Text('${employee.name} - ${day.toUpperCase()}', style: TextStyle(fontSize: 24)),
+              title: Text(
+                '${employee.name} - ${day.toUpperCase()}',
+                style: TextStyle(fontSize: 24),
+              ),
               content: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -513,14 +518,18 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      key: _scaffoldKey,
+      drawer: AppDrawer(),
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.menu, color: Colors.deepPurple),
-          onPressed: () {
-            Scaffold.of(context).openDrawer();
-          },
+        leading: Builder(
+          builder: (context) => IconButton(
+            icon: const Icon(Icons.menu, color: Colors.deepPurple),
+            onPressed: () {
+              Scaffold.of(context).openDrawer();
+            },
+          ),
         ),
         title: const Text(
           'Shiftly',
@@ -1152,9 +1161,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         alignment: Alignment.centerLeft,
                         child: Text(
                           'Select Employees',
-                          style: TextStyle(
-                            fontSize: 24
-                          ),
+                          style: TextStyle(fontSize: 24),
                         ),
                       ),
                     ),
