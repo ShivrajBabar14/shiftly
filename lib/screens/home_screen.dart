@@ -1149,22 +1149,30 @@ class _HomeScreenState extends State<HomeScreen> {
 
   void _showAddEmployeeDialog() async {
     final rawAllEmployees = await _dbHelper.getEmployees();
+    print('DEBUG: All employees raw data: \$rawAllEmployees');
     final allEmployees = rawAllEmployees
         .map((e) => Employee.fromMap(e))
         .toList();
+    print('DEBUG: All employees parsed: \$allEmployees');
 
     final weekStart = _currentWeekStart.millisecondsSinceEpoch;
     final rawWeekEmployees = await _dbHelper.getEmployeesForWeek(weekStart);
+    print('DEBUG: Current week employees raw data: \$rawWeekEmployees');
     final currentWeekEmployees = rawWeekEmployees
         .map((e) => Employee.fromMap(e))
         .toList();
+    print('DEBUG: Current week employees parsed: \$currentWeekEmployees');
     final currentWeekEmployeeIds = currentWeekEmployees
         .map((e) => e.employeeId!)
         .toSet();
+    print('DEBUG: Current week employee IDs: \$currentWeekEmployeeIds');
 
+    print('DEBUG: All employee IDs: \${allEmployees.map((e) => e.employeeId).toList()}');
+    print('DEBUG: Current week employee IDs set: \$currentWeekEmployeeIds');
     final availableEmployees = allEmployees
-        .where((e) => !currentWeekEmployeeIds.contains(e.employeeId))
+        .where((e) => e.employeeId != null && !currentWeekEmployeeIds.contains(e.employeeId))
         .toList();
+    print('DEBUG: Available employees for adding: \$availableEmployees');
 
     if (availableEmployees.isEmpty) {
       await _addEmployeeDialog();
@@ -1227,7 +1235,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                       ),
                                       const SizedBox(height: 2),
                                       Text(
-                                        'ID ${employee.employeeId?.toString().padLeft(4, '0') ?? ''}',
+                                        ' ${employee.employeeId?.toString().padLeft(4, '') ?? ''}',
                                         style: const TextStyle(
                                           fontSize: 12,
                                           color: Colors.grey,
