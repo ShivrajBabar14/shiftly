@@ -35,27 +35,43 @@ class _AddEmployeeScreenState extends State<AddEmployeeScreen> {
     final TextEditingController nameController = TextEditingController();
     final TextEditingController idController = TextEditingController();
 
+    // Get all employees
+    final employees = await _dbHelper.getEmployees();
+
+    // Find the highest current ID
+    int nextId = 101; // Default start
+    if (employees.isNotEmpty) {
+      final ids = employees.map((e) => e['employee_id'] as int).toList();
+      nextId = (ids.reduce((a, b) => a > b ? a : b)) + 1;
+    }
+
+    idController.text = nextId.toString(); // Set default value
+
     await showDialog(
       context: context,
       builder: (_) {
         return AlertDialog(
-          title: const Text(
-            'Add Employee',
-            style: TextStyle(fontSize: 24), // Reduced text size
-          ),
+          title: const Text('Add Employee', style: TextStyle(fontSize: 24)),
           content: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 400), // Wider dialog
+            constraints: const BoxConstraints(maxWidth: 400),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
                 TextField(
                   controller: idController,
                   keyboardType: TextInputType.number,
-                  decoration: const InputDecoration(labelText: 'Employee ID'),
+                  decoration: const InputDecoration(
+                    labelText: 'Employee ID',
+                    labelStyle: TextStyle(color: Color(0xFF9E9E9E)),
+                  ),
                 ),
+                const SizedBox(height: 10),
                 TextField(
                   controller: nameController,
-                  decoration: const InputDecoration(labelText: 'Employee Name'),
+                  decoration: const InputDecoration(
+                    labelText: 'Employee Name',
+                    labelStyle: TextStyle(color: Color(0xFF9E9E9E)),
+                  ),
                 ),
               ],
             ),
@@ -82,10 +98,7 @@ class _AddEmployeeScreenState extends State<AddEmployeeScreen> {
                   }
                 }
               },
-              child: const Text(
-                'Add',
-                style: TextStyle(fontSize: 20), 
-              ),
+              child: const Text('Add', style: TextStyle(fontSize: 20)),
             ),
           ],
         );
@@ -220,7 +233,7 @@ class _AddEmployeeScreenState extends State<AddEmployeeScreen> {
                           ),
                         ),
                         Text(
-                          'ID: ${employee.employeeId}',
+                          '${employee.employeeId}',
                           style: const TextStyle(
                             fontSize: 12,
                             color: Colors.grey,

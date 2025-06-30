@@ -48,6 +48,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
     // Then load data
     _initWeekStartAndLoadData();
+    _loadEmployees();
   }
 
   @override
@@ -55,6 +56,13 @@ class _HomeScreenState extends State<HomeScreen> {
     _horizontalController.dispose();
     _verticalController.dispose();
     super.dispose();
+  }
+
+  Future<void> _loadEmployees() async {
+    final employees = await _dbHelper.getEmployees();
+    setState(() {
+      _employees = employees.map((e) => Employee.fromMap(e)).toList();
+    });
   }
 
   void _calculateWeekRange(DateTime date) {
@@ -98,66 +106,84 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
-  Future<void> _addEmployeeDialog(BuildContext context) async {
-    final TextEditingController nameController = TextEditingController();
-    final TextEditingController idController = TextEditingController();
+  Future<void> _addEmployeeDialog() async {
+  final TextEditingController nameController = TextEditingController();
+  final TextEditingController idController = TextEditingController();
 
-    await showDialog(
-      context: context,
-      builder: (BuildContext dialogContext) {
-        return AlertDialog(
-          title: const Text('Add Employee', style: TextStyle(fontSize: 24)),
-          content: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 400),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                TextField(
-                  controller: idController,
-                  keyboardType: TextInputType.number,
-                  decoration: const InputDecoration(labelText: 'Employee ID'),
-                ),
-                TextField(
-                  controller: nameController,
-                  decoration: const InputDecoration(labelText: 'Employee Name'),
-                ),
-              ],
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () async {
-                final id = int.tryParse(idController.text);
-                final name = nameController.text.trim();
+  // Get all employees
+  final employees = await _dbHelper.getEmployees();
 
-                if (id != null && name.isNotEmpty) {
-                  final exists = await _employeeIdExists(id);
-                  if (exists) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Employee ID already exists'),
-                        backgroundColor: Colors.deepPurple,
-                      ),
-                    );
-                  } else {
-                    await _dbHelper.insertEmployeeWithId(id, name);
-                    // Add the employee to current week immediately after creation
-                    await _dbHelper.addEmployeeToWeek(
-                      id,
-                      _currentWeekStart.millisecondsSinceEpoch,
-                    );
-                    Navigator.pop(dialogContext); // ✅ closes the dialog
-                    await _loadData(); // refresh UI
-                  }
-                }
-              },
-              child: const Text('Add', style: TextStyle(fontSize: 20)),
-            ),
-          ],
-        );
-      },
-    );
+  // Find the highest current ID
+  int nextId = 101; // Default start
+  if (employees.isNotEmpty) {
+    final ids = employees.map((e) => e['employee_id'] as int).toList();
+    nextId = (ids.reduce((a, b) => a > b ? a : b)) + 1;
   }
+
+  idController.text = nextId.toString(); // Set default value
+
+  await showDialog(
+    context: context,
+    builder: (_) {
+      return AlertDialog(
+        title: const Text(
+          'Add Employee',
+          style: TextStyle(fontSize: 24),
+        ),
+        content: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 400),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: idController,
+                keyboardType: TextInputType.number,
+                decoration: const InputDecoration(
+                  labelText: 'Employee ID',
+                  labelStyle: TextStyle(color: Color(0xFF9E9E9E)),
+                ),
+              ),
+              const SizedBox(height: 10),
+              TextField(
+                controller: nameController,
+                decoration: const InputDecoration(
+                  labelText: 'Employee Name',
+                  labelStyle: TextStyle(color: Color(0xFF9E9E9E)),
+                ),
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () async {
+              final id = int.tryParse(idController.text);
+              final name = nameController.text.trim();
+
+              if (id != null && name.isNotEmpty) {
+                final exists = await _employeeIdExists(id);
+                if (exists) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Employee ID already exists'),
+                      backgroundColor: Colors.deepPurple,
+                    ),
+                  );
+                } else {
+                  await _dbHelper.insertEmployeeWithId(id, name);
+                  Navigator.pop(context);
+                  await _loadEmployees();
+                }
+              }
+            },
+            child: const Text('Add', style: TextStyle(fontSize: 20)),
+          ),
+        ],
+      );
+    },
+  );
+}
+
 
   Future<bool> _employeeIdExists(int id) async {
     final employees = await _dbHelper.getEmployees();
@@ -1131,7 +1157,7 @@ class _HomeScreenState extends State<HomeScreen> {
         .toList();
 
     if (availableEmployees.isEmpty) {
-      await _addEmployeeDialog(context);
+      await _addEmployeeDialog();
       return;
     }
 
@@ -1237,7 +1263,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               const Duration(milliseconds: 150),
                             );
                             if (context.mounted) {
-                              await _addEmployeeDialog(context);
+                              await _addEmployeeDialog();
                             }
                           },
                           child: const Text(
