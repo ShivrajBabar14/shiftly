@@ -85,10 +85,25 @@ class _EmployeeShiftScreenState extends State<EmployeeShiftScreen> {
   }
 
   Map<String, dynamic>? _getShiftForDay(String day) {
-    return _shiftData.firstWhere(
-      (shift) => shift['day'] == day.toLowerCase(),
-      orElse: () => {},
-    );
+    // Map full day name to database day key
+    final dayMap = {
+      'Monday': 'mon',
+      'Tuesday': 'tue',
+      'Wednesday': 'wed',
+      'Thursday': 'thu',
+      'Friday': 'fri',
+      'Saturday': 'sat',
+      'Sunday': 'sun',
+    };
+    final dbDay = dayMap[day] ?? day.toLowerCase();
+
+    try {
+      return _shiftData.firstWhere(
+        (shift) => shift['day'] == dbDay,
+      );
+    } catch (e) {
+      return null;
+    }
   }
 
   @override
