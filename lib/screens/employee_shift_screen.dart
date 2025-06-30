@@ -81,7 +81,12 @@ class _EmployeeShiftScreenState extends State<EmployeeShiftScreen> {
 
   String _dayLabel(int index) {
     final date = _currentWeekStart.add(Duration(days: index));
-    return DateFormat('EEEE d').format(date);
+    return DateFormat('EEEE').format(date);
+  }
+
+  String _dateLabel(int index) {
+    final date = _currentWeekStart.add(Duration(days: index));
+    return DateFormat('d').format(date);
   }
 
   Map<String, dynamic>? _getShiftForDay(String day) {
@@ -144,84 +149,102 @@ class _EmployeeShiftScreenState extends State<EmployeeShiftScreen> {
               ],
             ),
           ),
-          // Table header
-          Container(
-            color: Colors.deepPurple,
-            padding: const EdgeInsets.symmetric(vertical: 12),
-            child: Row(
-              children: const [
-                Expanded(
-                  flex: 2,
-                  child: Center(
-                    child: Text(
-                      'Date',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                ),
-                Expanded(
-                  flex: 3,
-                  child: Center(
-                    child: Text(
-                      'Shift Time',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          // Shift data rows
+          // Shift data table
           Expanded(
             child: _isLoading
                 ? const Center(child: CircularProgressIndicator())
-                : ListView.builder(
-                    itemCount: 7,
-                    itemBuilder: (context, index) {
-                      final dayName = DateFormat('EEEE').format(_currentWeekStart.add(Duration(days: index)));
-                      final shift = _getShiftForDay(dayName);
-                      final shiftText = shift != null ? _formatShiftTime(shift) : 'No Shift';
-
-                      return Container(
-                        decoration: BoxDecoration(
-                          border: Border(
-                            bottom: BorderSide(color: Colors.grey.shade300),
+                : SingleChildScrollView(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: Table(
+                        border: TableBorder.all(
+                          color: Colors.grey.shade300,
+                          width: 1.0,
+                        ),
+                        columnWidths: const {
+                          0: FlexColumnWidth(1),
+                          1: FlexColumnWidth(1.5),
+                        },
+                        children: [
+                          // Table header
+                          TableRow(
+                            decoration: BoxDecoration(
+                              color: Colors.deepPurple,
+                            ),
+                            children: [
+                              Padding(
+                                padding: const EdgeInsets.symmetric(vertical: 12),
+                                child: Center(
+                                  child: Text(
+                                    'Date',
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              Padding(
+                                padding: const EdgeInsets.symmetric(vertical: 12),
+                                child: Center(
+                                  child: Text(
+                                    'Shift Time',
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
-                        ),
-                        child: Row(
-                          children: [
-                            Expanded(
-                              flex: 2,
-                              child: Padding(
-                                padding: const EdgeInsets.symmetric(vertical: 12),
-                                child: Text(
-                                  _dayLabel(index),
-                                  textAlign: TextAlign.center,
-                                  style: const TextStyle(fontSize: 16),
-                                ),
+                          // Table rows for each day
+                          ...List.generate(7, (index) {
+                            final dayName = _dayLabel(index);
+                            final dateNumber = _dateLabel(index);
+                            final shift = _getShiftForDay(dayName);
+                            final shiftText = shift != null ? _formatShiftTime(shift) : 'No Shift';
+
+                            return TableRow(
+                              decoration: BoxDecoration(
+                                color: index % 2 == 0 ? Colors.white : Colors.grey.shade50,
                               ),
-                            ),
-                            Expanded(
-                              flex: 3,
-                              child: Padding(
-                                padding: const EdgeInsets.symmetric(vertical: 12),
-                                child: Text(
-                                  shiftText,
-                                  textAlign: TextAlign.center,
-                                  style: const TextStyle(fontSize: 16),
+                              children: [
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(vertical: 12),
+                                  child: Column(
+                                    children: [
+                                      Text(
+                                        dayName,
+                                        style: TextStyle(fontSize: 16),
+                                      ),
+                                      SizedBox(height: 4),
+                                      Text(
+                                        dateNumber,
+                                        style: TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
                                 ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      );
-                    },
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(vertical: 12),
+                                  child: Center(
+                                    child: Text(
+                                      shiftText,
+                                      style: TextStyle(fontSize: 16),
+                                      textAlign: TextAlign.center,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            );
+                          }),
+                        ],
+                      ),
+                    ),
                   ),
           ),
         ],
