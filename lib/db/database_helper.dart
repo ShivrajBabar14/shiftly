@@ -459,4 +459,18 @@ class DatabaseHelper {
       _database = null;
     }
   }
+
+  Future<List<Map<String, dynamic>>> getShiftsForEmployeeWeek(int employeeId, int weekStart) async {
+    final db = await database;
+    try {
+      return await db.query(
+        'shift_timings',
+        where: 'employee_id = ? AND week_start = ?',
+        whereArgs: [employeeId, weekStart],
+      );
+    } catch (e) {
+      print('Error getting shifts for employee $employeeId: $e');
+      return [];
+    }
+  }
 }

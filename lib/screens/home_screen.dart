@@ -4,8 +4,10 @@ import 'package:table_calendar/table_calendar.dart';
 import 'package:shiftly/db/database_helper.dart';
 import 'package:shiftly/models/employee.dart';
 import 'package:shiftly/screens/add_employee_screen.dart';
+
 import 'package:shared_preferences/shared_preferences.dart';
 import 'sidbar.dart';
+import 'employee_shift_screen.dart';  // Add import for new screen
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -894,9 +896,17 @@ class _HomeScreenState extends State<HomeScreen> {
                   itemCount: visibleEmployees.length,
                   itemBuilder: (context, index) {
                     final employee = visibleEmployees[index];
-                    return GestureDetector(
+                      return GestureDetector(
                       onLongPress: () =>
                           _showDeleteEmployeeDialog(employee.employeeId!),
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => EmployeeShiftScreen(employee: employee),
+                          ),
+                        );
+                      },
                       child: Container(
                         height: rowHeight,
                         alignment: Alignment.centerLeft,
