@@ -179,7 +179,8 @@ class _EmployeeShiftScreenState extends State<EmployeeShiftScreen> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 IconButton(
-                  icon: const Icon(Icons.arrow_left, color: Colors.deepPurple),
+                  icon: const Icon(Icons.chevron_left, color: Colors.black, size: 30),
+                  padding: const EdgeInsets.symmetric(horizontal: 32),
                   onPressed: () => _changeWeek(-7),
                 ),
                 Text(
@@ -190,7 +191,8 @@ class _EmployeeShiftScreenState extends State<EmployeeShiftScreen> {
                   ),
                 ),
                 IconButton(
-                  icon: const Icon(Icons.arrow_right, color: Colors.deepPurple),
+                  icon: const Icon(Icons.chevron_right, color: Colors.black, size: 30),
+                  padding: const EdgeInsets.symmetric(horizontal: 32),
                   onPressed: () => _changeWeek(7),
                 ),
               ],
@@ -276,14 +278,13 @@ class _EmployeeShiftScreenState extends State<EmployeeShiftScreen> {
                                     ],
                                   ),
                                 ),
-                                Padding(
-                                  padding: const EdgeInsets.symmetric(vertical: 12),
-                                  child: Center(
-                                    child: Text(
-                                      shiftText,
-                                      style: TextStyle(fontSize: 16),
-                                      textAlign: TextAlign.center,
-                                    ),
+                                Container(
+                                  height: 70.0,
+                                  alignment: Alignment.center,
+                                  child: Text(
+                                    shiftText,
+                                    style: TextStyle(fontSize: 16),
+                                    textAlign: TextAlign.center,
                                   ),
                                 ),
                               ],
