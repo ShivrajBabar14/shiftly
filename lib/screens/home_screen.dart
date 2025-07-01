@@ -977,23 +977,27 @@ class _HomeScreenState extends State<HomeScreen> {
 
                             return Container(
                               height: rowHeight,
-                              decoration: BoxDecoration(
-                                color: index == todayIndex
-                                    ? Colors
-                                          .deepPurple
-                                           // Different background for current day column header
-                                    : isToday
-                                    ? Colors.deepPurple
-                                    : isPast
-                                    ? Colors.deepPurple
-                                    : Colors.deepPurple,
-                                border: index == todayIndex
-                                    ? Border.all(
-                                        color: Colors.deepPurple.shade400,
-                                        width: 2,
-                                      )
-                                    : Border.all(color: Colors.grey.shade300),
-                              ),
+                                decoration: BoxDecoration(
+                                  color: index == todayIndex
+                                      ? Colors.deepPurple
+                                      : isToday
+                                          ? Colors.deepPurple
+                                          : isPast
+                                              ? Colors.deepPurple
+                                              : Colors.deepPurple,
+                                  border: index == todayIndex
+                                      ? Border(
+                                          top: BorderSide(color: Colors.deepPurple.shade400, width: 2),
+                                          bottom: BorderSide(color: Colors.deepPurple.shade400, width: 2),
+                                          left: dayDate == _currentWeekStart
+                                              ? BorderSide(color: Colors.deepPurple.shade400, width: 2)
+                                              : BorderSide.none,
+                                          right: dayDate == _currentWeekEnd
+                                              ? BorderSide(color: Colors.deepPurple.shade400, width: 2)
+                                              : BorderSide.none,
+                                        )
+                                      : Border.all(color: Colors.grey.shade300),
+                                ),
                               alignment: Alignment.center,
                               child: Column(
                                 mainAxisAlignment: MainAxisAlignment.center,

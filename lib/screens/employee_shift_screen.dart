@@ -130,6 +130,7 @@ class _EmployeeShiftScreenState extends State<EmployeeShiftScreen> {
             ),
             // Share icon on the right side
             PopupMenuButton<String>(
+              color: Colors.white,
               icon: const Icon(Icons.share, color: Colors.deepPurple),
               onSelected: (value) {
                 if (value == 'image') {
