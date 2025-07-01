@@ -75,7 +75,7 @@ class _EmployeeShiftScreenState extends State<EmployeeShiftScreen> {
     } else if (startTime.isNotEmpty && endTime.isNotEmpty) {
       return '$startTime to $endTime';
     } else {
-      return 'Holiday';
+      return '';
     }
   }
 

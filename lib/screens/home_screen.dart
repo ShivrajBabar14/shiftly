@@ -876,7 +876,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 alignment: Alignment.centerLeft,
                 padding: const EdgeInsets.symmetric(horizontal: 8.0),
                 decoration: BoxDecoration(
-                  color: Colors.deepPurple[300],
+                  color: Colors.deepPurple,
                   border: Border(
                     bottom: BorderSide(color: Colors.grey.shade300),
                     right: BorderSide(color: Colors.grey.shade400, width: 1.5),
@@ -981,12 +981,12 @@ class _HomeScreenState extends State<HomeScreen> {
                                 color: index == todayIndex
                                     ? Colors
                                           .deepPurple
-                                          .shade300 // Different background for current day column header
+                                           // Different background for current day column header
                                     : isToday
-                                    ? Colors.deepPurple.shade700
+                                    ? Colors.deepPurple
                                     : isPast
-                                    ? Colors.deepPurple[200]
-                                    : Colors.deepPurple[300],
+                                    ? Colors.deepPurple
+                                    : Colors.deepPurple,
                                 border: index == todayIndex
                                     ? Border.all(
                                         color: Colors.deepPurple.shade400,
