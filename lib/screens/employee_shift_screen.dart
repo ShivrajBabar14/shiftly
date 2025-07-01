@@ -111,14 +111,62 @@ class _EmployeeShiftScreenState extends State<EmployeeShiftScreen> {
     }
   }
 
+  // Show the share options
+  void _showShareOptions() {
+    showModalBottomSheet(
+      context: context,
+      builder: (BuildContext context) {
+        return Container(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                leading: Icon(Icons.image),
+                title: Text('Share Image'),
+                onTap: () {
+                  // Handle Share Image
+                  Navigator.pop(context);
+                },
+              ),
+              ListTile(
+                leading: Icon(Icons.picture_as_pdf),
+                title: Text('Share PDF'),
+                onTap: () {
+                  // Handle Share PDF
+                  Navigator.pop(context);
+                },
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         leading: BackButton(color: Colors.deepPurple),
-        title: Text(
-          widget.employee.name,
-          style: const TextStyle(color: Colors.deepPurple),
+        title: Row(
+          children: [
+            // Left-aligned employee name
+            Expanded(
+              child: Text(
+                widget.employee.name,
+                style: const TextStyle(
+                  color: Colors.deepPurple,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+            // Share icon on the right side
+            IconButton(
+              icon: const Icon(Icons.share, color: Colors.deepPurple),
+              onPressed: _showShareOptions,
+            ),
+          ],
         ),
         backgroundColor: Colors.white,
         elevation: 0,

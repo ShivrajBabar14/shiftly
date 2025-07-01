@@ -39,7 +39,7 @@ class _AddEmployeeScreenState extends State<AddEmployeeScreen> {
     final employees = await _dbHelper.getEmployees();
 
     // Find the highest current ID
-    int nextId = 101; // Default start
+    int nextId = 1; // Default start
     if (employees.isNotEmpty) {
       final ids = employees.map((e) => e['employee_id'] as int).toList();
       nextId = (ids.reduce((a, b) => a > b ? a : b)) + 1;

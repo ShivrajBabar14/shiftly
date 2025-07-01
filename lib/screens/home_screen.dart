@@ -1093,9 +1093,15 @@ class _HomeScreenState extends State<HomeScreen> {
                                       alignment: Alignment.center,
                                       padding: const EdgeInsets.all(4.0),
                                       decoration: BoxDecoration(
-                                        // Highlight entire column for current day with faint purple
-                                        color: dayIndex == todayIndex
-                                            ? Colors.deepPurple.shade100
+                                        // Highlight entire column for current day with purple border outline as a single rectangle
+                                        color: null,
+                                        border: dayIndex == todayIndex
+                                            ? Border(
+                                                left: BorderSide(color: Colors.deepPurple.shade400, width: 2),
+                                                right: BorderSide(color: Colors.deepPurple.shade400, width: 2),
+                                                top: BorderSide(color: Colors.deepPurple.shade400, width: 2),
+                                                bottom: BorderSide(color: Colors.deepPurple.shade400, width: 2),
+                                              )
                                             : null,
                                       ),
                                       child: (hasName || hasTime)
