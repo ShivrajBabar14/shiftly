@@ -111,39 +111,6 @@ class _EmployeeShiftScreenState extends State<EmployeeShiftScreen> {
     }
   }
 
-  // Show the share options
-  void _showShareOptions() {
-    showModalBottomSheet(
-      context: context,
-      builder: (BuildContext context) {
-        return Container(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              ListTile(
-                leading: Icon(Icons.image),
-                title: Text('Share Image'),
-                onTap: () {
-                  // Handle Share Image
-                  Navigator.pop(context);
-                },
-              ),
-              ListTile(
-                leading: Icon(Icons.picture_as_pdf),
-                title: Text('Share PDF'),
-                onTap: () {
-                  // Handle Share PDF
-                  Navigator.pop(context);
-                },
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -162,9 +129,41 @@ class _EmployeeShiftScreenState extends State<EmployeeShiftScreen> {
               ),
             ),
             // Share icon on the right side
-            IconButton(
+            PopupMenuButton<String>(
               icon: const Icon(Icons.share, color: Colors.deepPurple),
-              onPressed: _showShareOptions,
+              onSelected: (value) {
+                if (value == 'image') {
+                  // Handle Share Image
+                } else if (value == 'pdf') {
+                  // Handle Share PDF
+                }
+              },
+              itemBuilder: (BuildContext context) {
+                return [
+                  PopupMenuItem<String>(
+                    value: 'image',
+                    child: Row(
+                      children: const [
+                        Icon(Icons.image, color: Colors.deepPurple),
+                        SizedBox(width: 8),
+                        Text('Share Image'),
+                      ],
+                    ),
+                  ),
+                  PopupMenuItem<String>(
+                    value: 'pdf',
+                    child: Row(
+                      children: const [
+                        Icon(Icons.picture_as_pdf, color: Colors.deepPurple),
+                        SizedBox(width: 8),
+                        Text('Share PDF'),
+                      ],
+                    ),
+                  ),
+                ];
+              },
+              offset: Offset(0, 40), // Adjust the pop-up position
+              elevation: 4,
             ),
           ],
         ),
