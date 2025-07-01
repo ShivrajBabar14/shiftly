@@ -913,8 +913,8 @@ class _HomeScreenState extends State<HomeScreen> {
                         padding: const EdgeInsets.symmetric(horizontal: 8.0),
                         decoration: BoxDecoration(
                           color: index.isEven
-                              ? Colors.deepPurple[50]
-                              : Colors.deepPurple[100],
+                              ? Colors.white
+                              : Colors.grey.shade100,
                           border: Border(
                             bottom: BorderSide(color: Colors.grey.shade300),
                             right: BorderSide(
@@ -1081,61 +1081,60 @@ class _HomeScreenState extends State<HomeScreen> {
                                       startTime.isNotEmpty &&
                                       endTime.isNotEmpty;
 
-                                  return InkWell(
-                                    onTap: () {
-                                      _showShiftDialog(
-                                        employee.employeeId!,
-                                        day,
-                                      );
-                                    },
-                                    child: Container(
-                                      height: rowHeight,
-                                      alignment: Alignment.center,
-                                      padding: const EdgeInsets.all(4.0),
+                          return InkWell(
+                            onTap: () {
+                              _showShiftDialog(
+                                employee.employeeId!,
+                                day,
+                              );
+                            },
+                            child: Container(
+                              height: rowHeight,
+                              alignment: Alignment.center,
+                              padding: const EdgeInsets.all(4.0),
+                              decoration: BoxDecoration(
+                                color: index.isEven ? Colors.white : Colors.grey.shade100,
+                                border: dayIndex == todayIndex
+                                    ? Border(
+                                        left: BorderSide(color: Colors.deepPurple.shade400, width: 2),
+                                        right: BorderSide(color: Colors.deepPurple.shade400, width: 2),
+                                        top: BorderSide(color: Colors.deepPurple.shade400, width: 2),
+                                        bottom: BorderSide(color: Colors.deepPurple.shade400, width: 2),
+                                      )
+                                    : null,
+                              ),
+                              child: (hasName || hasTime)
+                                  ? Container(
+                                      padding:
+                                          const EdgeInsets.symmetric(
+                                            vertical: 4.0,
+                                            horizontal: 6.0,
+                                          ),
                                       decoration: BoxDecoration(
-                                        // Highlight entire column for current day with purple border outline as a single rectangle
-                                        color: null,
-                                        border: dayIndex == todayIndex
-                                            ? Border(
-                                                left: BorderSide(color: Colors.deepPurple.shade400, width: 2),
-                                                right: BorderSide(color: Colors.deepPurple.shade400, width: 2),
-                                                top: BorderSide(color: Colors.deepPurple.shade400, width: 2),
-                                                bottom: BorderSide(color: Colors.deepPurple.shade400, width: 2),
-                                              )
-                                            : null,
+                                        color: Colors.transparent,
+                                        borderRadius:
+                                            BorderRadius.circular(4.0),
                                       ),
-                                      child: (hasName || hasTime)
-                                          ? Container(
-                                              padding:
-                                                  const EdgeInsets.symmetric(
-                                                    vertical: 4.0,
-                                                    horizontal: 6.0,
-                                                  ),
-                                              decoration: BoxDecoration(
-                                                color: Colors.transparent,
-                                                borderRadius:
-                                                    BorderRadius.circular(4.0),
-                                              ),
-                                              child: Text(
-                                                hasName && hasTime
-                                                    ? '$shiftName\n($startTime-$endTime)'
-                                                    : hasName
-                                                    ? shiftName
-                                                    : '$startTime-$endTime',
-                                                textAlign: TextAlign.center,
-                                                style: const TextStyle(
-                                                  fontSize: 12.5,
-                                                  color: Colors.black,
-                                                ),
-                                              ),
-                                            )
-                                          : Icon(
-                                              Icons.add,
-                                              size: 16.0,
-                                              color: Colors.grey[300],
-                                            ),
+                                      child: Text(
+                                        hasName && hasTime
+                                            ? '$shiftName\n($startTime-$endTime)'
+                                            : hasName
+                                            ? shiftName
+                                            : '$startTime-$endTime',
+                                        textAlign: TextAlign.center,
+                                        style: const TextStyle(
+                                          fontSize: 12.5,
+                                          color: Colors.black,
+                                        ),
+                                      ),
+                                    )
+                                  : Icon(
+                                      Icons.add,
+                                      size: 16.0,
+                                      color: Colors.grey[300],
                                     ),
-                                  );
+                            ),
+                          );
                                 }),
                               ),
                             ],
