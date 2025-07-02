@@ -7,7 +7,7 @@ import 'package:shiftly/screens/add_employee_screen.dart';
 
 import 'package:shared_preferences/shared_preferences.dart';
 import 'sidbar.dart';
-import 'employee_shift_screen.dart';  // Add import for new screen
+import 'employee_shift_screen.dart'; // Add import for new screen
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -109,83 +109,90 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _addEmployeeDialog() async {
-  final TextEditingController nameController = TextEditingController();
-  final TextEditingController idController = TextEditingController();
+    final TextEditingController nameController = TextEditingController();
+    final TextEditingController idController = TextEditingController();
 
-  // Get all employees
-  final employees = await _dbHelper.getEmployees();
+    // Get all employees
+    final employees = await _dbHelper.getEmployees();
 
-  // Find the highest current ID
-  int nextId = 101; // Default start
-  if (employees.isNotEmpty) {
-    final ids = employees.map((e) => e['employee_id'] as int).toList();
-    nextId = (ids.reduce((a, b) => a > b ? a : b)) + 1;
-  }
+    // Find the highest current ID
+    int nextId = 101; // Default start
+    if (employees.isNotEmpty) {
+      final ids = employees.map((e) => e['employee_id'] as int).toList();
+      nextId = (ids.reduce((a, b) => a > b ? a : b)) + 1;
+    }
 
-  idController.text = nextId.toString(); // Set default value
+    idController.text = nextId.toString(); // Set default value
 
-  await showDialog(
-    context: context,
-    builder: (_) {
-      return AlertDialog(
-        title: const Text(
-          'Add Employee',
-          style: TextStyle(fontSize: 24),
-        ),
-        content: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 400),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: idController,
-                keyboardType: TextInputType.number,
-                decoration: const InputDecoration(
-                  labelText: 'Employee ID',
-                  labelStyle: TextStyle(color: Color(0xFF9E9E9E)),
+    await showDialog(
+      context: context,
+      builder: (_) {
+        return AlertDialog(
+          title: const Text('Add Employee', style: TextStyle(fontSize: 24)),
+          content: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 400),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(
+                  controller: idController,
+                  keyboardType: TextInputType.number,
+                  decoration: const InputDecoration(
+                    labelText: 'Employee ID',
+                    labelStyle: TextStyle(color: Color(0xFF9E9E9E)),
+                  ),
                 ),
-              ),
-              const SizedBox(height: 10),
-              TextField(
-                controller: nameController,
-                decoration: const InputDecoration(
-                  labelText: 'Employee Name',
-                  labelStyle: TextStyle(color: Color(0xFF9E9E9E)),
+                const SizedBox(height: 10),
+                TextField(
+                  controller: nameController,
+                  decoration: const InputDecoration(
+                    labelText: 'Employee Name',
+                    labelStyle: TextStyle(color: Color(0xFF9E9E9E)),
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () async {
-              final id = int.tryParse(idController.text);
-              final name = nameController.text.trim();
+          actions: [
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor:
+                    Colors.deepPurple[700], // Button color (purple)
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 12,
+                ), // Padding
+              ),
+              onPressed: () async {
+                final id = int.tryParse(idController.text);
+                final name = nameController.text.trim();
 
-              if (id != null && name.isNotEmpty) {
-                final exists = await _employeeIdExists(id);
-                if (exists) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Employee ID already exists'),
-                      backgroundColor: Colors.deepPurple,
-                    ),
-                  );
-                } else {
-                  await _dbHelper.insertEmployeeWithId(id, name);
-                  Navigator.pop(context);
-                  await _loadEmployees();
+                if (id != null && name.isNotEmpty) {
+                  final exists = await _employeeIdExists(id);
+                  if (exists) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Employee ID already exists'),
+                        backgroundColor: Colors.deepPurple,
+                      ),
+                    );
+                  } else {
+                    await _dbHelper.insertEmployeeWithId(id, name);
+                    Navigator.pop(context);
+                    await _loadEmployees();
+                  }
                 }
-              }
-            },
-            child: const Text('Add', style: TextStyle(fontSize: 20)),
-          ),
-        ],
-      );
-    },
-  );
-}
-
+              },
+              child: const Text(
+                'Add', // Button text
+                style: TextStyle(color: Colors.white), // Text color (white)
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
 
   Future<bool> _employeeIdExists(int id) async {
     final employees = await _dbHelper.getEmployees();
@@ -330,13 +337,20 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           actions: <Widget>[
             TextButton(
-              child: const Text('Cancel'),
+              child: const Text('Cancel', style: TextStyle(color: Colors.black)),
               onPressed: () {
                 Navigator.of(dialogContext).pop();
               },
             ),
-            TextButton(
-              child: const Text('Remove'),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor:
+                    Colors.deepPurple[700], // Button color (purple)
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 12,
+                ), // Padding
+              ),
               onPressed: () async {
                 Navigator.of(context).pop();
 
@@ -352,6 +366,13 @@ class _HomeScreenState extends State<HomeScreen> {
 
                 await _loadData();
               },
+              child: const Text(
+                'Remove', // Button text
+                style: TextStyle(
+                  color: Colors.white,
+                  
+                ), // Text color (white) and font size
+              ),
             ),
           ],
         );
@@ -896,14 +917,15 @@ class _HomeScreenState extends State<HomeScreen> {
                   itemCount: visibleEmployees.length,
                   itemBuilder: (context, index) {
                     final employee = visibleEmployees[index];
-                      return GestureDetector(
+                    return GestureDetector(
                       onLongPress: () =>
                           _showDeleteEmployeeDialog(employee.employeeId!),
                       onTap: () {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => EmployeeShiftScreen(employee: employee),
+                            builder: (context) =>
+                                EmployeeShiftScreen(employee: employee),
                           ),
                         );
                       },
@@ -977,27 +999,41 @@ class _HomeScreenState extends State<HomeScreen> {
 
                             return Container(
                               height: rowHeight,
-                                decoration: BoxDecoration(
-                                  color: index == todayIndex
-                                      ? Colors.deepPurple
-                                      : isToday
-                                          ? Colors.deepPurple
-                                          : isPast
-                                              ? Colors.deepPurple
-                                              : Colors.deepPurple,
-                                  border: index == todayIndex
-                                      ? Border(
-                                          top: BorderSide(color: Colors.deepPurple.shade400, width: 2),
-                                          bottom: BorderSide(color: Colors.deepPurple.shade400, width: 2),
-                                          left: dayDate == _currentWeekStart
-                                              ? BorderSide(color: Colors.deepPurple.shade400, width: 2)
-                                              : BorderSide.none,
-                                          right: dayDate == _currentWeekEnd
-                                              ? BorderSide(color: Colors.deepPurple.shade400, width: 2)
-                                              : BorderSide.none,
-                                        )
-                                      : Border.all(color: Colors.grey.shade300),
-                                ),
+                              decoration: BoxDecoration(
+                                color: index == todayIndex
+                                    ? Colors.deepPurple
+                                    : isToday
+                                    ? Colors.deepPurple
+                                    : isPast
+                                    ? Colors.deepPurple
+                                    : Colors.deepPurple,
+                                border: index == todayIndex
+                                    ? Border(
+                                        top: BorderSide(
+                                          color: Colors.deepPurple.shade400,
+                                          width: 2,
+                                        ),
+                                        bottom: BorderSide(
+                                          color: Colors.deepPurple.shade400,
+                                          width: 2,
+                                        ),
+                                        left: dayDate == _currentWeekStart
+                                            ? BorderSide(
+                                                color:
+                                                    Colors.deepPurple.shade400,
+                                                width: 2,
+                                              )
+                                            : BorderSide.none,
+                                        right: dayDate == _currentWeekEnd
+                                            ? BorderSide(
+                                                color:
+                                                    Colors.deepPurple.shade400,
+                                                width: 2,
+                                              )
+                                            : BorderSide.none,
+                                      )
+                                    : Border.all(color: Colors.grey.shade300),
+                              ),
                               alignment: Alignment.center,
                               child: Column(
                                 mainAxisAlignment: MainAxisAlignment.center,
@@ -1085,60 +1121,82 @@ class _HomeScreenState extends State<HomeScreen> {
                                       startTime.isNotEmpty &&
                                       endTime.isNotEmpty;
 
-                          return InkWell(
-                            onTap: () {
-                              _showShiftDialog(
-                                employee.employeeId!,
-                                day,
-                              );
-                            },
-                            child: Container(
-                              height: rowHeight,
-                              alignment: Alignment.center,
-                              padding: const EdgeInsets.all(4.0),
-                              decoration: BoxDecoration(
-                                color: index.isEven ? Colors.white : Colors.grey.shade100,
-                                border: dayIndex == todayIndex
-                                    ? Border(
-                                        left: BorderSide(color: Colors.deepPurple.shade400, width: 2),
-                                        right: BorderSide(color: Colors.deepPurple.shade400, width: 2),
-                                        top: BorderSide(color: Colors.deepPurple.shade400, width: 2),
-                                        bottom: BorderSide(color: Colors.deepPurple.shade400, width: 2),
-                                      )
-                                    : null,
-                              ),
-                              child: (hasName || hasTime)
-                                  ? Container(
-                                      padding:
-                                          const EdgeInsets.symmetric(
-                                            vertical: 4.0,
-                                            horizontal: 6.0,
-                                          ),
+                                  return InkWell(
+                                    onTap: () {
+                                      _showShiftDialog(
+                                        employee.employeeId!,
+                                        day,
+                                      );
+                                    },
+                                    child: Container(
+                                      height: rowHeight,
+                                      alignment: Alignment.center,
+                                      padding: const EdgeInsets.all(4.0),
                                       decoration: BoxDecoration(
-                                        color: Colors.transparent,
-                                        borderRadius:
-                                            BorderRadius.circular(4.0),
+                                        color: index.isEven
+                                            ? Colors.white
+                                            : Colors.grey.shade100,
+                                        border: dayIndex == todayIndex
+                                            ? Border(
+                                                left: BorderSide(
+                                                  color: Colors
+                                                      .deepPurple
+                                                      .shade400,
+                                                  width: 2,
+                                                ),
+                                                right: BorderSide(
+                                                  color: Colors
+                                                      .deepPurple
+                                                      .shade400,
+                                                  width: 2,
+                                                ),
+                                                top: BorderSide(
+                                                  color: Colors
+                                                      .deepPurple
+                                                      .shade400,
+                                                  width: 2,
+                                                ),
+                                                bottom: BorderSide(
+                                                  color: Colors
+                                                      .deepPurple
+                                                      .shade400,
+                                                  width: 2,
+                                                ),
+                                              )
+                                            : null,
                                       ),
-                                      child: Text(
-                                        hasName && hasTime
-                                            ? '$shiftName\n($startTime-$endTime)'
-                                            : hasName
-                                            ? shiftName
-                                            : '$startTime-$endTime',
-                                        textAlign: TextAlign.center,
-                                        style: const TextStyle(
-                                          fontSize: 12.5,
-                                          color: Colors.black,
-                                        ),
-                                      ),
-                                    )
-                                  : Icon(
-                                      Icons.add,
-                                      size: 16.0,
-                                      color: Colors.grey[300],
+                                      child: (hasName || hasTime)
+                                          ? Container(
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                    vertical: 4.0,
+                                                    horizontal: 6.0,
+                                                  ),
+                                              decoration: BoxDecoration(
+                                                color: Colors.transparent,
+                                                borderRadius:
+                                                    BorderRadius.circular(4.0),
+                                              ),
+                                              child: Text(
+                                                hasName && hasTime
+                                                    ? '$shiftName\n($startTime-$endTime)'
+                                                    : hasName
+                                                    ? shiftName
+                                                    : '$startTime-$endTime',
+                                                textAlign: TextAlign.center,
+                                                style: const TextStyle(
+                                                  fontSize: 12.5,
+                                                  color: Colors.black,
+                                                ),
+                                              ),
+                                            )
+                                          : Icon(
+                                              Icons.add,
+                                              size: 16.0,
+                                              color: Colors.grey[300],
+                                            ),
                                     ),
-                            ),
-                          );
+                                  );
                                 }),
                               ),
                             ],
@@ -1176,10 +1234,16 @@ class _HomeScreenState extends State<HomeScreen> {
         .toSet();
     print('DEBUG: Current week employee IDs: \$currentWeekEmployeeIds');
 
-    print('DEBUG: All employee IDs: \${allEmployees.map((e) => e.employeeId).toList()}');
+    print(
+      'DEBUG: All employee IDs: \${allEmployees.map((e) => e.employeeId).toList()}',
+    );
     print('DEBUG: Current week employee IDs set: \$currentWeekEmployeeIds');
     final availableEmployees = allEmployees
-        .where((e) => e.employeeId != null && !currentWeekEmployeeIds.contains(e.employeeId))
+        .where(
+          (e) =>
+              e.employeeId != null &&
+              !currentWeekEmployeeIds.contains(e.employeeId),
+        )
         .toList();
     print('DEBUG: Available employees for adding: \$availableEmployees');
 
@@ -1283,7 +1347,15 @@ class _HomeScreenState extends State<HomeScreen> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        TextButton(
+                        ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor:
+                                Colors.deepPurple[700], // Button color (purple)
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 20,
+                              vertical: 12,
+                            ), // Padding
+                          ),
                           onPressed: () async {
                             Navigator.pop(context);
                             await Future.delayed(
@@ -1294,10 +1366,14 @@ class _HomeScreenState extends State<HomeScreen> {
                             }
                           },
                           child: const Text(
-                            'Add New',
-                            style: TextStyle(fontSize: 18),
+                            'Add New', // Button text
+                            style: TextStyle(
+                              color: Colors.white,
+                              // fontSize: 18,
+                            ), // Text color (white) and font size
                           ),
                         ),
+
                         TextButton(
                           onPressed: selectedEmployeeIds.isEmpty
                               ? null

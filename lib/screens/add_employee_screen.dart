@@ -77,7 +77,15 @@ class _AddEmployeeScreenState extends State<AddEmployeeScreen> {
             ),
           ),
           actions: [
-            TextButton(
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor:
+                    Colors.deepPurple, // Button color (purple)
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 12,
+                ), // Padding
+              ),
               onPressed: () async {
                 final id = int.tryParse(idController.text);
                 final name = nameController.text.trim();
@@ -98,7 +106,13 @@ class _AddEmployeeScreenState extends State<AddEmployeeScreen> {
                   }
                 }
               },
-              child: const Text('Add', style: TextStyle(fontSize: 20)),
+              child: const Text(
+                'Add', // Button text
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 14,
+                ), // Text color (white) and font size
+              ),
             ),
           ],
         );
@@ -139,7 +153,15 @@ class _AddEmployeeScreenState extends State<AddEmployeeScreen> {
             ),
           ),
           actions: [
-            TextButton(
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor:
+                    Colors.deepPurple, // Button color (purple)
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 12,
+                ), // Padding
+              ),
               onPressed: () async {
                 final updatedName = nameController.text.trim();
                 if (updatedName.isNotEmpty) {
@@ -182,7 +204,13 @@ class _AddEmployeeScreenState extends State<AddEmployeeScreen> {
                   }
                 }
               },
-              child: const Text('Update', style: TextStyle(fontSize: 20)),
+              child: const Text(
+                'Update', // Button text
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 14,
+                ), // Text color (white) and font size
+              ),
             ),
           ],
         );
