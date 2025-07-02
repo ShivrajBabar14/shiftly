@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-// import 'package:share_plus/share_plus.dart'; // Import for sharing
-// import 'package:url_launcher/url_launcher.dart'; // Import for launching URLs
+import 'package:url_launcher/url_launcher.dart';
 import 'add_employee_screen.dart'; // Import your AddEmployeeScreen here
 
 class AppDrawer extends StatelessWidget {
@@ -69,63 +68,61 @@ class AppDrawer extends StatelessWidget {
             context,
             MaterialPageRoute(builder: (context) => AddEmployeeScreen()),
           );
-        // } else if (title == 'Share App') {
-        //   _shareApp();
-        // } else if (title == 'Rate Us') {
-        //   _rateUs();
-        // } else if (title == 'Write Feedback') {
-        //   _writeFeedback();
+        } else if (title == 'Write Feedback') {
+          _launchFeedbackMail(context);
+        } else if (title == 'Rate Us') {
+          _launchRateUs(context);
         }
       },
     );
   }
 
-  // Method to share the app link
-  // void _shareApp() async {
-  //   // Replace this with your app's package name or share URL
-  //   final String appLink = 'https://play.google.com/store/apps/details?id=com.example.yourapp';
+  Future<void> _launchFeedbackMail(BuildContext context) async {
+    final Uri emailLaunchUri = Uri(
+      scheme: 'mailto',
+      path: 'linearapps.in@gmail.com',
+      queryParameters: {
+        'subject': 'Feedback on the App',
+        'body': 'Please provide your feedback here...',
+      },
+    );
 
-  //   try {
-  //     // Share app link
-  //     await Share.share('Check out this app: $appLink');
-  //   } catch (e) {
-  //     print("Error while sharing: $e");
-  //   }
-  // }
+    try {
+      if (await canLaunchUrl(emailLaunchUri)) {
+        await launchUrl(emailLaunchUri);
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('No mail app found on this device.')),
+        );
+      }
+    } catch (e) {
+      print("Failed to open mail app: $e");
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to open mail app.')),
+      );
+    }
+  }
 
-  // Method to rate the app in the Play Store
-  // void _rateUs() async {
-  //   final String packageName = 'com.example.employeeshifttracker'; 
-  //   final String playStoreUrl = 'https://play.google.com/store/apps/details?id=$packageName';
+  Future<void> _launchRateUs(BuildContext context) async {
+    final String packageName = 'com.example.employeeshifttracker'; // Replace with your actual package name
+    final Uri playStoreUri = Uri.parse('market://details?id=$packageName');
+    final Uri playStoreWebUri = Uri.parse('https://play.google.com/store/apps/details?id=$packageName');
 
-  //   try {
-  //     // Open the Play Store link to rate the app
-  //     if (await canLaunch(playStoreUrl)) {
-  //       await launch(playStoreUrl);
-  //     } else {
-  //       throw 'Could not open Play Store';
-  //     }
-  //   } catch (e) {
-  //     print("Error opening Play Store: $e");
-  //   }
-  // }
-
-  // Method to open mail app with predefined recipient email
-  // void _writeFeedback() async {
-  //   final String feedbackEmail = 'linearapps.in@gmail.com'; 
-  //   final String subject = Uri.encodeComponent('Feedback on the App');
-  //   final String body = Uri.encodeComponent('Please provide your feedback here...');
-  //   final String mailUrl = 'mailto:$feedbackEmail?subject=$subject&body=$body';
-
-  //   try {
-  //     // Open the mail app to send feedback
-  //     if (await canLaunch(mailUrl)) {
-  //       await launch(mailUrl);
-  //     } else {
-  //       throw 'Could not open mail app';
-  //     }
-  //   } catch (e) {
-  //     print("Error opening mail app: $e");
-  //   }
-  // }
+    try {
+      if (await canLaunchUrl(playStoreUri)) {
+        await launchUrl(playStoreUri);
+      } else if (await canLaunchUrl(playStoreWebUri)) {
+        await launchUrl(playStoreWebUri);
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Play Store app not found on this device.')),
+        );
+      }
+    } catch (e) {
+      print("Failed to open Play Store: $e");
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to open Play Store.')),
+      );
+    }
+  }
 }
