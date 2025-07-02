@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:share_plus/share_plus.dart';
 import 'add_employee_screen.dart'; // Import your AddEmployeeScreen here
 
 class AppDrawer extends StatelessWidget {
@@ -72,6 +73,8 @@ class AppDrawer extends StatelessWidget {
           _launchFeedbackMail(context);
         } else if (title == 'Rate Us') {
           _launchRateUs(context);
+        } else if (title == 'Share App') {
+          _shareApp(context);
         }
       },
     );
@@ -125,4 +128,38 @@ class AppDrawer extends StatelessWidget {
       );
     }
   }
+
+  Future<void> _shareApp(BuildContext context) async {
+    final String appLink = 'https://play.google.com/store/apps/details?id=com.example.employeeshifttracker'; // Replace with your app link
+
+    try {
+      await Share.share('Check out this app: $appLink');
+    } catch (e) {
+      print("Error while sharing: $e");
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to share the app.')),
+      );
+    }
+  }
+
+  // Widget _buildDrawerItem(IconData icon, String title, BuildContext context) {
+  //   return ListTile(
+  //     leading: Icon(icon, color: Colors.deepPurple),
+  //     title: Text(title, style: TextStyle(color: Colors.black87)),
+  //     onTap: () {
+  //       if (title == 'All Employees') {
+  //         Navigator.push(
+  //           context,
+  //           MaterialPageRoute(builder: (context) => AddEmployeeScreen()),
+  //         );
+  //       } else if (title == 'Write Feedback') {
+  //         _launchFeedbackMail(context);
+  //       } else if (title == 'Rate Us') {
+  //         _launchRateUs(context);
+  //       } else if (title == 'Share App') {
+  //         _shareApp(context);
+  //       }
+  //     },
+  //   );
+  // }
 }
