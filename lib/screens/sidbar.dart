@@ -1,9 +1,14 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:share_plus/share_plus.dart';
 import 'add_employee_screen.dart'; // Import your AddEmployeeScreen here
 
 class AppDrawer extends StatelessWidget {
+  static const platform = MethodChannel('com.example.employeeshifttracker/mail');
+
   @override
   Widget build(BuildContext context) {
     return Drawer(
@@ -81,35 +86,48 @@ class AppDrawer extends StatelessWidget {
   }
 
   Future<void> _launchFeedbackMail(BuildContext context) async {
-    final Uri emailLaunchUri = Uri(
-      scheme: 'mailto',
-      path: 'linearapps.in@gmail.com',
-      queryParameters: {
-        'subject': 'Feedback on the App',
-        'body': 'Please provide your feedback here...',
-      },
-    );
-
     try {
-      if (await canLaunchUrl(emailLaunchUri)) {
-        await launchUrl(emailLaunchUri);
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('No mail app found on this device.')),
-        );
+      if (Platform.isAndroid) {
+        await platform.invokeMethod('openGmail', {
+          'to': 'linearapps.in@gmail.com',
+          'subject': 'Feedback on the App',
+          'body': 'Please provide your feedback here...',
+        });
+        return;
       }
-    } catch (e) {
-      print("Failed to open mail app: $e");
+
+      final Uri emailLaunchUri = Uri(
+        scheme: 'mailto',
+        path: 'linearapps.in@gmail.com',
+        queryParameters: {
+          'subject': 'Feedback on the App',
+          'body': 'Please provide your feedback here...',
+        },
+      );
+
+      if (await canLaunchUrl(emailLaunchUri)) {
+        await launchUrl(emailLaunchUri, mode: LaunchMode.externalApplication);
+        return;
+      }
+
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to open mail app.')),
+        SnackBar(content: Text('No mail app found on this device. Please install a mail app to send feedback.')),
+      );
+    } on PlatformException catch (e) {
+      print("Failed to open Gmail app: $e");
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to open Gmail app.')),
       );
     }
   }
 
   Future<void> _launchRateUs(BuildContext context) async {
-    final String packageName = 'com.example.employeeshifttracker'; // Replace with your actual package name
+    final String packageName =
+        'com.example.employeeshifttracker'; // Replace with your actual package name
     final Uri playStoreUri = Uri.parse('market://details?id=$packageName');
-    final Uri playStoreWebUri = Uri.parse('https://play.google.com/store/apps/details?id=$packageName');
+    final Uri playStoreWebUri = Uri.parse(
+      'https://play.google.com/store/apps/details?id=$packageName',
+    );
 
     try {
       if (await canLaunchUrl(playStoreUri)) {
@@ -123,22 +141,23 @@ class AppDrawer extends StatelessWidget {
       }
     } catch (e) {
       print("Failed to open Play Store: $e");
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to open Play Store.')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Failed to open Play Store.')));
     }
   }
 
   Future<void> _shareApp(BuildContext context) async {
-    final String appLink = 'https://play.google.com/store/apps/details?id=com.example.employeeshifttracker'; // Replace with your app link
+    final String appLink =
+        'https://play.google.com/store/apps/details?id=com.example.employeeshifttracker'; // Replace with your app link
 
     try {
       await Share.share('Check out this app: $appLink');
     } catch (e) {
       print("Error while sharing: $e");
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to share the app.')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Failed to share the app.')));
     }
   }
 
