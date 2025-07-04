@@ -444,14 +444,28 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                     controller: shiftNameController,
                     cursorColor: Colors.deepPurple,
-                    onChanged: (value) => shiftName = value,
+                    onChanged: (value) {
+                      // Capitalize first letter of each word
+                      String capitalizeWords(String str) {
+                        return str.split(' ').map((word) {
+                          if (word.isEmpty) return word;
+                          return word[0].toUpperCase() + word.substring(1);
+                        }).join(' ');
+                      }
+                      final capitalized = capitalizeWords(value);
+                      shiftNameController.value = shiftNameController.value.copyWith(
+                        text: capitalized,
+                        selection: TextSelection.collapsed(offset: capitalized.length),
+                      );
+                      shiftName = capitalized;
+                    },
                   ),
                   const SizedBox(height: 16),
                   ListTile(
                     title: Text(
                       startTime != null
                           ? 'Start Time: ${startTime!.format(context)}'
-                          : 'Select Start Time',
+                          : 'Start Time',
                     ),
                     trailing: const Icon(Icons.access_time),
                     onTap: () async {
@@ -470,7 +484,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     title: Text(
                       endTime != null
                           ? 'End Time: ${endTime!.format(context)}'
-                          : 'Select End Time',
+                          : 'End Time',
                     ),
                     trailing: const Icon(Icons.access_time),
                     onTap: () async {
