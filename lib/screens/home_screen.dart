@@ -116,7 +116,7 @@ class _HomeScreenState extends State<HomeScreen> {
     final employees = await _dbHelper.getEmployees();
 
     // Find the highest current ID
-    int nextId = 101; // Default start
+    int nextId = 1; // Default start
     if (employees.isNotEmpty) {
       final ids = employees.map((e) => e['employee_id'] as int).toList();
       nextId = (ids.reduce((a, b) => a > b ? a : b)) + 1;
@@ -149,6 +149,25 @@ class _HomeScreenState extends State<HomeScreen> {
                     labelText: 'Employee Name',
                     labelStyle: TextStyle(color: Color(0xFF9E9E9E)),
                   ),
+                  onChanged: (value) {
+                    String capitalizeWords(String str) {
+                      return str
+                          .split(' ')
+                          .map((word) {
+                            if (word.isEmpty) return word;
+                            return word[0].toUpperCase() + word.substring(1);
+                          })
+                          .join(' ');
+                    }
+
+                    final capitalized = capitalizeWords(value);
+                    nameController.value = nameController.value.copyWith(
+                      text: capitalized,
+                      selection: TextSelection.collapsed(
+                        offset: capitalized.length,
+                      ),
+                    );
+                  },
                 ),
               ],
             ),
@@ -156,8 +175,7 @@ class _HomeScreenState extends State<HomeScreen> {
           actions: [
             ElevatedButton(
               style: ElevatedButton.styleFrom(
-                backgroundColor:
-                    Colors.deepPurple[700], // Button color (purple)
+                backgroundColor: Colors.deepPurple, // Button color (purple)
                 padding: const EdgeInsets.symmetric(
                   horizontal: 20,
                   vertical: 12,
@@ -185,7 +203,10 @@ class _HomeScreenState extends State<HomeScreen> {
               },
               child: const Text(
                 'Add', // Button text
-                style: TextStyle(color: Colors.white), // Text color (white)
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 14,
+                ), // Text color (white) and font size
               ),
             ),
           ],
@@ -337,7 +358,10 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           actions: <Widget>[
             TextButton(
-              child: const Text('Cancel', style: TextStyle(color: Colors.black)),
+              child: const Text(
+                'Cancel',
+                style: TextStyle(color: Colors.black),
+              ),
               onPressed: () {
                 Navigator.of(dialogContext).pop();
               },
@@ -370,7 +394,6 @@ class _HomeScreenState extends State<HomeScreen> {
                 'Remove', // Button text
                 style: TextStyle(
                   color: Colors.white,
-                  
                 ), // Text color (white) and font size
               ),
             ),
@@ -404,7 +427,8 @@ class _HomeScreenState extends State<HomeScreen> {
     if (startTimeVal != null) {
       if (startTimeVal is int) {
         final dt = DateTime.fromMillisecondsSinceEpoch(startTimeVal);
-        startTimeStr = '${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
+        startTimeStr =
+            '${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
       } else if (startTimeVal is String) {
         startTimeStr = startTimeVal;
       }
@@ -413,7 +437,8 @@ class _HomeScreenState extends State<HomeScreen> {
     if (endTimeVal != null) {
       if (endTimeVal is int) {
         final dt = DateTime.fromMillisecondsSinceEpoch(endTimeVal);
-        endTimeStr = '${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
+        endTimeStr =
+            '${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
       } else if (endTimeVal is String) {
         endTimeStr = endTimeVal;
       }
@@ -468,16 +493,23 @@ class _HomeScreenState extends State<HomeScreen> {
                     onChanged: (value) {
                       // Capitalize first letter of each word
                       String capitalizeWords(String str) {
-                        return str.split(' ').map((word) {
-                          if (word.isEmpty) return word;
-                          return word[0].toUpperCase() + word.substring(1);
-                        }).join(' ');
+                        return str
+                            .split(' ')
+                            .map((word) {
+                              if (word.isEmpty) return word;
+                              return word[0].toUpperCase() + word.substring(1);
+                            })
+                            .join(' ');
                       }
+
                       final capitalized = capitalizeWords(value);
-                      shiftNameController.value = shiftNameController.value.copyWith(
-                        text: capitalized,
-                        selection: TextSelection.collapsed(offset: capitalized.length),
-                      );
+                      shiftNameController.value = shiftNameController.value
+                          .copyWith(
+                            text: capitalized,
+                            selection: TextSelection.collapsed(
+                              offset: capitalized.length,
+                            ),
+                          );
                       shiftName = capitalized;
                     },
                   ),
@@ -981,7 +1013,14 @@ class _HomeScreenState extends State<HomeScreen> {
                           ),
                         ),
                         child: Text(
-                          employee.name,
+                          employee.name
+                              .split(' ')
+                              .map(
+                                (word) => word.isNotEmpty
+                                    ? word[0].toUpperCase() + word.substring(1)
+                                    : word,
+                              )
+                              .join(' '),
                           style: const TextStyle(fontSize: 14.0),
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
@@ -1217,7 +1256,9 @@ class _HomeScreenState extends State<HomeScreen> {
                                                 decoration: BoxDecoration(
                                                   color: Colors.transparent,
                                                   borderRadius:
-                                                      BorderRadius.circular(4.0),
+                                                      BorderRadius.circular(
+                                                        4.0,
+                                                      ),
                                                 ),
                                                 child: Text(
                                                   hasName && hasTime
