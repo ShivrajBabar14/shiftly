@@ -393,10 +393,31 @@ class _HomeScreenState extends State<HomeScreen> {
     );
 
     String? shiftName = existingShift['shift_name'];
-    String? startTimeStr = existingShift['start_time'];
-    String? endTimeStr = existingShift['end_time'];
+    var startTimeVal = existingShift['start_time'];
+    var endTimeVal = existingShift['end_time'];
     TimeOfDay? startTime;
     TimeOfDay? endTime;
+
+    String? startTimeStr;
+    String? endTimeStr;
+
+    if (startTimeVal != null) {
+      if (startTimeVal is int) {
+        final dt = DateTime.fromMillisecondsSinceEpoch(startTimeVal);
+        startTimeStr = '${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
+      } else if (startTimeVal is String) {
+        startTimeStr = startTimeVal;
+      }
+    }
+
+    if (endTimeVal != null) {
+      if (endTimeVal is int) {
+        final dt = DateTime.fromMillisecondsSinceEpoch(endTimeVal);
+        endTimeStr = '${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
+      } else if (endTimeVal is String) {
+        endTimeStr = endTimeVal;
+      }
+    }
 
     if (startTimeStr != null &&
         startTimeStr.isNotEmpty &&
@@ -1180,27 +1201,35 @@ class _HomeScreenState extends State<HomeScreen> {
                                             : null,
                                       ),
                                       child: (hasName || hasTime)
-                                          ? Container(
-                                              padding:
-                                                  const EdgeInsets.symmetric(
-                                                    vertical: 4.0,
-                                                    horizontal: 6.0,
+                                          ? GestureDetector(
+                                              onTap: () {
+                                                _showShiftDialog(
+                                                  employee.employeeId!,
+                                                  day,
+                                                );
+                                              },
+                                              child: Container(
+                                                padding:
+                                                    const EdgeInsets.symmetric(
+                                                      vertical: 4.0,
+                                                      horizontal: 6.0,
+                                                    ),
+                                                decoration: BoxDecoration(
+                                                  color: Colors.transparent,
+                                                  borderRadius:
+                                                      BorderRadius.circular(4.0),
+                                                ),
+                                                child: Text(
+                                                  hasName && hasTime
+                                                      ? '$shiftName\n($startTime-$endTime)'
+                                                      : hasName
+                                                      ? shiftName
+                                                      : '$startTime-$endTime',
+                                                  textAlign: TextAlign.center,
+                                                  style: const TextStyle(
+                                                    fontSize: 12.5,
+                                                    color: Colors.black,
                                                   ),
-                                              decoration: BoxDecoration(
-                                                color: Colors.transparent,
-                                                borderRadius:
-                                                    BorderRadius.circular(4.0),
-                                              ),
-                                              child: Text(
-                                                hasName && hasTime
-                                                    ? '$shiftName\n($startTime-$endTime)'
-                                                    : hasName
-                                                    ? shiftName
-                                                    : '$startTime-$endTime',
-                                                textAlign: TextAlign.center,
-                                                style: const TextStyle(
-                                                  fontSize: 12.5,
-                                                  color: Colors.black,
                                                 ),
                                               ),
                                             )
