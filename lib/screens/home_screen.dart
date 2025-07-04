@@ -185,21 +185,30 @@ class _HomeScreenState extends State<HomeScreen> {
                 final id = int.tryParse(idController.text);
                 final name = nameController.text.trim();
 
-                if (id != null && name.isNotEmpty) {
-                  final exists = await _employeeIdExists(id);
-                  if (exists) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Employee ID already exists'),
-                        backgroundColor: Colors.deepPurple,
-                      ),
-                    );
-                  } else {
-                    await _dbHelper.insertEmployeeWithId(id, name);
-                    Navigator.pop(context);
-                    await _loadEmployees();
+                  if (id != null && name.isNotEmpty) {
+                    final exists = await _employeeIdExists(id);
+                    if (exists) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Employee ID already exists'),
+                          backgroundColor: Colors.deepPurple,
+                        ),
+                      );
+                    } else {
+                      await _dbHelper.insertEmployeeWithId(id, name);
+                      // Add employee to current week
+                      final weekStart = _currentWeekStart.millisecondsSinceEpoch;
+                      await _dbHelper.addEmployeeToWeek(id, weekStart);
+                      Navigator.pop(context);
+                      await _loadEmployees();
+                      // Update shift table to include new employee
+                      setState(() {
+                        final currentSet = _selectedEmployeesForShift.toSet();
+                        currentSet.add(id);
+                        _selectedEmployeesForShift = currentSet.toList();
+                      });
+                    }
                   }
-                }
               },
               child: const Text(
                 'Add', // Button text
@@ -254,6 +263,8 @@ class _HomeScreenState extends State<HomeScreen> {
         _employees = employees;
         _shiftTimings = shiftTimings;
         _isLoading = false;
+        // Update _selectedEmployeesForShift to include all employees for current week
+        _selectedEmployeesForShift = employees.map((e) => e.employeeId!).toList();
       });
     } catch (e, st) {
       print('Error in _loadData: $e\n$st');
@@ -655,27 +666,28 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.person_add, color: Colors.deepPurple),
-            onPressed: () async {
-              final selectedEmployees = await Navigator.push<List<int>>(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const AddEmployeeScreen(),
-                ),
-              );
-              if (selectedEmployees != null) {
-                await _loadData();
-                setState(() {
-                  final currentSet = _selectedEmployeesForShift.toSet();
-                  final newSet = selectedEmployees.toSet();
-                  _selectedEmployeesForShift = currentSet
-                      .union(newSet)
-                      .toList();
-                });
-              }
-            },
-          ),
+            IconButton(
+              icon: const Icon(Icons.person_add, color: Colors.deepPurple),
+              onPressed: () async {
+                final selectedEmployees = await Navigator.push<List<int>>(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const AddEmployeeScreen(),
+                  ),
+                );
+                if (selectedEmployees != null) {
+                  await _loadData();
+                  setState(() {
+                    // Add only newly added employees to _selectedEmployeesForShift
+                    final currentSet = _selectedEmployeesForShift.toSet();
+                    for (var empId in selectedEmployees) {
+                      currentSet.add(empId);
+                    }
+                    _selectedEmployeesForShift = currentSet.toList();
+                  });
+                }
+              },
+            ),
         ],
       ),
       body: Column(
