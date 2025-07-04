@@ -15,7 +15,8 @@ import 'package:share_plus/share_plus.dart';
 class EmployeeShiftScreen extends StatefulWidget {
   final Employee employee;
 
-  const EmployeeShiftScreen({Key? key, required this.employee}) : super(key: key);
+  const EmployeeShiftScreen({Key? key, required this.employee})
+    : super(key: key);
 
   @override
   State<EmployeeShiftScreen> createState() => _EmployeeShiftScreenState();
@@ -44,7 +45,10 @@ class _EmployeeShiftScreenState extends State<EmployeeShiftScreen> {
       _isLoading = true;
     });
     final weekStartMillis = _currentWeekStart.millisecondsSinceEpoch;
-    final data = await _dbHelper.getShiftsForEmployeeWeek(widget.employee.employeeId!, weekStartMillis);
+    final data = await _dbHelper.getShiftsForEmployeeWeek(
+      widget.employee.employeeId!,
+      weekStartMillis,
+    );
     setState(() {
       _shiftData = data;
       _isLoading = false;
@@ -114,9 +118,7 @@ class _EmployeeShiftScreenState extends State<EmployeeShiftScreen> {
     final dbDay = dayMap[day] ?? day.toLowerCase();
 
     try {
-      return _shiftData.firstWhere(
-        (shift) => shift['day'] == dbDay,
-      );
+      return _shiftData.firstWhere((shift) => shift['day'] == dbDay);
     } catch (e) {
       return null;
     }
@@ -129,7 +131,11 @@ class _EmployeeShiftScreenState extends State<EmployeeShiftScreen> {
     final tempDir = await getTemporaryDirectory();
     final file = await File('${tempDir.path}/shift.png').writeAsBytes(image);
 
-    await Share.shareXFiles([XFile(file.path)], text: 'Employee Shift');
+    final dateRange = _formatDateRange();
+
+    await Share.shareXFiles([
+      XFile(file.path),
+    ], text: 'Employee Shift for $dateRange');
   }
 
   Future<void> _sharePDF() async {
@@ -143,9 +149,7 @@ class _EmployeeShiftScreenState extends State<EmployeeShiftScreen> {
     pdf.addPage(
       pw.Page(
         build: (context) {
-          return pw.Center(
-            child: pw.Image(pdfImage),
-          );
+          return pw.Center(child: pw.Image(pdfImage));
         },
       ),
     );
@@ -205,7 +209,7 @@ class _EmployeeShiftScreenState extends State<EmployeeShiftScreen> {
                   ),
                 ];
               },
-              offset: Offset(0, 40), // Adjust the pop-up position
+              offset: const Offset(0, 40), // Adjust the pop-up position
               elevation: 4,
             ),
           ],
@@ -213,132 +217,149 @@ class _EmployeeShiftScreenState extends State<EmployeeShiftScreen> {
         backgroundColor: Colors.white,
         elevation: 0,
       ),
-      body: Screenshot(
-        controller: _screenshotController,
+      body: Container(
+        color: Colors.white,
         child: Column(
           children: [
-            // Week navigation
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 12),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  IconButton(
-                    icon: const Icon(Icons.chevron_left, color: Colors.black, size: 30),
-                    padding: const EdgeInsets.symmetric(horizontal: 32),
-                    onPressed: () => _changeWeek(-7),
-                  ),
-                  Text(
-                    _formatDateRange(),
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 18,
-                    ),
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.chevron_right, color: Colors.black, size: 30),
-                    padding: const EdgeInsets.symmetric(horizontal: 32),
-                    onPressed: () => _changeWeek(7),
-                  ),
-                ],
-              ),
-            ),
-            // Shift data table
             Expanded(
-              child: _isLoading
-                  ? const Center(child: CircularProgressIndicator())
-                  : SingleChildScrollView(
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        child: Table(
-                          border: TableBorder.all(
-                            color: Colors.grey.shade300,
-                            width: 1.0,
-                          ),
-                          columnWidths: const {
-                            0: FlexColumnWidth(1),
-                            1: FlexColumnWidth(1.5),
-                          },
-                          children: [
-                            // Table header
-                            TableRow(
-                              decoration: BoxDecoration(
-                                color: Colors.deepPurple,
-                              ),
+              child: SingleChildScrollView(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: Screenshot(
+                    controller: _screenshotController,
+                    child: Container(
+                      color: Colors.white,
+                      child: Column(
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.only(bottom: 12),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                Padding(
-                                  padding: const EdgeInsets.symmetric(vertical: 12),
-                                  child: Center(
-                                    child: Text(
-                                      'Date',
-                                      style: TextStyle(
-                                        color: Colors.white,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
+                                IconButton(
+                                  icon: const Icon(
+                                    Icons.chevron_left,
+                                    color: Colors.black,
+                                    size: 30,
+                                  ),
+                                  padding: const EdgeInsets.symmetric(horizontal: 32),
+                                  onPressed: () => _changeWeek(-7),
+                                ),
+                                Text(
+                                  _formatDateRange(),
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 20,
+                                    color: Colors.black,
                                   ),
                                 ),
-                                Padding(
-                                  padding: const EdgeInsets.symmetric(vertical: 12),
-                                  child: Center(
-                                    child: Text(
-                                      'Shift Time',
-                                      style: TextStyle(
-                                        color: Colors.white,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
+                                IconButton(
+                                  icon: const Icon(
+                                    Icons.chevron_right,
+                                    color: Colors.black,
+                                    size: 30,
                                   ),
+                                  padding: const EdgeInsets.symmetric(horizontal: 32),
+                                  onPressed: () => _changeWeek(7),
                                 ),
                               ],
                             ),
-                            // Table rows for each day
-                            ...List.generate(7, (index) {
-                              final dayName = _dayLabel(index);
-                              final dateNumber = _dateLabel(index);
-                              final shift = _getShiftForDay(dayName);
-                              final shiftText = shift != null ? _formatShiftTime(shift) : 'No Shift';
-
-                              return TableRow(
-                                decoration: BoxDecoration(
-                                  color: index % 2 == 0 ? Colors.white : Colors.grey.shade50,
-                                ),
+                          ),
+                          Table(
+                            border: TableBorder.all(
+                              color: Colors.grey.shade300,
+                              width: 1.0,
+                            ),
+                            columnWidths: const {
+                              0: FlexColumnWidth(1),
+                              1: FlexColumnWidth(1.5),
+                            },
+                            children: [
+                              // Table header
+                              TableRow(
+                                decoration: BoxDecoration(color: Colors.deepPurple),
                                 children: [
                                   Padding(
-                                    padding: const EdgeInsets.symmetric(vertical: 12),
-                                    child: Column(
-                                      children: [
-                                        Text(
-                                          dayName,
-                                          style: TextStyle(fontSize: 16),
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 12,
+                                    ),
+                                    child: Center(
+                                      child: Text(
+                                        'Date',
+                                        style: TextStyle(
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.bold,
                                         ),
-                                        SizedBox(height: 4),
-                                        Text(
-                                          dateNumber,
-                                          style: TextStyle(
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                        ),
-                                      ],
+                                      ),
                                     ),
                                   ),
-                                  Container(
-                                    height: 70.0,
-                                    alignment: Alignment.center,
-                                    child: Text(
-                                      shiftText,
-                                      style: TextStyle(fontSize: 16),
-                                      textAlign: TextAlign.center,
+                                  Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 12,
+                                    ),
+                                    child: Center(
+                                      child: Text(
+                                        'Shift Time',
+                                        style: TextStyle(
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
                                     ),
                                   ),
                                 ],
-                              );
-                            }),
-                          ],
-                        ),
+                              ),
+                              // Table rows for each day
+                              ...List.generate(7, (index) {
+                                final dayName = _dayLabel(index);
+                                final dateNumber = _dateLabel(index);
+                                final shift = _getShiftForDay(dayName);
+                                final shiftText = shift != null ? _formatShiftTime(shift) : 'No Shift';
+
+                                return TableRow(
+                                  decoration: BoxDecoration(
+                                    color: index % 2 == 0 ? Colors.white : Colors.grey.shade50,
+                                  ),
+                                  children: [
+                                    Padding(
+                                      padding: const EdgeInsets.symmetric(vertical: 12),
+                                      child: Column(
+                                        children: [
+                                          Text(
+                                            dayName,
+                                            style: TextStyle(fontSize: 16),
+                                          ),
+                                          SizedBox(height: 4),
+                                          Text(
+                                            dateNumber,
+                                            style: TextStyle(
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    Container(
+                                      height: 70.0,
+                                      alignment: Alignment.center,
+                                      child: Text(
+                                        shiftText,
+                                        style: TextStyle(fontSize: 16),
+                                        textAlign: TextAlign.center,
+                                      ),
+                                    ),
+                                  ],
+                                );
+                              }),
+                            ],
+                          ),
+                        ],
                       ),
                     ),
+                  ),
+                ),
+              ),
             ),
           ],
         ),
