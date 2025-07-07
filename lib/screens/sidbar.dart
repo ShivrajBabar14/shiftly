@@ -34,7 +34,7 @@ class AppDrawer extends StatelessWidget {
                   ),
                   child: Center(
                     child: Image.asset(
-                      'assets/shift.png', // Ensure this image path is correct
+                      'assets/app_logo.png', // Ensure this image path is correct
                       width: 100,
                       height: 100,
                       fit: BoxFit.contain,
