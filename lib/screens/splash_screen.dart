@@ -44,7 +44,7 @@ class _SplashScreenState extends State<SplashScreen> {
   void _startBackupTimer() {
     final dbHelper = DatabaseHelper();
     // Backup every 2 hours (7200 seconds)
-    _backupTimer = Timer.periodic(Duration(seconds: 7200), (timer) async {
+    _backupTimer = Timer.periodic(Duration(seconds: 10), (timer) async {
       await dbHelper.backupDatabase();
       print('Automatic database backup completed.');
     });
