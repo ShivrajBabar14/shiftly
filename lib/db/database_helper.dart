@@ -25,7 +25,7 @@ class DatabaseHelper {
   }
 
   // Backup database file to app directory backups folder
-  Future<void> backupDatabase() async {
+  Future<bool> backupDatabase() async {
     try {
       final dbPath = await getDatabasesPath();
       final dbFile = File(join(dbPath, 'shiftly.db'));
@@ -40,20 +40,22 @@ class DatabaseHelper {
 
       await dbFile.copy(backupFile.path);
       print('✅ Database backed up to ${backupFile.path}');
+      return true;
     } catch (e) {
       print('❌ Error during database backup: $e');
+      return false;
     }
   }
 
   // Restore latest backup from backups folder
-  Future<void> restoreLatestBackup() async {
+  Future<bool> restoreLatestBackup() async {
     try {
       final dbPath = await getDatabasesPath();
       final backupDir = Directory(join(dbPath, 'backups'));
 
       if (!await backupDir.exists()) {
         print('❌ Backup directory does not exist.');
-        return;
+        return false;
       }
 
       final backups = backupDir.listSync()
@@ -63,7 +65,7 @@ class DatabaseHelper {
 
       if (backups.isEmpty) {
         print('❌ No backup files found.');
-        return;
+        return false;
       }
 
       backups.sort((a, b) => b.statSync().modified.compareTo(a.statSync().modified));
@@ -77,8 +79,10 @@ class DatabaseHelper {
 
       await latestBackup.copy(dbFile.path);
       print('✅ Database restored from ${latestBackup.path}');
+      return true;
     } catch (e) {
       print('❌ Error during database restore: $e');
+      return false;
     }
   }
 

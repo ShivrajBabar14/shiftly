@@ -51,13 +51,29 @@ class AppDrawer extends StatelessWidget {
                   title: Text('Restore Data', style: TextStyle(color: Colors.black87)),
                   onTap: () async {
                     Navigator.of(context).pop(); // Close the drawer
-                    // Call restoreLatestBackup and reload data
                     final dbHelper = DatabaseHelper();
-                    await dbHelper.restoreLatestBackup();
-                    // Optionally show a snackbar or dialog to indicate success
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Database restored from latest backup. Please restart the app.')),
-                    );
+                    bool restoreSuccess = await dbHelper.restoreLatestBackup();
+                    if (restoreSuccess) {
+                      bool backupSuccess = false;
+                      try {
+                        await dbHelper.backupDatabase();
+                        backupSuccess = true;
+                      } catch (e) {
+                        backupSuccess = false;
+                      }
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(
+                            'Database restored from latest backup. ' +
+                            (backupSuccess ? 'Backup created successfully.' : 'Backup creation failed.'),
+                          ),
+                        ),
+                      );
+                    } else {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('No backup found to restore.')),
+                      );
+                    }
                   },
                 ),
               ],
