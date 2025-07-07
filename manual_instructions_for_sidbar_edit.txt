@@ -1,0 +1,23 @@
+To add the "Restore Data" option in the navigation drawer in lib/screens/sidbar.dart, please manually apply the following changes:
+
+1. Add import for DatabaseHelper at the top of the file:
+import 'package:shiftly/db/database_helper.dart';
+
+2. In the ListView children where drawer items are defined, add the following ListTile:
+
+ListTile(
+  leading: Icon(Icons.restore, color: Colors.deepPurple),
+  title: Text('Restore Data', style: TextStyle(color: Colors.black87)),
+  onTap: () async {
+    Navigator.of(context).pop(); // Close the drawer
+    final dbHelper = DatabaseHelper();
+    await dbHelper.restoreLatestBackup();
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Database restored from latest backup. Please restart the app.')),
+    );
+  },
+),
+
+This will add a "Restore Data" button in the drawer that restores the latest database backup and shows a snackbar notification.
+
+Please let me know if you want me to assist with the next step of implementing the auto-backup feature.

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:table_calendar/table_calendar.dart';
@@ -47,6 +49,11 @@ class _HomeScreenState extends State<HomeScreen> {
 
     // Initialize week range first
     _calculateWeekRange(_selectedDay);
+
+    // Set up auto-backup timer for every 2 hours (for testing)
+    Timer.periodic(const Duration(hours: 2), (timer) async {
+      await DatabaseHelper().backupDatabase();
+    });
 
     // Then load data
     _initWeekStartAndLoadData();

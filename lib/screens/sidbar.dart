@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:share_plus/share_plus.dart';
 import 'add_employee_screen.dart'; // Import your AddEmployeeScreen here
+import 'package:shiftly/db/database_helper.dart';
 
 class AppDrawer extends StatelessWidget {
   static const platform = MethodChannel('com.example.employeeshifttracker/mail');
@@ -45,6 +46,20 @@ class AppDrawer extends StatelessWidget {
                 _buildDrawerItem(Icons.share, 'Share App', context),
                 _buildDrawerItem(Icons.star, 'Rate Us', context),
                 _buildDrawerItem(Icons.feedback, 'Write Feedback', context),
+                ListTile(
+                  leading: Icon(Icons.restore, color: Colors.deepPurple),
+                  title: Text('Restore Data', style: TextStyle(color: Colors.black87)),
+                  onTap: () async {
+                    Navigator.of(context).pop(); // Close the drawer
+                    // Call restoreLatestBackup and reload data
+                    final dbHelper = DatabaseHelper();
+                    await dbHelper.restoreLatestBackup();
+                    // Optionally show a snackbar or dialog to indicate success
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Database restored from latest backup. Please restart the app.')),
+                    );
+                  },
+                ),
               ],
             ),
           ),

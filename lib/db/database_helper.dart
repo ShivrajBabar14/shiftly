@@ -24,6 +24,64 @@ class DatabaseHelper {
     return _database!;
   }
 
+  // Backup database file to app directory backups folder
+  Future<void> backupDatabase() async {
+    try {
+      final dbPath = await getDatabasesPath();
+      final dbFile = File(join(dbPath, 'shiftly.db'));
+
+      final backupDir = Directory(join(dbPath, 'backups'));
+      if (!await backupDir.exists()) {
+        await backupDir.create(recursive: true);
+      }
+
+      final timestamp = DateTime.now().toIso8601String().replaceAll(':', '-');
+      final backupFile = File(join(backupDir.path, 'shiftly_backup_$timestamp.db'));
+
+      await dbFile.copy(backupFile.path);
+      print('✅ Database backed up to ${backupFile.path}');
+    } catch (e) {
+      print('❌ Error during database backup: $e');
+    }
+  }
+
+  // Restore latest backup from backups folder
+  Future<void> restoreLatestBackup() async {
+    try {
+      final dbPath = await getDatabasesPath();
+      final backupDir = Directory(join(dbPath, 'backups'));
+
+      if (!await backupDir.exists()) {
+        print('❌ Backup directory does not exist.');
+        return;
+      }
+
+      final backups = backupDir.listSync()
+          .whereType<File>()
+          .where((file) => file.path.endsWith('.db'))
+          .toList();
+
+      if (backups.isEmpty) {
+        print('❌ No backup files found.');
+        return;
+      }
+
+      backups.sort((a, b) => b.statSync().modified.compareTo(a.statSync().modified));
+      final latestBackup = backups.first;
+
+      final dbFile = File(join(dbPath, 'shiftly.db'));
+
+      if (await dbFile.exists()) {
+        await dbFile.delete();
+      }
+
+      await latestBackup.copy(dbFile.path);
+      print('✅ Database restored from ${latestBackup.path}');
+    } catch (e) {
+      print('❌ Error during database restore: $e');
+    }
+  }
+
   Future<int> getCurrentWeekId() async {
     final db = await database;
 
