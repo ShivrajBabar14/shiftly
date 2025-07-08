@@ -1,14 +1,19 @@
 import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:share_plus/share_plus.dart';
-import 'add_employee_screen.dart'; // Import your AddEmployeeScreen here
+import 'add_employee_screen.dart';
 import 'package:shiftly/db/database_helper.dart';
+// import 'package:excel/excel.dart';
+// import 'package:path_provider/path_provider.dart';
+// import 'package:path/path.dart' as path;
+// import 'package:permission_handler/permission_handler.dart';
 
 class AppDrawer extends StatelessWidget {
-  static const platform = MethodChannel('com.example.employeeshifttracker/mail');
+  static const platform = MethodChannel(
+    'com.example.employeeshifttracker/mail',
+  );
 
   @override
   Widget build(BuildContext context) {
@@ -34,23 +39,25 @@ class AppDrawer extends StatelessWidget {
                   ),
                   child: Center(
                     child: Image.asset(
-                      'assets/app_logo.png', // Ensure this image path is correct
+                      'assets/app_logo.png',
                       width: 100,
                       height: 100,
                       fit: BoxFit.contain,
                     ),
                   ),
                 ),
-                // Drawer items with correct context argument passed
                 _buildDrawerItem(Icons.group, 'All Employees', context),
                 _buildDrawerItem(Icons.share, 'Share App', context),
                 _buildDrawerItem(Icons.star, 'Rate Us', context),
                 _buildDrawerItem(Icons.feedback, 'Write Feedback', context),
                 ListTile(
                   leading: Icon(Icons.restore, color: Colors.deepPurple),
-                  title: Text('Restore Data', style: TextStyle(color: Colors.black87)),
+                  title: Text(
+                    'Restore Data',
+                    style: TextStyle(color: Colors.black87),
+                  ),
                   onTap: () async {
-                    Navigator.of(context).pop(); // Close the drawer
+                    Navigator.of(context).pop();
                     final dbHelper = DatabaseHelper();
                     bool restoreSuccess = await dbHelper.restoreLatestBackup();
                     if (restoreSuccess) {
@@ -65,7 +72,9 @@ class AppDrawer extends StatelessWidget {
                         SnackBar(
                           content: Text(
                             'Database restored from latest backup. ' +
-                            (backupSuccess ? 'Backup created successfully.' : 'Backup creation failed.'),
+                                (backupSuccess
+                                    ? 'Backup created successfully.'
+                                    : 'Backup creation failed.'),
                           ),
                         ),
                       );
@@ -76,15 +85,26 @@ class AppDrawer extends StatelessWidget {
                     }
                   },
                 ),
+                // ListTile(
+                //   leading: Icon(Icons.file_download, color: Colors.deepPurple),
+                //   title: Text(
+                //     'Export Data',
+                //     style: TextStyle(color: Colors.black87),
+                //   ),
+                //   onTap: () async {
+                //     Navigator.of(context).pop();
+                //     await _exportData(context);
+                //   },
+                // ),
               ],
             ),
           ),
           Padding(
             padding: EdgeInsets.all(16.0),
             child: Align(
-              alignment: Alignment.centerLeft, // Aligns the text to the left
+              alignment: Alignment.centerLeft,
               child: Text(
-                'Version (4.13)', // This is your version text
+                'Version (4.13)',
                 style: TextStyle(color: Colors.black),
               ),
             ),
@@ -94,7 +114,6 @@ class AppDrawer extends StatelessWidget {
     );
   }
 
-  // This method now expects 3 arguments: icon, title, and context
   Widget _buildDrawerItem(IconData icon, String title, BuildContext context) {
     return ListTile(
       leading: Icon(icon, color: Colors.deepPurple),
@@ -142,19 +161,21 @@ class AppDrawer extends StatelessWidget {
       }
 
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('No mail app found on this device. Please install a mail app to send feedback.')),
+        SnackBar(
+          content: Text(
+            'No mail app found on this device. Please install a mail app to send feedback.',
+          ),
+        ),
       );
     } on PlatformException catch (e) {
       print("Failed to open Gmail app: $e");
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to open Gmail app.')),
-      );
+          SnackBar(content: Text('Failed to open Gmail app.')));
     }
   }
 
   Future<void> _launchRateUs(BuildContext context) async {
-    final String packageName =
-        'com.example.employeeshifttracker'; // Replace with your actual package name
+    final String packageName = 'com.example.employeeshifttracker';
     final Uri playStoreUri = Uri.parse('market://details?id=$packageName');
     final Uri playStoreWebUri = Uri.parse(
       'https://play.google.com/store/apps/details?id=$packageName',
@@ -172,44 +193,93 @@ class AppDrawer extends StatelessWidget {
       }
     } catch (e) {
       print("Failed to open Play Store: $e");
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Failed to open Play Store.')));
+      ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to open Play Store.')));
     }
   }
 
   Future<void> _shareApp(BuildContext context) async {
     final String appLink =
-        'https://play.google.com/store/apps/details?id=com.example.employeeshifttracker'; // Replace with your app link
+        'https://play.google.com/store/apps/details?id=com.example.employeeshifttracker';
 
     try {
       await Share.share('Check out this app: $appLink');
     } catch (e) {
       print("Error while sharing: $e");
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Failed to share the app.')));
+      ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to share the app.')));
     }
   }
 
-  // Widget _buildDrawerItem(IconData icon, String title, BuildContext context) {
-  //   return ListTile(
-  //     leading: Icon(icon, color: Colors.deepPurple),
-  //     title: Text(title, style: TextStyle(color: Colors.black87)),
-  //     onTap: () {
-  //       if (title == 'All Employees') {
-  //         Navigator.push(
-  //           context,
-  //           MaterialPageRoute(builder: (context) => AddEmployeeScreen()),
-  //         );
-  //       } else if (title == 'Write Feedback') {
-  //         _launchFeedbackMail(context);
-  //       } else if (title == 'Rate Us') {
-  //         _launchRateUs(context);
-  //       } else if (title == 'Share App') {
-  //         _shareApp(context);
-  //       }
-  //     },
-  //   );
+  // Future<void> _exportData(BuildContext context) async {
+  //   PermissionStatus status = await Permission.storage.request();
+  //   if (!status.isGranted) {
+  //     ScaffoldMessenger.of(context).showSnackBar(
+  //         SnackBar(content: Text('Storage permission denied')));
+  //     return;
+  //   }
+
+  //   try {
+  //     final dbHelper = DatabaseHelper();
+  //     final employees = await dbHelper.getEmployees();
+      
+  //     var excel = Excel.createExcel();
+  //     var sheetObject = excel['Employees'];
+      
+  //     // Add header row (no need for CellValue.string(), just direct values)
+  //     sheetObject.appendRow([
+  //       'Employee ID',
+  //       'Name',
+  //       // Add other columns as needed
+  //     ]);
+      
+  //     // Add data rows (direct values)
+  //     for (var emp in employees) {
+  //       sheetObject.appendRow([
+  //         emp['employee_id'].toString(),
+  //         emp['name'].toString(),
+  //         // Add other fields as needed
+  //       ]);
+  //     }
+
+  //     // Get directory and save file
+  //     final directory = await getExternalStorageDirectory();
+  //     if (directory == null) {
+  //       throw Exception('Could not access storage directory');
+  //     }
+      
+  //     final filePath = path.join(directory.path, 'employees_export.xlsx');
+  //     final fileBytes = excel.encode();
+      
+  //     if (fileBytes == null) {
+  //       throw Exception('Failed to encode Excel file');
+  //     }
+
+  //     final file = File(filePath);
+  //     await file.writeAsBytes(fileBytes);
+
+  //     if (await file.exists()) {
+  //       ScaffoldMessenger.of(context).showSnackBar(
+  //         SnackBar(
+  //           content: Text('Data exported successfully to $filePath'),
+  //           action: SnackBarAction(
+  //             label: 'Open',
+  //             onPressed: () async {
+  //               if (await canLaunchUrl(Uri.file(filePath))) {
+  //                 await launchUrl(Uri.file(filePath));
+  //               }
+  //             },
+  //           ),
+  //         ),
+  //       );
+  //     } else {
+  //       throw Exception('File not found after export');
+  //     }
+  //   } catch (e) {
+  //     print('Export error: $e');
+  //     ScaffoldMessenger.of(context).showSnackBar(
+  //       SnackBar(content: Text('Failed to export data: ${e.toString()}')),
+  //     );
+  //   }
   // }
 }
