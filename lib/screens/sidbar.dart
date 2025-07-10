@@ -5,6 +5,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:share_plus/share_plus.dart';
 import 'add_employee_screen.dart';
 import 'package:shiftly/db/database_helper.dart';
+import 'subscription.dart';
 // import 'package:excel/excel.dart';
 // import 'package:path_provider/path_provider.dart';
 // import 'package:path/path.dart' as path;
@@ -47,6 +48,7 @@ class AppDrawer extends StatelessWidget {
                   ),
                 ),
                 _buildDrawerItem(Icons.group, 'All Employees', context),
+                _buildDrawerItem(Icons.upgrade, 'Subscription', context),
                 _buildDrawerItem(Icons.share, 'Share App', context),
                 _buildDrawerItem(Icons.star, 'Rate Us', context),
                 _buildDrawerItem(Icons.feedback, 'Write Feedback', context),
@@ -119,10 +121,17 @@ class AppDrawer extends StatelessWidget {
       leading: Icon(icon, color: Colors.deepPurple),
       title: Text(title, style: TextStyle(color: Colors.black87)),
       onTap: () {
+        Navigator.of(context).pop(); // Close the drawer
+
         if (title == 'All Employees') {
           Navigator.push(
             context,
             MaterialPageRoute(builder: (context) => AddEmployeeScreen()),
+          );
+        } else if (title == 'Subscription') {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => ShiftlyProScreen()),
           );
         } else if (title == 'Write Feedback') {
           _launchFeedbackMail(context);
@@ -169,8 +178,9 @@ class AppDrawer extends StatelessWidget {
       );
     } on PlatformException catch (e) {
       print("Failed to open Gmail app: $e");
-      ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to open Gmail app.')));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Failed to open Gmail app.')));
     }
   }
 
@@ -193,8 +203,9 @@ class AppDrawer extends StatelessWidget {
       }
     } catch (e) {
       print("Failed to open Play Store: $e");
-      ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to open Play Store.')));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Failed to open Play Store.')));
     }
   }
 
@@ -206,8 +217,9 @@ class AppDrawer extends StatelessWidget {
       await Share.share('Check out this app: $appLink');
     } catch (e) {
       print("Error while sharing: $e");
-      ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to share the app.')));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Failed to share the app.')));
     }
   }
 
@@ -222,17 +234,17 @@ class AppDrawer extends StatelessWidget {
   //   try {
   //     final dbHelper = DatabaseHelper();
   //     final employees = await dbHelper.getEmployees();
-      
+
   //     var excel = Excel.createExcel();
   //     var sheetObject = excel['Employees'];
-      
+
   //     // Add header row (no need for CellValue.string(), just direct values)
   //     sheetObject.appendRow([
   //       'Employee ID',
   //       'Name',
   //       // Add other columns as needed
   //     ]);
-      
+
   //     // Add data rows (direct values)
   //     for (var emp in employees) {
   //       sheetObject.appendRow([
@@ -247,10 +259,10 @@ class AppDrawer extends StatelessWidget {
   //     if (directory == null) {
   //       throw Exception('Could not access storage directory');
   //     }
-      
+
   //     final filePath = path.join(directory.path, 'employees_export.xlsx');
   //     final fileBytes = excel.encode();
-      
+
   //     if (fileBytes == null) {
   //       throw Exception('Failed to encode Excel file');
   //     }

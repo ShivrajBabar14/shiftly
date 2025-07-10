@@ -4,6 +4,7 @@ import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:shiftly/models/employee.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:path_provider/path_provider.dart';
 
 class DatabaseHelper {
   static final DatabaseHelper _instance = DatabaseHelper._internal();
@@ -24,19 +25,27 @@ class DatabaseHelper {
     return _database!;
   }
 
-  // Backup database file to app directory backups folder
+  // Backup database file to public external storage backups folder
   Future<bool> backupDatabase() async {
     try {
       final dbPath = await getDatabasesPath();
       final dbFile = File(join(dbPath, 'shiftly.db'));
 
-      final backupDir = Directory(join(dbPath, 'backups'));
-      if (!await backupDir.exists()) {
-        await backupDir.create(recursive: true);
+      // Get public documents directory
+      final directories = await getExternalStorageDirectories(type: StorageDirectory.documents);
+      if (directories == null || directories.isEmpty) {
+        print('❌ Could not access public documents directory');
+        return false;
+      }
+      final directory = directories.first;
+
+      final publicBackupDir = Directory(join(directory.path, 'ShiftlyBackups'));
+      if (!await publicBackupDir.exists()) {
+        await publicBackupDir.create(recursive: true);
       }
 
       final timestamp = DateTime.now().toIso8601String().replaceAll(':', '-');
-      final backupFile = File(join(backupDir.path, 'shiftly_backup_$timestamp.db'));
+      final backupFile = File(join(publicBackupDir.path, 'shiftly_backup_$timestamp.db'));
 
       await dbFile.copy(backupFile.path);
       print('✅ Database backed up to ${backupFile.path}');
@@ -50,8 +59,14 @@ class DatabaseHelper {
   // Restore latest backup from backups folder
   Future<bool> restoreLatestBackup() async {
     try {
-      final dbPath = await getDatabasesPath();
-      final backupDir = Directory(join(dbPath, 'backups'));
+      final directories = await getExternalStorageDirectories(type: StorageDirectory.documents);
+      if (directories == null || directories.isEmpty) {
+        print('❌ Could not access public documents directory');
+        return false;
+      }
+      final directory = directories.first;
+
+      final backupDir = Directory(join(directory.path, 'ShiftlyBackups'));
 
       if (!await backupDir.exists()) {
         print('❌ Backup directory does not exist.');
@@ -71,6 +86,7 @@ class DatabaseHelper {
       backups.sort((a, b) => b.statSync().modified.compareTo(a.statSync().modified));
       final latestBackup = backups.first;
 
+      final dbPath = await getDatabasesPath();
       final dbFile = File(join(dbPath, 'shiftly.db'));
 
       if (await dbFile.exists()) {
