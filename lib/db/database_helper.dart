@@ -5,6 +5,7 @@ import 'package:sqflite/sqflite.dart';
 import 'package:shiftly/models/employee.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 class DatabaseHelper {
   static final DatabaseHelper _instance = DatabaseHelper._internal();
@@ -26,30 +27,69 @@ class DatabaseHelper {
   }
 
   // Backup database file to public external storage backups folder
+  // Future<bool> backupDatabase() async {
+  //   try {
+  //     final dbPath = await getDatabasesPath();
+  //     final dbFile = File(join(dbPath, 'shiftly.db'));
+
+  //     // Get public documents directory
+  //     final directories = await getExternalStorageDirectories(type: StorageDirectory.documents);
+  //     if (directories == null || directories.isEmpty) {
+  //       print('❌ Could not access public documents directory');
+  //       return false;
+  //     }
+  //     final directory = directories.first;
+
+  //     final publicBackupDir = Directory(join(directory.path, 'ShiftlyBackups'));
+  //     if (!await publicBackupDir.exists()) {
+  //       await publicBackupDir.create(recursive: true);
+  //     }
+
+  //     final timestamp = DateTime.now().toIso8601String().replaceAll(':', '-');
+  //     final backupFile = File(join(publicBackupDir.path, 'shiftly_backup_$timestamp.db'));
+
+  //     await dbFile.copy(backupFile.path);
+  //     print('✅ Database backed up to ${backupFile.path}');
+  //     return true;
+  //   } catch (e) {
+  //     print('❌ Error during database backup: $e');
+  //     return false;
+  //   }
+  // }
+
   Future<bool> backupDatabase() async {
     try {
-      final dbPath = await getDatabasesPath();
-      final dbFile = File(join(dbPath, 'shiftly.db'));
+      // Get the original database file path consistent with _initDatabase()
+      final directory = await getApplicationDocumentsDirectory();
+      final dbPath = join(directory.path, 'Shiftly', 'shiftly.db');
+      final dbFile = File(dbPath);
 
-      // Get public documents directory
-      final directories = await getExternalStorageDirectories(type: StorageDirectory.documents);
-      if (directories == null || directories.isEmpty) {
-        print('❌ Could not access public documents directory');
-        return false;
-      }
-      final directory = directories.first;
+      // Use hardcoded public Documents directory path for backup storage
+      final backupDirectory = Directory('/storage/emulated/0/Documents');
+      final backupDir = Directory(join(backupDirectory.path, 'Shiftly'));
 
-      final publicBackupDir = Directory(join(directory.path, 'ShiftlyBackups'));
-      if (!await publicBackupDir.exists()) {
-        await publicBackupDir.create(recursive: true);
+      if (!await backupDir.exists()) {
+        await backupDir.create(recursive: true);
       }
 
+      // Generate timestamp for backup filename
       final timestamp = DateTime.now().toIso8601String().replaceAll(':', '-');
-      final backupFile = File(join(publicBackupDir.path, 'shiftly_backup_$timestamp.db'));
+      final backupFile = File(
+        join(backupDir.path, 'shiftly_backup_$timestamp.db'),
+      );
 
+      // Copy the database to backup location
       await dbFile.copy(backupFile.path);
-      print('✅ Database backed up to ${backupFile.path}');
-      return true;
+      final backupExists = await backupFile.exists();
+      if (backupExists) {
+        final fileStat = await backupFile.stat();
+        print('✅ Database backed up to ${backupFile.path}');
+        print('Backup file size: ${fileStat.size} bytes');
+        print('Backup file modified: ${fileStat.modified}');
+      } else {
+        print('❌ Backup file does not exist after copy operation.');
+      }
+      return backupExists;
     } catch (e) {
       print('❌ Error during database backup: $e');
       return false;
@@ -59,21 +99,18 @@ class DatabaseHelper {
   // Restore latest backup from backups folder
   Future<bool> restoreLatestBackup() async {
     try {
-      final directories = await getExternalStorageDirectories(type: StorageDirectory.documents);
-      if (directories == null || directories.isEmpty) {
-        print('❌ Could not access public documents directory');
-        return false;
-      }
-      final directory = directories.first;
-
-      final backupDir = Directory(join(directory.path, 'ShiftlyBackups'));
+      // Use hardcoded public Documents directory path for backup storage
+      final backupDirectory = Directory('/storage/emulated/0/Documents');
+      final backupDir = Directory(join(backupDirectory.path, 'Shiftly'));
 
       if (!await backupDir.exists()) {
         print('❌ Backup directory does not exist.');
         return false;
       }
 
-      final backups = backupDir.listSync()
+      // List all .db files (backups) in the directory
+      final backups = backupDir
+          .listSync()
           .whereType<File>()
           .where((file) => file.path.endsWith('.db'))
           .toList();
@@ -83,23 +120,46 @@ class DatabaseHelper {
         return false;
       }
 
-      backups.sort((a, b) => b.statSync().modified.compareTo(a.statSync().modified));
+      // Sort backups by modification date (latest first)
+      backups.sort(
+        (a, b) => b.statSync().modified.compareTo(a.statSync().modified),
+      );
       final latestBackup = backups.first;
 
-      final dbPath = await getDatabasesPath();
-      final dbFile = File(join(dbPath, 'shiftly.db'));
+      // Get current database file path consistent with _initDatabase()
+      final directory = await getApplicationDocumentsDirectory();
+      final dbPath = join(directory.path, 'Shiftly', 'shiftly.db');
+      final dbFile = File(dbPath);
 
+      // Delete existing database if it exists
       if (await dbFile.exists()) {
         await dbFile.delete();
       }
 
+      // Copy backup to database location
       await latestBackup.copy(dbFile.path);
       print('✅ Database restored from ${latestBackup.path}');
+
+      // Reinitialize the database connection
+      _database = await _initDatabase();
+
       return true;
     } catch (e) {
       print('❌ Error during database restore: $e');
       return false;
     }
+  }
+
+  Future<bool> checkStoragePermissions() async {
+    if (Platform.isAndroid) {
+      final status = await Permission.storage.status;
+      if (!status.isGranted) {
+        final result = await Permission.storage.request();
+        return result.isGranted;
+      }
+      return true;
+    }
+    return true; // For iOS, permissions work differently
   }
 
   Future<int> getCurrentWeekId() async {
@@ -138,7 +198,8 @@ class DatabaseHelper {
   }
 
   Future<Database> _initDatabase() async {
-    final path = join(await getDatabasesPath(), 'shiftly.db');
+    final directory = await getApplicationDocumentsDirectory();
+    final path = join(directory.path, 'Shiftly', 'shiftly.db');
 
     print('🔍 Database path: $path');
     final file = File(path);
@@ -538,7 +599,10 @@ class DatabaseHelper {
     }
   }
 
-  Future<List<Map<String, dynamic>>> getShiftsForEmployeeWeek(int employeeId, int weekStart) async {
+  Future<List<Map<String, dynamic>>> getShiftsForEmployeeWeek(
+    int employeeId,
+    int weekStart,
+  ) async {
     final db = await database;
     try {
       return await db.query(

@@ -51,7 +51,7 @@ class _HomeScreenState extends State<HomeScreen> {
     _calculateWeekRange(_selectedDay);
 
     // Set up auto-backup timer for every 2 hours (for testing)
-    Timer.periodic(const Duration(hours: 2), (timer) async {
+    Timer.periodic(const Duration(minutes: 2), (timer) async {
       await DatabaseHelper().backupDatabase();
     });
 

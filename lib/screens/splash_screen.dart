@@ -3,8 +3,6 @@ import 'home_screen.dart';
 import 'dart:async';
 import 'package:shiftly/db/database_helper.dart';
 import 'dart:io';
-import 'package:path/path.dart' as path;
-import 'package:sqflite/sqflite.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -31,8 +29,7 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 
   void _createBackupDirectory() async {
-    final dbPath = await getDatabasesPath();
-    final backupDir = Directory(path.join(dbPath, 'backups'));
+    final backupDir = Directory('/storage/emulated/0/Documents/Shiftly');
     if (!await backupDir.exists()) {
       await backupDir.create(recursive: true);
       print('Backup directory created at ${backupDir.path}');
@@ -43,10 +40,21 @@ class _SplashScreenState extends State<SplashScreen> {
 
   void _startBackupTimer() {
     final dbHelper = DatabaseHelper();
+    print('Starting backup timer...');
     // Backup every 2 hours (7200 seconds)
-    _backupTimer = Timer.periodic(Duration(seconds: 10), (timer) async {
-      await dbHelper.backupDatabase();
-      print('Automatic database backup completed.');
+    _backupTimer = Timer.periodic(Duration(hours: 2), (timer) async {
+      print('Backup timer tick...');
+      try {
+        bool success = await dbHelper.backupDatabase();
+        if (success) {
+          print('Automatic database backup completed.');
+          print('Backup stored at /storage/emulated/0/Documents/Shiftly');
+        } else {
+          print('Automatic database backup failed.');
+        }
+      } catch (e) {
+        print('Error during automatic backup: $e');
+      }
     });
   }
 
