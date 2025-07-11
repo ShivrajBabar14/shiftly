@@ -34,11 +34,14 @@ class _ShiftlyProScreenState extends State<ShiftlyProScreen> {
       'amount': amount * 100, // Razorpay amount is in paisa
       'name': 'Shiftly Pro',
       'description': planType,
-      'prefill': {
-        'contact': '9123456789',
-        'email': 'testuser@example.com',
-      },
+      'prefill': {'contact': '9123456789', 'email': 'testuser@example.com'},
       'theme': {'color': '#673AB7'},
+      'method': {
+        'netbanking': true,
+        'card': true,
+        'upi': true,
+        'wallet': false, // Disable wallet payments including Google Pay
+      },
     };
 
     try {
@@ -249,8 +252,9 @@ class _ShiftlyProScreenState extends State<ShiftlyProScreen> {
         padding: const EdgeInsets.symmetric(vertical: 12),
         decoration: BoxDecoration(
           border: Border.all(
-              color: isSelected ? Colors.deepPurple : Colors.grey.shade300,
-              width: 2),
+            color: isSelected ? Colors.deepPurple : Colors.grey.shade300,
+            width: 2,
+          ),
           borderRadius: BorderRadius.circular(10),
           color: isSelected ? Colors.deepPurple.withOpacity(0.1) : Colors.white,
         ),

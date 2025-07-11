@@ -1,13 +1,12 @@
 plugins {
     id("com.android.application")
     id("kotlin-android")
-    // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
     id("dev.flutter.flutter-gradle-plugin")
 }
 
 android {
     namespace = "com.example.employeeshifttracker"
-    compileSdk = flutter.compileSdkVersion
+    compileSdk = 35
     ndkVersion = "27.0.12077973"
 
     compileOptions {
@@ -16,29 +15,73 @@ android {
     }
 
     kotlinOptions {
-        jvmTarget = "11"  // Double quotes for String
+        jvmTarget = "11"  // Set Kotlin JVM target to 11
+    }
+
+    // Explicit Java toolchain configuration
+    java {
+        toolchain {
+            languageVersion.set(JavaLanguageVersion.of(11))  // Ensure using Java 11
+        }
     }
 
     defaultConfig {
-        // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
         applicationId = "com.example.employeeshifttracker"
-        // You can update the following values to match your application needs.
-        // For more information, see: https://flutter.dev/to/review-gradle-config.
-        minSdk = 21 
-        targetSdk = flutter.targetSdkVersion
-        versionCode = flutter.versionCode
+        minSdk = 21
+        targetSdk = 34
+        versionCode = flutter.versionCode.toInt()
         versionName = flutter.versionName
+        multiDexEnabled = true
+    }
+
+    signingConfigs {
+        create("release") {
+            storeFile = file("your-release-key.keystore")  // Path to your keystore file
+            storePassword = "root123"          // The password of your keystore
+            keyAlias = "key0"                              // Alias of your key
+            keyPassword = "root123"              // The password of your key
+        }
     }
 
     buildTypes {
-        release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
+        getByName("release") {
+            isMinifyEnabled = true
+            isShrinkResources = true
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro"
+            )
+            signingConfig = signingConfigs.getByName("release")
+        }
+        getByName("debug") {
             signingConfig = signingConfigs.getByName("debug")
+            isMinifyEnabled = false
+            isShrinkResources = false
+        }
+    }
+
+    packagingOptions {
+        resources {
+            excludes += "/META-INF/{AL2.0,LGPL2.1}"
+            excludes += "META-INF/DEPENDENCIES"
+            excludes += "META-INF/LICENSE*"
+            excludes += "META-INF/NOTICE*"
+            excludes += "META-INF/ASL2.0"
+            excludes += "**/attach_hotspot_windows.dll"
         }
     }
 }
 
 flutter {
     source = "../.."
+}
+
+dependencies {
+    implementation("androidx.multidex:multidex:2.0.1")
+    implementation("com.razorpay:checkout:1.6.33")
+    implementation("com.google.android.gms:play-services-wallet:19.1.0")
+    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.9.22")
+
+    // Alternative Google Pay implementation that doesn't require inapp-client-api
+    implementation("com.google.android.gms:play-services-pay:16.3.0")
 }
