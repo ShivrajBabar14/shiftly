@@ -6,7 +6,7 @@ import 'package:share_plus/share_plus.dart';
 import 'package:file_picker/file_picker.dart';
 import 'add_employee_screen.dart';
 import 'package:shiftly/db/database_helper.dart';
-import 'subscription.dart';
+// import 'subscription.dart';
 // import 'package:excel/excel.dart';
 // import 'package:path_provider/path_provider.dart';
 // import 'package:path/path.dart' as path;
@@ -52,7 +52,7 @@ class AppDrawer extends StatelessWidget {
                   ),
                 ),
                 _buildDrawerItem(Icons.group, 'All Employees', context),
-                _buildDrawerItem(Icons.upgrade, 'Subscription', context),
+                // _buildDrawerItem(Icons.upgrade, 'Subscription', context),
                 _buildDrawerItem(Icons.share, 'Share App', context),
                 _buildDrawerItem(Icons.star, 'Rate Us', context),
                 _buildDrawerItem(Icons.feedback, 'Write Feedback', context),
@@ -148,7 +148,7 @@ class AppDrawer extends StatelessWidget {
             child: Align(
               alignment: Alignment.centerLeft,
               child: Text(
-                'Version (4.13)',
+                'Version (1.00)',
                 style: TextStyle(color: Colors.black),
               ),
             ),
@@ -170,11 +170,11 @@ class AppDrawer extends StatelessWidget {
             context,
             MaterialPageRoute(builder: (context) => AddEmployeeScreen()),
           );
-        } else if (title == 'Subscription') {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => ShiftlyProScreen()),
-          );
+        // } else if (title == 'Subscription') {
+        //   Navigator.push(
+        //     context,
+        //     MaterialPageRoute(builder: (context) => ShiftlyProScreen()),
+        //   );
         } else if (title == 'Write Feedback') {
           _launchFeedbackMail(context);
         } else if (title == 'Rate Us') {

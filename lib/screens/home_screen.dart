@@ -5,7 +5,7 @@ import 'package:intl/intl.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:shiftly/db/database_helper.dart';
 import 'package:shiftly/models/employee.dart';
-import 'package:shiftly/screens/add_employee_screen.dart';
+import 'subscription.dart';
 
 import 'package:shared_preferences/shared_preferences.dart';
 import 'sidbar.dart';
@@ -675,13 +675,12 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.person_add, color: Colors.deepPurple),
+          TextButton(
             onPressed: () async {
               final selectedEmployees = await Navigator.push<List<int>>(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => const AddEmployeeScreen(),
+                  builder: (context) =>  ShiftlyProScreen(),
                 ),
               );
               if (selectedEmployees != null) {
@@ -696,6 +695,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 });
               }
             },
+            child: Text('Go Pro', style: TextStyle(color: Colors.deepPurple, fontSize: 18)),
           ),
         ],
       ),

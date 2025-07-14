@@ -224,7 +224,7 @@ class _EmployeeShiftScreenState extends State<EmployeeShiftScreen> {
             Expanded(
               child: SingleChildScrollView(
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  padding: const EdgeInsets.symmetric(horizontal: 0),
                   child: Screenshot(
                     controller: _screenshotController,
                     child: Container(
@@ -299,7 +299,7 @@ class _EmployeeShiftScreenState extends State<EmployeeShiftScreen> {
                                     ),
                                     child: Center(
                                       child: Text(
-                                        'Shift Time',
+                                        'Shift',
                                         style: TextStyle(
                                           color: Colors.white,
                                           fontWeight: FontWeight.bold,
