@@ -7,6 +7,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 
+
 class DatabaseHelper {
   static final DatabaseHelper _instance = DatabaseHelper._internal();
   static Database? _database;
@@ -150,14 +151,55 @@ class DatabaseHelper {
     }
   }
 
+  // Restore database from a specific file path
+  Future<bool> restoreFromFile(String filePath) async {
+    try {
+      final file = File(filePath);
+      if (!await file.exists()) {
+        print('❌ Specified backup file does not exist.');
+        return false;
+      }
+
+      final directory = await getApplicationDocumentsDirectory();
+      final dbPath = join(directory.path, 'Shiftly', 'shiftly.db');
+      final dbFile = File(dbPath);
+
+      if (await dbFile.exists()) {
+        await dbFile.delete();
+      }
+
+      await file.copy(dbFile.path);
+      print('✅ Database restored from $filePath');
+
+      _database = await _initDatabase();
+
+      return true;
+    } catch (e) {
+      print('❌ Error during database restore from file: $e');
+      return false;
+    }
+  }
+
+
   Future<bool> checkStoragePermissions() async {
     if (Platform.isAndroid) {
-      final status = await Permission.storage.status;
-      if (!status.isGranted) {
-        final result = await Permission.storage.request();
-        return result.isGranted;
+      if (await Permission.manageExternalStorage.isGranted) {
+        return true;
+      } else {
+        final status = await Permission.manageExternalStorage.request();
+        if (status.isGranted) {
+          return true;
+        } else if (status.isPermanentlyDenied) {
+          // Open app settings for user to manually grant permission
+          await openAppSettings();
+          return false;
+        } else if (status.isDenied) {
+          // Request legacy storage permission for Android 10 and below
+          final legacyStatus = await Permission.storage.request();
+          return legacyStatus.isGranted;
+        }
+        return false;
       }
-      return true;
     }
     return true; // For iOS, permissions work differently
   }

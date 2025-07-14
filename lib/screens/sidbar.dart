@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:file_picker/file_picker.dart';
 import 'add_employee_screen.dart';
 import 'package:shiftly/db/database_helper.dart';
 import 'subscription.dart';
@@ -59,30 +60,68 @@ class AppDrawer extends StatelessWidget {
                     style: TextStyle(color: Colors.black87),
                   ),
                   onTap: () async {
+                    final scaffoldMessenger = ScaffoldMessenger.of(context);
                     Navigator.of(context).pop();
                     final dbHelper = DatabaseHelper();
-                    bool restoreSuccess = await dbHelper.restoreLatestBackup();
-                    if (restoreSuccess) {
-                      bool backupSuccess = false;
-                      try {
-                        await dbHelper.backupDatabase();
-                        backupSuccess = true;
-                      } catch (e) {
-                        backupSuccess = false;
-                      }
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(
-                            'Database restored from latest backup. ' +
-                                (backupSuccess
-                                    ? 'Backup created successfully.'
-                                    : 'Backup creation failed.'),
-                          ),
-                        ),
+
+                    // Request storage permission
+                    bool permissionGranted = await dbHelper.checkStoragePermissions();
+                    if (!permissionGranted) {
+                      scaffoldMessenger.showSnackBar(
+                        SnackBar(content: Text('Storage permission denied.')),
                       );
-                    } else {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('No backup found to restore.')),
+                      return;
+                    }
+
+                    // Open file picker to select backup file
+                    try {
+                      final result = await FilePicker.platform.pickFiles(
+                        type: FileType.any,
+                        initialDirectory: '/storage/emulated/0/',
+                      );
+
+                      if (result == null || result.files.isEmpty) {
+                        scaffoldMessenger.showSnackBar(
+                          SnackBar(content: Text('No file selected.')),
+                        );
+                        return;
+                      }
+
+                      final filePath = result.files.single.path;
+                      if (filePath == null) {
+                        scaffoldMessenger.showSnackBar(
+                          SnackBar(content: Text('Invalid file path.')),
+                        );
+                        return;
+                      }
+
+                      bool restoreSuccess = await dbHelper.restoreFromFile(filePath);
+                      if (restoreSuccess) {
+                        bool backupSuccess = false;
+                        try {
+                          await dbHelper.backupDatabase();
+                          backupSuccess = true;
+                        } catch (e) {
+                          backupSuccess = false;
+                        }
+                        scaffoldMessenger.showSnackBar(
+                          SnackBar(
+                            content: Text(
+                              'Database restored from selected file. ' +
+                                  (backupSuccess
+                                      ? 'Backup created successfully.'
+                                      : 'Backup creation failed.'),
+                            ),
+                          ),
+                        );
+                      } else {
+                        scaffoldMessenger.showSnackBar(
+                          SnackBar(content: Text('Failed to restore from selected file.')),
+                        );
+                      }
+                    } catch (e) {
+                      scaffoldMessenger.showSnackBar(
+                        SnackBar(content: Text('Error selecting file: $e')),
                       );
                     }
                   },
