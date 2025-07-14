@@ -40,11 +40,14 @@ class AppDrawer extends StatelessWidget {
                     ),
                   ),
                   child: Center(
-                    child: Image.asset(
-                      'assets/app_logo.png',
-                      width: 100,
-                      height: 100,
-                      fit: BoxFit.contain,
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(20.0),
+                      child: Image.asset(
+                        'assets/app_logo.png',
+                        width: 100,
+                        height: 100,
+                        fit: BoxFit.contain,
+                      ),
                     ),
                   ),
                 ),

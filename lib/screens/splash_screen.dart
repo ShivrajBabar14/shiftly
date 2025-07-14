@@ -42,7 +42,7 @@ class _SplashScreenState extends State<SplashScreen> {
     final dbHelper = DatabaseHelper();
     print('Starting backup timer...');
     // Backup every 2 hours (7200 seconds)
-    _backupTimer = Timer.periodic(Duration(hours: 2), (timer) async {
+    _backupTimer = Timer.periodic(Duration(hours: 10), (timer) async {
       print('Backup timer tick...');
       try {
         bool success = await dbHelper.backupDatabase();
@@ -72,11 +72,14 @@ class _SplashScreenState extends State<SplashScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Image.asset(
-              'assets/app_logo.png',
-              width: 120,
-              height: 120,
-              fit: BoxFit.contain,
+            ClipRRect(
+              borderRadius: BorderRadius.circular(20.0),
+              child: Image.asset(
+                'assets/app_logo.png',
+                width: 120,
+                height: 120,
+                fit: BoxFit.contain,
+              ),
             ),
             const SizedBox(height: 20),
             // const Text(
