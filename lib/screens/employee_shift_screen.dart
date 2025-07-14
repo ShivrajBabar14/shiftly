@@ -149,7 +149,19 @@ class _EmployeeShiftScreenState extends State<EmployeeShiftScreen> {
     pdf.addPage(
       pw.Page(
         build: (context) {
-          return pw.Center(child: pw.Image(pdfImage));
+          return pw.Column(
+            children: [
+              pw.Text(
+                widget.employee.name,
+                style: pw.TextStyle(
+                  fontSize: 24,
+                  fontWeight: pw.FontWeight.bold,
+                ),
+              ),
+              pw.SizedBox(height: 10),
+              pw.Expanded(child: pw.Center(child: pw.Image(pdfImage))),
+            ],
+          );
         },
       ),
     );
@@ -231,6 +243,18 @@ class _EmployeeShiftScreenState extends State<EmployeeShiftScreen> {
                       color: Colors.white,
                       child: Column(
                         children: [
+                          // Remove employee name from page UI as per user request
+                          // Padding(
+                          //   padding: const EdgeInsets.symmetric(vertical: 8.0),
+                          //   child: Text(
+                          //     widget.employee.name,
+                          //     style: TextStyle(
+                          //       fontSize: 24,
+                          //       fontWeight: FontWeight.bold,
+                          //       color: Colors.black,
+                          //     ),
+                          //   ),
+                          // ),
                           Padding(
                             padding: const EdgeInsets.only(bottom: 12),
                             child: Row(
@@ -315,7 +339,7 @@ class _EmployeeShiftScreenState extends State<EmployeeShiftScreen> {
                                 final dateNumber = _dateLabel(index);
                                 final shift = _getShiftForDay(dayName);
                                 final shiftText = shift != null ? _formatShiftTime(shift) : 'No Shift';
-
+    
                                 return TableRow(
                                   decoration: BoxDecoration(
                                     color: index % 2 == 0 ? Colors.white : Colors.grey.shade50,
