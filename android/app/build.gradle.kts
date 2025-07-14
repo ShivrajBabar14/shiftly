@@ -38,7 +38,7 @@ android {
         create("release") {
             storeFile = file("your-release-key.keystore")  // Path to your keystore file
             storePassword = "root123"          // The password of your keystore
-            keyAlias = "key0"                              // Alias of your key
+            keyAlias = "your-key-alias"                              // Alias of your key
             keyPassword = "root123"              // The password of your key
         }
     }
@@ -84,4 +84,6 @@ dependencies {
 
     // Alternative Google Pay implementation that doesn't require inapp-client-api
     implementation("com.google.android.gms:play-services-pay:16.3.0")
+
+    implementation("com.android.billingclient:billing:5.1.0")
 }
