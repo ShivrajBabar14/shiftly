@@ -56,3 +56,6 @@
 # Play Core
 -keep class com.google.android.play.core.** { *; }
 -dontwarn com.google.android.play.core.**
+
+# Suppress warnings for missing javax.xml.stream.XMLStreamException class
+-dontwarn javax.xml.stream.XMLStreamException
