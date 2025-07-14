@@ -153,6 +153,7 @@ class DatabaseHelper {
 
   // Restore database from a specific file path
   Future<bool> restoreFromFile(String filePath) async {
+    Database? sourceDb;
     try {
       final file = File(filePath);
       if (!await file.exists()) {
@@ -160,23 +161,67 @@ class DatabaseHelper {
         return false;
       }
 
-      final directory = await getApplicationDocumentsDirectory();
-      final dbPath = join(directory.path, 'Shiftly', 'shiftly.db');
-      final dbFile = File(dbPath);
-
-      if (await dbFile.exists()) {
-        await dbFile.delete();
+      // Close existing database connection if open
+      if (_database != null) {
+        await _database!.close();
+        _database = null;
       }
 
-      await file.copy(dbFile.path);
-      print('✅ Database restored from $filePath');
+      final directory = await getApplicationDocumentsDirectory();
+      final dbPath = join(directory.path, 'Shiftly', 'shiftly.db');
+      print('Target database path: $dbPath');
 
+      // Reopen target database with write access
+      final targetDb = await openDatabase(dbPath);
+
+      // Open the source database (selected file)
+      sourceDb = await openDatabase(filePath, readOnly: true);
+
+      // Get list of tables in source database
+      final tables = await sourceDb.rawQuery(
+        "SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%';"
+      );
+
+      // For each table, copy data to target database
+      for (final tableMap in tables) {
+        final tableName = tableMap['name'] as String;
+
+        // Skip android_metadata table to avoid readonly errors
+        if (tableName == 'android_metadata') {
+          continue;
+        }
+
+        // Query all rows from source table
+        final rows = await sourceDb.query(tableName);
+
+      // Insert or replace rows into target table
+      for (final row in rows) {
+        // Remove any keys that are not columns in the target table to avoid errors
+        final filteredRow = Map<String, dynamic>.from(row);
+        // Remove 'rowid' or other special keys if present
+        filteredRow.remove('rowid');
+        await targetDb.insert(
+          tableName,
+          filteredRow,
+          conflictAlgorithm: ConflictAlgorithm.replace,
+        );
+      }
+      }
+
+      print('✅ Database restored from $filePath by importing data.');
+
+      // Close and reopen the target database to refresh connection
+      await targetDb.close();
       _database = await _initDatabase();
 
       return true;
     } catch (e) {
       print('❌ Error during database restore from file: $e');
       return false;
+    } finally {
+      if (sourceDb != null) {
+        await sourceDb.close();
+      }
     }
   }
 
