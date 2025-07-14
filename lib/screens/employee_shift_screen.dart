@@ -11,6 +11,7 @@ import 'package:screenshot/screenshot.dart';
 import 'dart:io';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:image/image.dart' as img;
 
 class EmployeeShiftScreen extends StatefulWidget {
   final Employee employee;
@@ -266,7 +267,9 @@ class _EmployeeShiftScreenState extends State<EmployeeShiftScreen> {
                                     color: Colors.black,
                                     size: 30,
                                   ),
-                                  padding: const EdgeInsets.symmetric(horizontal: 32),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 32,
+                                  ),
                                   onPressed: () => _changeWeek(-7),
                                 ),
                                 Text(
@@ -283,7 +286,9 @@ class _EmployeeShiftScreenState extends State<EmployeeShiftScreen> {
                                     color: Colors.black,
                                     size: 30,
                                   ),
-                                  padding: const EdgeInsets.symmetric(horizontal: 32),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 32,
+                                  ),
                                   onPressed: () => _changeWeek(7),
                                 ),
                               ],
@@ -301,7 +306,9 @@ class _EmployeeShiftScreenState extends State<EmployeeShiftScreen> {
                             children: [
                               // Table header
                               TableRow(
-                                decoration: BoxDecoration(color: Colors.deepPurple),
+                                decoration: BoxDecoration(
+                                  color: Colors.deepPurple,
+                                ),
                                 children: [
                                   Padding(
                                     padding: const EdgeInsets.symmetric(
@@ -338,15 +345,21 @@ class _EmployeeShiftScreenState extends State<EmployeeShiftScreen> {
                                 final dayName = _dayLabel(index);
                                 final dateNumber = _dateLabel(index);
                                 final shift = _getShiftForDay(dayName);
-                                final shiftText = shift != null ? _formatShiftTime(shift) : 'No Shift';
-    
+                                final shiftText = shift != null
+                                    ? _formatShiftTime(shift)
+                                    : 'No Shift';
+
                                 return TableRow(
                                   decoration: BoxDecoration(
-                                    color: index % 2 == 0 ? Colors.white : Colors.grey.shade50,
+                                    color: index % 2 == 0
+                                        ? Colors.white
+                                        : Colors.grey.shade50,
                                   ),
                                   children: [
                                     Padding(
-                                      padding: const EdgeInsets.symmetric(vertical: 12),
+                                      padding: const EdgeInsets.symmetric(
+                                        vertical: 12,
+                                      ),
                                       child: Column(
                                         children: [
                                           Text(

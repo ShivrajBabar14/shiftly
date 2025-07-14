@@ -1295,7 +1295,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                     child: Container(
                                       decoration: BoxDecoration(
                                         border: Border.all(
-                                          color: Colors.deepPurple.shade400,
+                                          color: Color(0xFF03DAC5),
                                           width: 2.0,
                                         ),
                                       ),
