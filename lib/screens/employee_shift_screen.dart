@@ -326,16 +326,16 @@ class _EmployeeShiftScreenState extends State<EmployeeShiftScreen> {
                                       child: Column(
                                         children: [
                                           Text(
-                                            dayName,
-                                            style: TextStyle(fontSize: 16),
-                                          ),
-                                          SizedBox(height: 4),
-                                          Text(
                                             dateNumber,
                                             style: TextStyle(
                                               fontSize: 16,
                                               fontWeight: FontWeight.bold,
                                             ),
+                                          ),
+                                          SizedBox(height: 4),
+                                          Text(
+                                            dayName,
+                                            style: TextStyle(fontSize: 16),
                                           ),
                                         ],
                                       ),
