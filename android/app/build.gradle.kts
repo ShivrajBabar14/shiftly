@@ -5,7 +5,7 @@ plugins {
 }
 
 android {
-    namespace = "com.example.employeeshifttracker"
+    namespace = "com.shift.schedule.app"
     compileSdk = 35
     ndkVersion = "27.0.12077973"
 
@@ -26,7 +26,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.example.employeeshifttracker"
+        applicationId = "com.shift.schedule.app"
         minSdk = 21
         targetSdk = 34
         versionCode = flutter.versionCode.toInt()

@@ -1,4 +1,4 @@
-package com.example.employeeshifttracker
+package com.shift.schedule.app
 
 import android.content.Intent
 import android.net.Uri
@@ -7,7 +7,7 @@ import io.flutter.embedding.android.FlutterActivity
 import io.flutter.plugin.common.MethodChannel
 
 class MainActivity: FlutterActivity() {
-    private val CHANNEL = "com.example.employeeshifttracker/mail"
+    private val CHANNEL = "com.shift.schedule.app/mail"
 
     override fun configureFlutterEngine(flutterEngine: io.flutter.embedding.engine.FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)

@@ -675,27 +675,39 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ),
         actions: [
-          TextButton(
-            onPressed: () async {
-              final selectedEmployees = await Navigator.push<List<int>>(
-                context,
-                MaterialPageRoute(
-                  builder: (context) =>  ShiftlyProScreen(),
-                ),
-              );
-              if (selectedEmployees != null) {
-                await _loadData();
-                setState(() {
-                  // Add only newly added employees to _selectedEmployeesForShift
-                  final currentSet = _selectedEmployeesForShift.toSet();
-                  for (var empId in selectedEmployees) {
-                    currentSet.add(empId);
-                  }
-                  _selectedEmployeesForShift = currentSet.toList();
-                });
-              }
-            },
-            child: Text('Go Pro', style: TextStyle(color: Colors.deepPurple, fontSize: 18)),
+          Container(
+            margin: EdgeInsets.only(right: 16), // Right margin
+            child: ElevatedButton(
+              onPressed: () async {
+                final selectedEmployees = await Navigator.push<List<int>>(
+                  context,
+                  MaterialPageRoute(builder: (context) => ShiftlyProScreen()),
+                );
+                if (selectedEmployees != null) {
+                  await _loadData();
+                  setState(() {
+                    // Add only newly added employees to _selectedEmployeesForShift
+                    final currentSet = _selectedEmployeesForShift.toSet();
+                    for (var empId in selectedEmployees) {
+                      currentSet.add(empId);
+                    }
+                    _selectedEmployeesForShift = currentSet.toList();
+                  });
+                }
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors
+                    .deepPurple, // Set the background color to deep purple
+                foregroundColor: Colors.white, // Set the text color to white
+                elevation: 1, // Set elevation to add a shadow
+                padding: EdgeInsets.symmetric(
+                  horizontal: 5,
+                ), // Horizontal padding only
+                textStyle: TextStyle(fontSize: 16), // Text size
+                minimumSize: Size(80, 30), // Set minimum size (width, height)
+              ),
+              child: Text('Go Pro'),
+            ),
           ),
         ],
       ),

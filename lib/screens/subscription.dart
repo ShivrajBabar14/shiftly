@@ -99,7 +99,7 @@ class _ShiftlyProScreenState extends State<ShiftlyProScreen> {
                   ),
                 ),
               ),
-              const SizedBox(height: 30),
+              const SizedBox(height: 50),
 
               // Feature list
               buildFeature(
@@ -108,13 +108,13 @@ class _ShiftlyProScreenState extends State<ShiftlyProScreen> {
                 subtitle:
                     'Add more than 5 employees to your team with a paid plan',
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 25),
               buildFeature(
                 assetPath: 'assets/backup.png',
                 title: 'Auto Backup',
                 subtitle: 'Keep your data safe with automatic backup feature',
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 25),
               buildFeature(
                 assetPath: 'assets/schedule.png',
                 title: 'Unlimited Employee Access',
@@ -122,7 +122,7 @@ class _ShiftlyProScreenState extends State<ShiftlyProScreen> {
                     'Add more than 5 employees to your team with a paid plan',
               ),
 
-              const SizedBox(height: 40),
+              const SizedBox(height: 50),
 
               // Pricing
               Row(
@@ -153,7 +153,8 @@ class _ShiftlyProScreenState extends State<ShiftlyProScreen> {
                 ],
               ),
 
-              const Spacer(),
+              const SizedBox(height: 50),
+              
 
               // Go Pro button
               SizedBox(
@@ -164,7 +165,7 @@ class _ShiftlyProScreenState extends State<ShiftlyProScreen> {
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(10),
                     ),
-                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    padding: const EdgeInsets.symmetric(vertical: 12),
                   ),
                   onPressed: () {
                     if (selectedAmount > 0 && selectedPlan.isNotEmpty) {

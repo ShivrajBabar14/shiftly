@@ -52,10 +52,6 @@ class AppDrawer extends StatelessWidget {
                   ),
                 ),
                 _buildDrawerItem(Icons.group, 'All Employees', context),
-                // _buildDrawerItem(Icons.upgrade, 'Subscription', context),
-                _buildDrawerItem(Icons.share, 'Share App', context),
-                _buildDrawerItem(Icons.star, 'Rate Us', context),
-                _buildDrawerItem(Icons.feedback, 'Write Feedback', context),
                 ListTile(
                   leading: Icon(Icons.restore, color: Colors.deepPurple),
                   title: Text(
@@ -68,7 +64,8 @@ class AppDrawer extends StatelessWidget {
                     final dbHelper = DatabaseHelper();
 
                     // Request storage permission
-                    bool permissionGranted = await dbHelper.checkStoragePermissions();
+                    bool permissionGranted = await dbHelper
+                        .checkStoragePermissions();
                     if (!permissionGranted) {
                       scaffoldMessenger.showSnackBar(
                         SnackBar(content: Text('Storage permission denied.')),
@@ -98,7 +95,9 @@ class AppDrawer extends StatelessWidget {
                         return;
                       }
 
-                      bool restoreSuccess = await dbHelper.restoreFromFile(filePath);
+                      bool restoreSuccess = await dbHelper.restoreFromFile(
+                        filePath,
+                      );
                       if (restoreSuccess) {
                         bool backupSuccess = false;
                         try {
@@ -119,7 +118,11 @@ class AppDrawer extends StatelessWidget {
                         );
                       } else {
                         scaffoldMessenger.showSnackBar(
-                          SnackBar(content: Text('Failed to restore from selected file.')),
+                          SnackBar(
+                            content: Text(
+                              'Failed to restore from selected file.',
+                            ),
+                          ),
                         );
                       }
                     } catch (e) {
@@ -129,6 +132,11 @@ class AppDrawer extends StatelessWidget {
                     }
                   },
                 ),
+                // _buildDrawerItem(Icons.upgrade, 'Subscription', context),
+                _buildDrawerItem(Icons.share, 'Share App', context),
+                _buildDrawerItem(Icons.star, 'Rate Us', context),
+                _buildDrawerItem(Icons.feedback, 'Write Feedback', context),
+
                 // ListTile(
                 //   leading: Icon(Icons.file_download, color: Colors.deepPurple),
                 //   title: Text(
@@ -170,11 +178,11 @@ class AppDrawer extends StatelessWidget {
             context,
             MaterialPageRoute(builder: (context) => AddEmployeeScreen()),
           );
-        // } else if (title == 'Subscription') {
-        //   Navigator.push(
-        //     context,
-        //     MaterialPageRoute(builder: (context) => ShiftlyProScreen()),
-        //   );
+          // } else if (title == 'Subscription') {
+          //   Navigator.push(
+          //     context,
+          //     MaterialPageRoute(builder: (context) => ShiftlyProScreen()),
+          //   );
         } else if (title == 'Write Feedback') {
           _launchFeedbackMail(context);
         } else if (title == 'Rate Us') {
