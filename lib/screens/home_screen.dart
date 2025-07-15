@@ -916,7 +916,7 @@ class _HomeScreenState extends State<HomeScreen> {
     const List<String> days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
     final dateFormat = DateFormat('d');
     const double cellWidth = 75.0;
-    const double rowHeight = 50.0;
+    const double rowHeight = 40.0;
     final double tableWidth = cellWidth * days.length;
 
     return Opacity(
@@ -932,7 +932,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 Container(
                   height: rowHeight,
                   alignment: Alignment.centerLeft,
-                  padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                  padding: const EdgeInsets.symmetric(horizontal: 6.0),
                   decoration: BoxDecoration(
                     color: Colors.deepPurple[300],
                     border: Border(
@@ -1328,22 +1328,41 @@ class _HomeScreenState extends State<HomeScreen> {
                                                                   4.0,
                                                                 ),
                                                           ),
-                                                          child: Text(
-                                                            hasName && hasTime
-                                                                ? '$shiftName\n($startTime-$endTime)'
-                                                                : hasName
-                                                                ? shiftName
-                                                                : '$startTime-$endTime',
-                                                            textAlign: TextAlign
-                                                                .center,
-                                                            style:
-                                                                const TextStyle(
-                                                                  fontSize:
-                                                                      12.5,
-                                                                  color: Colors
-                                                                      .black,
-                                                                ),
-                                                          ),
+                                                            child: hasName && hasTime
+                                                                ? RichText(
+                                                                    textAlign: TextAlign.center,
+                                                                    text: TextSpan(
+                                                                      children: [
+                                                                        TextSpan(
+                                                                          text: shiftName,
+                                                                          style: const TextStyle(
+                                                                            fontWeight: FontWeight.bold,
+                                                                            fontSize: 12.5,
+                                                                            color: Colors.black,
+                                                                          ),
+                                                                        ),
+                                                                        TextSpan(
+                                                                          text: '\n($startTime-$endTime)',
+                                                                          style: const TextStyle(
+                                                                            fontWeight: FontWeight.normal,
+                                                                            fontSize: 12.5,
+                                                                            color: Colors.black,
+                                                                          ),
+                                                                        ),
+                                                                      ],
+                                                                    ),
+                                                                  )
+                                                                : Text(
+                                                                    hasName
+                                                                        ? shiftName
+                                                                        : '$startTime-$endTime',
+                                                                    textAlign: TextAlign.center,
+                                                                    style: const TextStyle(
+                                                                      fontWeight: FontWeight.bold,
+                                                                      fontSize: 12.5,
+                                                                      color: Colors.black,
+                                                                    ),
+                                                                  ),
                                                         ),
                                                       )
                                                     : Icon(
