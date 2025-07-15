@@ -501,36 +501,98 @@ class _HomeScreenState extends State<HomeScreen> {
               content: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  TextField(
-                    decoration: const InputDecoration(
-                      labelText: 'Shift Name',
-                      focusedBorder: UnderlineInputBorder(
-                        borderSide: BorderSide(color: Colors.deepPurple),
-                      ),
-                    ),
-                    controller: shiftNameController,
-                    cursorColor: Colors.deepPurple,
-                    onChanged: (value) {
-                      // Capitalize first letter of each word
-                      String capitalizeWords(String str) {
-                        return str
-                            .split(' ')
-                            .map((word) {
-                              if (word.isEmpty) return word;
-                              return word[0].toUpperCase() + word.substring(1);
-                            })
-                            .join(' ');
+                  Autocomplete<String>(
+                    optionsBuilder: (TextEditingValue textEditingValue) {
+                      // Get unique shift name + time strings from all _shiftTimings
+                      final allShiftSuggestions = _shiftTimings
+                          .where((st) =>
+                              st['shift_name'] != null &&
+                              (st['shift_name'] as String).isNotEmpty)
+                          .map((st) {
+                            final shiftName = st['shift_name'] as String;
+                            final startTimeMillis = st['start_time'];
+                            final endTimeMillis = st['end_time'];
+
+                            String formatTime(int? millis) {
+                              if (millis == null) return '';
+                              final dt = DateTime.fromMillisecondsSinceEpoch(millis);
+                              return '${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
+                            }
+
+                            final startTimeStr = formatTime(startTimeMillis);
+                            final endTimeStr = formatTime(endTimeMillis);
+
+                            if (startTimeStr.isNotEmpty && endTimeStr.isNotEmpty) {
+                              return '$shiftName ($startTimeStr-$endTimeStr)';
+                            } else {
+                              return shiftName;
+                            }
+                          })
+                          .toSet()
+                          .toList();
+
+                      if (textEditingValue.text == '') {
+                        // Return all suggestions when input is empty to show suggestions on focus
+                        return allShiftSuggestions;
                       }
 
-                      final capitalized = capitalizeWords(value);
-                      shiftNameController.value = shiftNameController.value
-                          .copyWith(
+                      final filteredSuggestions = allShiftSuggestions
+                          .where((suggestion) => suggestion
+                              .toLowerCase()
+                              .contains(textEditingValue.text.toLowerCase()))
+                          .toList();
+
+                      return filteredSuggestions;
+                    },
+                    displayStringForOption: (option) => option,
+                    fieldViewBuilder: (BuildContext context,
+                        TextEditingController fieldTextEditingController,
+                        FocusNode fieldFocusNode,
+                        VoidCallback onFieldSubmitted) {
+                      fieldTextEditingController.text = shiftNameController.text;
+                      fieldTextEditingController.selection = TextSelection.collapsed(
+                          offset: fieldTextEditingController.text.length);
+                      fieldTextEditingController.addListener(() {
+                        // Capitalize first letter of each word
+                        String capitalizeWords(String str) {
+                          return str
+                              .split(' ')
+                              .map((word) {
+                                if (word.isEmpty) return word;
+                                return word[0].toUpperCase() + word.substring(1);
+                              })
+                              .join(' ');
+                        }
+                        final capitalized = capitalizeWords(fieldTextEditingController.text);
+                        if (fieldTextEditingController.text != capitalized) {
+                          fieldTextEditingController.value = fieldTextEditingController.value.copyWith(
                             text: capitalized,
-                            selection: TextSelection.collapsed(
-                              offset: capitalized.length,
-                            ),
+                            selection: TextSelection.collapsed(offset: capitalized.length),
                           );
-                      shiftName = capitalized;
+                        }
+                        shiftName = capitalized;
+                        shiftNameController.text = capitalized;
+                      });
+                      return TextField(
+                        controller: fieldTextEditingController,
+                        focusNode: fieldFocusNode,
+                        decoration: const InputDecoration(
+                          labelText: 'Shift Name',
+                          focusedBorder: UnderlineInputBorder(
+                            borderSide: BorderSide(color: Colors.deepPurple),
+                          ),
+                        ),
+                        cursorColor: Colors.deepPurple,
+                      );
+                    },
+                    onSelected: (String selection) {
+                      // Extract shift name from selection string (remove time if present)
+                      final regex = RegExp(r'^(.*?)\s*(\(\d{2}:\d{2}-\d{2}:\d{2}\))?\$');
+                      final match = regex.firstMatch(selection);
+                      final selectedShiftName = match?.group(1)?.trim() ?? selection;
+
+                      shiftNameController.text = selectedShiftName;
+                      shiftName = selectedShiftName;
                     },
                   ),
                   const SizedBox(height: 16),
