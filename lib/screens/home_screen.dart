@@ -686,12 +686,20 @@ class _HomeScreenState extends State<HomeScreen> {
                   onPressed: () => Navigator.pop(context),
                   child: const Text(
                     'Cancel',
-                    style: TextStyle(color: Colors.black),
+                    style: TextStyle(color: Colors.black, fontSize: 18),
                   ),
                 ),
-                ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.deepPurple[700],
+                TextButton(
+                  style: TextButton.styleFrom(
+                    // primary: Colors.deepPurple[700], // Text color (Deep Purple)
+                    padding: const EdgeInsets.symmetric(
+                      vertical: 12,
+                      horizontal: 20,
+                    ), // Optional padding for button
+                    textStyle: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ), // Optional text style
                   ),
                   onPressed: () async {
                     final name = shiftNameController.text.trim();
@@ -747,7 +755,10 @@ class _HomeScreenState extends State<HomeScreen> {
                   },
                   child: const Text(
                     'Save',
-                    style: TextStyle(color: Colors.white),
+                    style: TextStyle(
+                      color: Colors.deepPurple,
+                      fontSize: 18,
+                    ), // Text color (Deep Purple)
                   ),
                 ),
               ],
