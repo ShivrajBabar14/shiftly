@@ -380,10 +380,79 @@ class _EmployeeShiftScreenState extends State<EmployeeShiftScreen> {
                                     Container(
                                       height: 70.0,
                                       alignment: Alignment.center,
-                                      child: Text(
-                                        shiftText,
-                                        style: TextStyle(fontSize: 16),
-                                        textAlign: TextAlign.center,
+                                      child: Builder(
+                                        builder: (context) {
+                                          final shiftName = shift?['shift_name'] ?? '';
+                                          final startTimeMillis = shift?['start_time'];
+                                          final endTimeMillis = shift?['end_time'];
+
+                                          String formatTime(int? millis) {
+                                            if (millis == null) return '';
+                                            final dt = DateTime.fromMillisecondsSinceEpoch(millis);
+                                            return '${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
+                                          }
+
+                                          final startTime = formatTime(startTimeMillis);
+                                          final endTime = formatTime(endTimeMillis);
+
+                                          final hasName = shiftName.isNotEmpty;
+                                          final hasTime = startTime.isNotEmpty && endTime.isNotEmpty;
+
+                                          if (hasName && hasTime) {
+                                            return RichText(
+                                              textAlign: TextAlign.center,
+                                              text: TextSpan(
+                                                children: [
+                                                  TextSpan(
+                                                    text: shiftName,
+                                                    style: const TextStyle(
+                                                      fontWeight: FontWeight.bold,
+                                                      fontSize: 16,
+                                                      color: Colors.black,
+                                                    ),
+                                                  ),
+                                                  TextSpan(
+                                                    text: '\n($startTime to $endTime)',
+                                                    style: const TextStyle(
+                                                      fontWeight: FontWeight.normal,
+                                                      fontSize: 16,
+                                                      color: Colors.black,
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            );
+                                          } else if (hasName) {
+                                            return Text(
+                                              shiftName,
+                                              textAlign: TextAlign.center,
+                                              style: const TextStyle(
+                                                fontWeight: FontWeight.bold,
+                                                fontSize: 16,
+                                                color: Colors.black,
+                                              ),
+                                            );
+                                          } else if (hasTime) {
+                                            return Text(
+                                              '$startTime to $endTime',
+                                              textAlign: TextAlign.center,
+                                              style: const TextStyle(
+                                                fontWeight: FontWeight.bold,
+                                                fontSize: 16,
+                                                color: Colors.black,
+                                              ),
+                                            );
+                                          } else {
+                                            return const Text(
+                                              '',
+                                              textAlign: TextAlign.center,
+                                              style: TextStyle(
+                                                fontSize: 16,
+                                                color: Colors.black54,
+                                              ),
+                                            );
+                                          }
+                                        },
                                       ),
                                     ),
                                   ],
