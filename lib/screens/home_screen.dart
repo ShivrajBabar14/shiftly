@@ -951,7 +951,14 @@ class _HomeScreenState extends State<HomeScreen> {
                             ),
                           ],
                         )
-                      : _buildShiftTable()),
+                      : Container(
+                          decoration: BoxDecoration(
+                            border: Border(
+                              bottom: BorderSide(color: Color(0xFF03DAC5), width: 1.0),
+                            ),
+                          ),
+                          child: _buildShiftTable(),
+                        )),
           ),
         ],
       ),
@@ -1212,7 +1219,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             ),
                             verticalInside: BorderSide(
                               color: Colors.grey.shade300,
-                              width: 1.0,
+                              width: 0.5,
                             ),
                             bottom: BorderSide(color: Colors.grey.shade300),
                           ),
@@ -1222,43 +1229,51 @@ class _HomeScreenState extends State<HomeScreen> {
                           },
                           children: [
                             TableRow(
-                              children: List.generate(days.length, (index) {
-                                final dayDate = _currentWeekStart.add(
-                                  Duration(days: index),
-                                );
-                                final isToday = DateUtils.isSameDay(
-                                  dayDate,
-                                  today,
-                                );
-                                return Container(
-                                  height: rowHeight,
-                                  color: isToday
-                                      ? Colors.deepPurple
-                                      : Colors.deepPurple,
-                                  alignment: Alignment.center,
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Text(
-                                        days[index],
-                                        style: const TextStyle(
-                                          color: Colors.white,
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 14.0,
+                            children: List.generate(days.length, (index) {
+                              final dayDate = _currentWeekStart.add(
+                                Duration(days: index),
+                              );
+                              final isToday = DateUtils.isSameDay(
+                                dayDate,
+                                today,
+                              );
+                              return Container(
+                                height: rowHeight,
+                                alignment: Alignment.center,
+                                    decoration: BoxDecoration(
+                                      color: Colors.deepPurple,
+                                      border: Border(
+                                        top: isToday ? BorderSide(color: Color(0xFF03DAC5), width: 2.0) : BorderSide(color: Colors.grey.shade300, width: 1.0),
+                                        left: isToday ? BorderSide(color: Color(0xFF03DAC5), width: 2.0) : BorderSide(color: Colors.grey.shade300, width: 1.0),
+                                        right: BorderSide(
+                                          color: isToday ? Color(0xFF03DAC5) : Colors.grey.shade300,
+                                          width: 2.0,
                                         ),
                                       ),
-                                      const SizedBox(height: 4),
-                                      Text(
-                                        dateFormat.format(dayDate),
-                                        style: const TextStyle(
-                                          color: Colors.white,
-                                          fontSize: 13.0,
-                                        ),
+                                    ),
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Text(
+                                      days[index],
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 14.0,
                                       ),
-                                    ],
-                                  ),
-                                );
-                              }),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      dateFormat.format(dayDate),
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 13.0,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              );
+                            }),
                             ),
                           ],
                         ),
@@ -1360,9 +1375,22 @@ class _HomeScreenState extends State<HomeScreen> {
                                                 padding: const EdgeInsets.all(
                                                   4.0,
                                                 ),
-                                                color: index.isEven
-                                                    ? Colors.white
-                                                    : Colors.grey.shade100,
+                                                decoration: BoxDecoration(
+                                                  color: index.isEven
+                                                      ? Colors.white
+                                                      : Colors.grey.shade100,
+                                                  border: Border(
+                                                    left: dayIndex == todayIndex
+                                                        ? BorderSide(color: Color(0xFF03DAC5), width: 2.0)
+                                                        : BorderSide(color: Colors.grey.shade300, width: 1.0),
+                                                    right: dayIndex == todayIndex
+                                                        ? BorderSide(color: Color(0xFF03DAC5), width: 2.0)
+                                                        : BorderSide(color: Colors.grey.shade300, width: 1.0),
+                                                    bottom: dayIndex == todayIndex && index == visibleEmployees.length - 1
+                                                        ? BorderSide(color: Color(0xFF03DAC5), width: 2.0)
+                                                        : BorderSide(color: Colors.transparent),
+                                                  ),
+                                                ),
                                                 child: (hasName || hasTime)
                                                     ? GestureDetector(
                                                         onTap: () {
@@ -1457,22 +1485,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
                               // Today Column Outline — Ends Exactly After Last Employee Row
                               if (todayIndex >= 0 && todayIndex < days.length)
-                                Positioned(
-                                  left: todayIndex * cellWidth,
-                                  top: 0,
-                                  width: cellWidth,
-                                  height: totalHeight,
-                                  child: IgnorePointer(
-                                    child: Container(
-                                      decoration: BoxDecoration(
-                                        border: Border.all(
-                                          color: Color(0xFF03DAC5),
-                                          width: 2.0,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ),
+                                SizedBox.shrink(),
                             ],
                           );
                         },

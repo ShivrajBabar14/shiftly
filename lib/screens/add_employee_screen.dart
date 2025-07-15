@@ -53,7 +53,7 @@ class _AddEmployeeScreenState extends State<AddEmployeeScreen> {
         return AlertDialog(
           title: const Text('Add Employee', style: TextStyle(fontSize: 24)),
           content: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 400),
+            constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.9),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -157,7 +157,7 @@ class _AddEmployeeScreenState extends State<AddEmployeeScreen> {
         return AlertDialog(
           title: const Text('Update Employee', style: TextStyle(fontSize: 24)),
           content: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 500),
+            constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.9),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
