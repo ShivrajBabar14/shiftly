@@ -360,64 +360,82 @@ class _HomeScreenState extends State<HomeScreen> {
       context: context,
       barrierDismissible: false,
       builder: (BuildContext dialogContext) {
-        return AlertDialog(
-          title: const Text(
-            'Remove Employee from This Week',
-            style: TextStyle(fontSize: 18),
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(
+              30,
+            ), // Border radius remains unchanged
           ),
-          content: SingleChildScrollView(
-            child: ListBody(
+          child: Container(
+            width: 400, // Set the dialog width as needed
+            padding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 20,
+            ), // Reduced horizontal margin
+            child: Column(
+              mainAxisSize: MainAxisSize.min, // Prevent overflow
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
+                const Text(
+                  'Remove Employee from This Week',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 16),
                 Text(
                   'Are you sure you want to remove ${employee.name} from this week\'s shift table?',
+                  style: TextStyle(fontSize: 16),
                 ),
                 const SizedBox(height: 8),
-                const Text('(Employee will remain in your main employee list)'),
+                const Text(
+                  '(Employee will remain in your main employee list)',
+                  style: TextStyle(fontSize: 14, color: Colors.grey),
+                ),
+                const SizedBox(height: 16),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    // Cancel Button
+                    TextButton(
+                      onPressed: () {
+                        Navigator.of(dialogContext).pop();
+                      },
+                      child: const Text(
+                        'Cancel',
+                        style: TextStyle(fontSize: 18),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    // Remove Button (Now TextButton)
+                    TextButton(
+                      onPressed: () async {
+                        Navigator.of(dialogContext).pop();
+
+                        final weekStart =
+                            _currentWeekStart.millisecondsSinceEpoch;
+                        await _dbHelper.removeEmployeeFromWeek(
+                          employeeId,
+                          weekStart,
+                        );
+
+                        print(
+                          "🗑️ Removed employee $employeeId from week $weekStart",
+                        );
+
+                        await _loadData();
+                      },
+                      child: const Text(
+                        'Remove',
+                        style: TextStyle(
+                          color: Colors.deepPurple,
+                          fontSize: 18,
+                        ), // Text color
+                      ),
+                    ),
+                  ],
+                ),
               ],
             ),
           ),
-          actions: <Widget>[
-            TextButton(
-              child: const Text(
-                'Cancel',
-                style: TextStyle(color: Colors.black),
-              ),
-              onPressed: () {
-                Navigator.of(dialogContext).pop();
-              },
-            ),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor:
-                    Colors.deepPurple[700], // Button color (purple)
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 20,
-                  vertical: 12,
-                ), // Padding
-              ),
-              onPressed: () async {
-                Navigator.of(context).pop();
-
-                final weekStart = _currentWeekStart.millisecondsSinceEpoch;
-                await _dbHelper.removeEmployeeFromWeek(employeeId, weekStart);
-
-                final deleted = await _dbHelper.removeEmployeeFromWeek(
-                  employeeId,
-                  weekStart,
-                );
-
-                print("🗑️ Removed employee $employeeId from week $weekStart");
-
-                await _loadData();
-              },
-              child: const Text(
-                'Remove', // Button text
-                style: TextStyle(
-                  color: Colors.white,
-                ), // Text color (white) and font size
-              ),
-            ),
-          ],
         );
       },
     );
@@ -505,9 +523,11 @@ class _HomeScreenState extends State<HomeScreen> {
                     optionsBuilder: (TextEditingValue textEditingValue) {
                       // Get unique shift name + time strings from all _shiftTimings
                       final allShiftSuggestions = _shiftTimings
-                          .where((st) =>
-                              st['shift_name'] != null &&
-                              (st['shift_name'] as String).isNotEmpty)
+                          .where(
+                            (st) =>
+                                st['shift_name'] != null &&
+                                (st['shift_name'] as String).isNotEmpty,
+                          )
                           .map((st) {
                             final shiftName = st['shift_name'] as String;
                             final startTimeMillis = st['start_time'];
@@ -515,14 +535,17 @@ class _HomeScreenState extends State<HomeScreen> {
 
                             String formatTime(int? millis) {
                               if (millis == null) return '';
-                              final dt = DateTime.fromMillisecondsSinceEpoch(millis);
+                              final dt = DateTime.fromMillisecondsSinceEpoch(
+                                millis,
+                              );
                               return '${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
                             }
 
                             final startTimeStr = formatTime(startTimeMillis);
                             final endTimeStr = formatTime(endTimeMillis);
 
-                            if (startTimeStr.isNotEmpty && endTimeStr.isNotEmpty) {
+                            if (startTimeStr.isNotEmpty &&
+                                endTimeStr.isNotEmpty) {
                               return '$shiftName ($startTimeStr-$endTimeStr)';
                             } else {
                               return shiftName;
@@ -537,40 +560,53 @@ class _HomeScreenState extends State<HomeScreen> {
                       }
 
                       final filteredSuggestions = allShiftSuggestions
-                          .where((suggestion) => suggestion
-                              .toLowerCase()
-                              .contains(textEditingValue.text.toLowerCase()))
+                          .where(
+                            (suggestion) => suggestion.toLowerCase().contains(
+                              textEditingValue.text.toLowerCase(),
+                            ),
+                          )
                           .toList();
 
                       return filteredSuggestions;
                     },
                     displayStringForOption: (option) => option,
-                    fieldViewBuilder: (BuildContext context,
-                        TextEditingController fieldTextEditingController,
-                        FocusNode fieldFocusNode,
-                        VoidCallback onFieldSubmitted) {
-                      // Initialize with shiftNameController.text (which is only shift name without time)
-                      fieldTextEditingController.text = shiftNameController.text;
-                      fieldTextEditingController.selection = TextSelection.collapsed(
-                          offset: fieldTextEditingController.text.length);
-                      // Remove listener that modifies text to avoid reintroducing time in input field
-                      return TextField(
-                        controller: fieldTextEditingController,
-                        focusNode: fieldFocusNode,
-                        decoration: const InputDecoration(
-                          labelText: 'Shift Name',
-                          focusedBorder: UnderlineInputBorder(
-                            borderSide: BorderSide(color: Colors.deepPurple),
-                          ),
-                        ),
-                        cursorColor: Colors.deepPurple,
-                      );
-                    },
+                    fieldViewBuilder:
+                        (
+                          BuildContext context,
+                          TextEditingController fieldTextEditingController,
+                          FocusNode fieldFocusNode,
+                          VoidCallback onFieldSubmitted,
+                        ) {
+                          // Initialize with shiftNameController.text (which is only shift name without time)
+                          fieldTextEditingController.text =
+                              shiftNameController.text;
+                          fieldTextEditingController.selection =
+                              TextSelection.collapsed(
+                                offset: fieldTextEditingController.text.length,
+                              );
+                          // Remove listener that modifies text to avoid reintroducing time in input field
+                          return TextField(
+                            controller: fieldTextEditingController,
+                            focusNode: fieldFocusNode,
+                            decoration: const InputDecoration(
+                              labelText: 'Shift Name',
+                              focusedBorder: UnderlineInputBorder(
+                                borderSide: BorderSide(
+                                  color: Colors.deepPurple,
+                                ),
+                              ),
+                            ),
+                            cursorColor: Colors.deepPurple,
+                          );
+                        },
                     onSelected: (String selection) {
                       // Extract shift name and time from selection string
-                      final regex = RegExp(r'^(.*?)\s*(\((\d{2}):(\d{2})-(\d{2}):(\d{2})\))?\$');
+                      final regex = RegExp(
+                        r'^(.*?)\s*(\((\d{2}):(\d{2})-(\d{2}):(\d{2})\))?\$',
+                      );
                       final match = regex.firstMatch(selection);
-                      final selectedShiftName = match?.group(1)?.trim() ?? selection;
+                      final selectedShiftName =
+                          match?.group(1)?.trim() ?? selection;
 
                       // Parse start and end time if present
                       TimeOfDay? selectedStartTime;
@@ -581,10 +617,16 @@ class _HomeScreenState extends State<HomeScreen> {
                         final endHour = int.tryParse(match.group(5) ?? '');
                         final endMinute = int.tryParse(match.group(6) ?? '');
                         if (startHour != null && startMinute != null) {
-                          selectedStartTime = TimeOfDay(hour: startHour, minute: startMinute);
+                          selectedStartTime = TimeOfDay(
+                            hour: startHour,
+                            minute: startMinute,
+                          );
                         }
                         if (endHour != null && endMinute != null) {
-                          selectedEndTime = TimeOfDay(hour: endHour, minute: endMinute);
+                          selectedEndTime = TimeOfDay(
+                            hour: endHour,
+                            minute: endMinute,
+                          );
                         }
                       }
 
@@ -1328,41 +1370,58 @@ class _HomeScreenState extends State<HomeScreen> {
                                                                   4.0,
                                                                 ),
                                                           ),
-                                                            child: hasName && hasTime
-                                                                ? RichText(
-                                                                    textAlign: TextAlign.center,
-                                                                    text: TextSpan(
-                                                                      children: [
-                                                                        TextSpan(
-                                                                          text: shiftName,
-                                                                          style: const TextStyle(
-                                                                            fontWeight: FontWeight.bold,
-                                                                            fontSize: 12.5,
-                                                                            color: Colors.black,
-                                                                          ),
+                                                          child:
+                                                              hasName && hasTime
+                                                              ? RichText(
+                                                                  textAlign:
+                                                                      TextAlign
+                                                                          .center,
+                                                                  text: TextSpan(
+                                                                    children: [
+                                                                      TextSpan(
+                                                                        text:
+                                                                            shiftName,
+                                                                        style: const TextStyle(
+                                                                          fontWeight:
+                                                                              FontWeight.bold,
+                                                                          fontSize:
+                                                                              12.5,
+                                                                          color:
+                                                                              Colors.black,
                                                                         ),
-                                                                        TextSpan(
-                                                                          text: '\n($startTime-$endTime)',
-                                                                          style: const TextStyle(
-                                                                            fontWeight: FontWeight.normal,
-                                                                            fontSize: 12.5,
-                                                                            color: Colors.black,
-                                                                          ),
+                                                                      ),
+                                                                      TextSpan(
+                                                                        text:
+                                                                            '\n($startTime-$endTime)',
+                                                                        style: const TextStyle(
+                                                                          fontWeight:
+                                                                              FontWeight.normal,
+                                                                          fontSize:
+                                                                              12.5,
+                                                                          color:
+                                                                              Colors.black,
                                                                         ),
-                                                                      ],
-                                                                    ),
-                                                                  )
-                                                                : Text(
-                                                                    hasName
-                                                                        ? shiftName
-                                                                        : '$startTime-$endTime',
-                                                                    textAlign: TextAlign.center,
-                                                                    style: const TextStyle(
-                                                                      fontWeight: FontWeight.bold,
-                                                                      fontSize: 12.5,
-                                                                      color: Colors.black,
-                                                                    ),
+                                                                      ),
+                                                                    ],
                                                                   ),
+                                                                )
+                                                              : Text(
+                                                                  hasName
+                                                                      ? shiftName
+                                                                      : '$startTime-$endTime',
+                                                                  textAlign:
+                                                                      TextAlign
+                                                                          .center,
+                                                                  style: const TextStyle(
+                                                                    fontWeight:
+                                                                        FontWeight
+                                                                            .bold,
+                                                                    fontSize:
+                                                                        12.5,
+                                                                    color: Colors
+                                                                        .black,
+                                                                  ),
+                                                                ),
                                                         ),
                                                       )
                                                     : Icon(
