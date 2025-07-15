@@ -549,30 +549,11 @@ class _HomeScreenState extends State<HomeScreen> {
                         TextEditingController fieldTextEditingController,
                         FocusNode fieldFocusNode,
                         VoidCallback onFieldSubmitted) {
+                      // Initialize with shiftNameController.text (which is only shift name without time)
                       fieldTextEditingController.text = shiftNameController.text;
                       fieldTextEditingController.selection = TextSelection.collapsed(
                           offset: fieldTextEditingController.text.length);
-                      fieldTextEditingController.addListener(() {
-                        // Capitalize first letter of each word
-                        String capitalizeWords(String str) {
-                          return str
-                              .split(' ')
-                              .map((word) {
-                                if (word.isEmpty) return word;
-                                return word[0].toUpperCase() + word.substring(1);
-                              })
-                              .join(' ');
-                        }
-                        final capitalized = capitalizeWords(fieldTextEditingController.text);
-                        if (fieldTextEditingController.text != capitalized) {
-                          fieldTextEditingController.value = fieldTextEditingController.value.copyWith(
-                            text: capitalized,
-                            selection: TextSelection.collapsed(offset: capitalized.length),
-                          );
-                        }
-                        shiftName = capitalized;
-                        shiftNameController.text = capitalized;
-                      });
+                      // Remove listener that modifies text to avoid reintroducing time in input field
                       return TextField(
                         controller: fieldTextEditingController,
                         focusNode: fieldFocusNode,
@@ -586,13 +567,35 @@ class _HomeScreenState extends State<HomeScreen> {
                       );
                     },
                     onSelected: (String selection) {
-                      // Extract shift name from selection string (remove time if present)
-                      final regex = RegExp(r'^(.*?)\s*(\(\d{2}:\d{2}-\d{2}:\d{2}\))?\$');
+                      // Extract shift name and time from selection string
+                      final regex = RegExp(r'^(.*?)\s*(\((\d{2}):(\d{2})-(\d{2}):(\d{2})\))?\$');
                       final match = regex.firstMatch(selection);
                       final selectedShiftName = match?.group(1)?.trim() ?? selection;
 
+                      // Parse start and end time if present
+                      TimeOfDay? selectedStartTime;
+                      TimeOfDay? selectedEndTime;
+                      if (match != null && match.group(2) != null) {
+                        final startHour = int.tryParse(match.group(3) ?? '');
+                        final startMinute = int.tryParse(match.group(4) ?? '');
+                        final endHour = int.tryParse(match.group(5) ?? '');
+                        final endMinute = int.tryParse(match.group(6) ?? '');
+                        if (startHour != null && startMinute != null) {
+                          selectedStartTime = TimeOfDay(hour: startHour, minute: startMinute);
+                        }
+                        if (endHour != null && endMinute != null) {
+                          selectedEndTime = TimeOfDay(hour: endHour, minute: endMinute);
+                        }
+                      }
+
                       shiftNameController.text = selectedShiftName;
                       shiftName = selectedShiftName;
+
+                      // Update startTime and endTime in dialog state
+                      setState(() {
+                        startTime = selectedStartTime;
+                        endTime = selectedEndTime;
+                      });
                     },
                   ),
                   const SizedBox(height: 16),
