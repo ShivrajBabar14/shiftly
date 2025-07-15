@@ -74,15 +74,21 @@ class _AddEmployeeScreenState extends State<AddEmployeeScreen> {
                   ),
                   onChanged: (value) {
                     String capitalizeWords(String str) {
-                      return str.split(' ').map((word) {
-                        if (word.isEmpty) return word;
-                        return word[0].toUpperCase() + word.substring(1);
-                      }).join(' ');
+                      return str
+                          .split(' ')
+                          .map((word) {
+                            if (word.isEmpty) return word;
+                            return word[0].toUpperCase() + word.substring(1);
+                          })
+                          .join(' ');
                     }
+
                     final capitalized = capitalizeWords(value);
                     nameController.value = nameController.value.copyWith(
                       text: capitalized,
-                      selection: TextSelection.collapsed(offset: capitalized.length),
+                      selection: TextSelection.collapsed(
+                        offset: capitalized.length,
+                      ),
                     );
                   },
                 ),
@@ -90,14 +96,18 @@ class _AddEmployeeScreenState extends State<AddEmployeeScreen> {
             ),
           ),
           actions: [
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor:
-                    Colors.deepPurple, // Button color (purple)
+            TextButton(
+              style: TextButton.styleFrom(
+                // primary: Colors.deepPurple, // Text color (Deep Purple)
                 padding: const EdgeInsets.symmetric(
                   horizontal: 20,
                   vertical: 12,
                 ), // Padding
+                textStyle: const TextStyle(
+                  fontSize: 14, // Font size set to 14
+                  fontWeight:
+                      FontWeight.bold, // Optional: Add bold text for emphasis
+                ),
               ),
               onPressed: () async {
                 final id = int.tryParse(idController.text);
@@ -122,9 +132,9 @@ class _AddEmployeeScreenState extends State<AddEmployeeScreen> {
               child: const Text(
                 'Add', // Button text
                 style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 14,
-                ), // Text color (white) and font size
+                  color: Colors.deepPurple, // Text color (deep purple)
+                  fontSize: 18,
+                ),
               ),
             ),
           ],
@@ -166,14 +176,18 @@ class _AddEmployeeScreenState extends State<AddEmployeeScreen> {
             ),
           ),
           actions: [
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor:
-                    Colors.deepPurple, // Button color (purple)
+            TextButton(
+              style: TextButton.styleFrom(
+                // primary: Colors.deepPurple, // Text color (deep purple)
                 padding: const EdgeInsets.symmetric(
                   horizontal: 20,
                   vertical: 12,
                 ), // Padding
+                textStyle: const TextStyle(
+                  fontSize: 14, // Font size set to 14
+                  fontWeight:
+                      FontWeight.bold, // Optional: Add bold text for emphasis
+                ),
               ),
               onPressed: () async {
                 final updatedName = nameController.text.trim();
@@ -220,9 +234,9 @@ class _AddEmployeeScreenState extends State<AddEmployeeScreen> {
               child: const Text(
                 'Update', // Button text
                 style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 14,
-                ), // Text color (white) and font size
+                  color: Colors.deepPurple, // Text color (deep purple)
+                  fontSize: 18,
+                ),
               ),
             ),
           ],
