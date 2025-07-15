@@ -180,13 +180,18 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
           actions: [
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.deepPurple, // Button color (purple)
+            TextButton(
+              style: TextButton.styleFrom(
+                // primary: Colors.deepPurple, // Text color (Deep Purple)
                 padding: const EdgeInsets.symmetric(
                   horizontal: 20,
                   vertical: 12,
                 ), // Padding
+                textStyle: const TextStyle(
+                  fontSize: 14, // Font size set to 14
+                  fontWeight:
+                      FontWeight.bold, // Optional: Add bold text for emphasis
+                ),
               ),
               onPressed: () async {
                 final id = int.tryParse(idController.text);
@@ -220,9 +225,9 @@ class _HomeScreenState extends State<HomeScreen> {
               child: const Text(
                 'Add', // Button text
                 style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 14,
-                ), // Text color (white) and font size
+                  color: Colors.deepPurple,
+                  fontSize: 18,
+                ), // Text color (deep purple)
               ),
             ),
           ],
@@ -1616,14 +1621,18 @@ class _HomeScreenState extends State<HomeScreen> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: [
-                        ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor:
-                                Colors.deepPurple[700], // Button color (purple)
+                        TextButton(
+                          style: TextButton.styleFrom(
+                            // primary: Colors.deepPurple[700], // Text color (Deep Purple)
                             padding: const EdgeInsets.symmetric(
                               horizontal: 20,
                               vertical: 12,
                             ), // Padding
+                            textStyle: const TextStyle(
+                              fontSize: 18, // Font size set to 18
+                              fontWeight: FontWeight
+                                  .bold, // Optional: Add bold text for emphasis
+                            ),
                           ),
                           onPressed: () async {
                             Navigator.pop(context);
@@ -1637,9 +1646,9 @@ class _HomeScreenState extends State<HomeScreen> {
                           child: const Text(
                             'Add New', // Button text
                             style: TextStyle(
-                              color: Colors.white,
-                              // fontSize: 18,
-                            ), // Text color (white) and font size
+                              color: Colors.deepPurple,
+                              fontSize: 18,
+                            ), // Text color (deep purple)
                           ),
                         ),
 
