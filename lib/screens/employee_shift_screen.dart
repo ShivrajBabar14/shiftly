@@ -1,17 +1,17 @@
-import 'dart:typed_data';
-import 'dart:ui' as ui;
+// import 'dart:typed_data';
+// import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:shiftly/db/database_helper.dart';
 import 'package:shiftly/models/employee.dart';
-import 'package:pdf/pdf.dart';
+// import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
 import 'package:screenshot/screenshot.dart';
 import 'dart:io';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
-import 'package:image/image.dart' as img;
+// import 'package:image/image.dart' as img;
 
 class EmployeeShiftScreen extends StatefulWidget {
   final Employee employee;
@@ -152,13 +152,13 @@ class _EmployeeShiftScreenState extends State<EmployeeShiftScreen> {
         build: (context) {
           return pw.Column(
             children: [
-              pw.Text(
-                widget.employee.name,
-                style: pw.TextStyle(
-                  fontSize: 24,
-                  fontWeight: pw.FontWeight.bold,
-                ),
-              ),
+              // pw.Text(
+              //   widget.employee.name,
+              //   style: pw.TextStyle(
+              //     fontSize: 24,
+              //     fontWeight: pw.FontWeight.bold,
+              //   ),
+              // ),
               pw.SizedBox(height: 10),
               pw.Expanded(child: pw.Center(child: pw.Image(pdfImage))),
             ],
@@ -176,18 +176,19 @@ class _EmployeeShiftScreenState extends State<EmployeeShiftScreen> {
       appBar: AppBar(
         leading: BackButton(color: Colors.deepPurple),
         title: Row(
+          mainAxisAlignment:
+              MainAxisAlignment.end, // Aligns the content to the right
           children: [
-            // Left-aligned employee name
-            Expanded(
-              child: Text(
-                widget.employee.name,
-                style: const TextStyle(
-                  color: Colors.deepPurple,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-            // Share icon on the right side
+            //  Expanded(
+            //   child: Text(
+            //     widget.employee.name,
+            //     style: const TextStyle(
+            //       color: Colors.deepPurple,
+            //       fontWeight: FontWeight.bold,
+            //     ),
+            //   ),
+            // ),
+            // Right-aligned share icon
             PopupMenuButton<String>(
               color: Colors.white,
               icon: const Icon(Icons.share, color: Colors.deepPurple),
@@ -230,6 +231,7 @@ class _EmployeeShiftScreenState extends State<EmployeeShiftScreen> {
         backgroundColor: Colors.white,
         elevation: 0,
       ),
+
       body: Container(
         color: Colors.white,
         child: Column(
@@ -244,18 +246,18 @@ class _EmployeeShiftScreenState extends State<EmployeeShiftScreen> {
                       color: Colors.white,
                       child: Column(
                         children: [
-                          // Remove employee name from page UI as per user request
-                          // Padding(
-                          //   padding: const EdgeInsets.symmetric(vertical: 8.0),
-                          //   child: Text(
-                          //     widget.employee.name,
-                          //     style: TextStyle(
-                          //       fontSize: 24,
-                          //       fontWeight: FontWeight.bold,
-                          //       color: Colors.black,
-                          //     ),
-                          //   ),
-                          // ),
+                          // Employee name inside Screenshot widget
+                          Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 8.0),
+                            child: Text(
+                              widget.employee.name,
+                              style: TextStyle(
+                                fontSize: 24,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.deepPurple,
+                              ),
+                            ),
+                          ),
                           Padding(
                             padding: const EdgeInsets.only(bottom: 12),
                             child: Row(
@@ -382,21 +384,33 @@ class _EmployeeShiftScreenState extends State<EmployeeShiftScreen> {
                                       alignment: Alignment.center,
                                       child: Builder(
                                         builder: (context) {
-                                          final shiftName = shift?['shift_name'] ?? '';
-                                          final startTimeMillis = shift?['start_time'];
-                                          final endTimeMillis = shift?['end_time'];
+                                          final shiftName =
+                                              shift?['shift_name'] ?? '';
+                                          final startTimeMillis =
+                                              shift?['start_time'];
+                                          final endTimeMillis =
+                                              shift?['end_time'];
 
                                           String formatTime(int? millis) {
                                             if (millis == null) return '';
-                                            final dt = DateTime.fromMillisecondsSinceEpoch(millis);
+                                            final dt =
+                                                DateTime.fromMillisecondsSinceEpoch(
+                                                  millis,
+                                                );
                                             return '${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
                                           }
 
-                                          final startTime = formatTime(startTimeMillis);
-                                          final endTime = formatTime(endTimeMillis);
+                                          final startTime = formatTime(
+                                            startTimeMillis,
+                                          );
+                                          final endTime = formatTime(
+                                            endTimeMillis,
+                                          );
 
                                           final hasName = shiftName.isNotEmpty;
-                                          final hasTime = startTime.isNotEmpty && endTime.isNotEmpty;
+                                          final hasTime =
+                                              startTime.isNotEmpty &&
+                                              endTime.isNotEmpty;
 
                                           if (hasName && hasTime) {
                                             return RichText(
@@ -406,15 +420,18 @@ class _EmployeeShiftScreenState extends State<EmployeeShiftScreen> {
                                                   TextSpan(
                                                     text: shiftName,
                                                     style: const TextStyle(
-                                                      fontWeight: FontWeight.bold,
+                                                      fontWeight:
+                                                          FontWeight.bold,
                                                       fontSize: 16,
                                                       color: Colors.black,
                                                     ),
                                                   ),
                                                   TextSpan(
-                                                    text: '\n($startTime to $endTime)',
+                                                    text:
+                                                        '\n($startTime to $endTime)',
                                                     style: const TextStyle(
-                                                      fontWeight: FontWeight.normal,
+                                                      fontWeight:
+                                                          FontWeight.normal,
                                                       fontSize: 16,
                                                       color: Colors.black,
                                                     ),
