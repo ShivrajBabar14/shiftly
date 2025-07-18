@@ -954,11 +954,13 @@ class _HomeScreenState extends State<HomeScreen> {
                       : Container(
                           decoration: BoxDecoration(
                             border: Border(
-                              bottom: BorderSide(color: Color(0xFF03DAC5), width: 1.0),
+                              // Removed bottom border to fix colored line below horizontal scroll bar
+                              // bottom: BorderSide(color: Color(0xFF03DAC5), width: 1.0),
                             ),
                           ),
                           child: _buildShiftTable(),
                         )),
+
           ),
         ],
       ),
@@ -1083,7 +1085,8 @@ class _HomeScreenState extends State<HomeScreen> {
                         child: Container(
                           decoration: BoxDecoration(
                             border: Border(
-                              bottom: BorderSide(color: Colors.grey.shade300),
+                              // Removed bottom border to fix colored line below horizontal scroll bar
+                              // bottom: BorderSide(color: Colors.grey.shade300),
                             ),
                           ),
                         ),
