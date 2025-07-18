@@ -116,125 +116,152 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _addEmployeeDialog() async {
-    final TextEditingController nameController = TextEditingController();
-    final TextEditingController idController = TextEditingController();
+  final TextEditingController nameController = TextEditingController();
+  final TextEditingController idController = TextEditingController();
 
-    // Get all employees
-    final employees = await _dbHelper.getEmployees();
+  // Get all employees
+  final employees = await _dbHelper.getEmployees();
 
-    // Find the highest current ID
-    int nextId = 1; // Default start
-    if (employees.isNotEmpty) {
-      final ids = employees.map((e) => e['employee_id'] as int).toList();
-      nextId = (ids.reduce((a, b) => a > b ? a : b)) + 1;
-    }
-
-    idController.text = nextId.toString(); // Set default value
-
-    await showDialog(
-      context: context,
-      builder: (_) {
-        return AlertDialog(
-          title: const Text('Add Employee', style: TextStyle(fontSize: 24)),
-          content: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 400),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                TextField(
-                  controller: idController,
-                  keyboardType: TextInputType.number,
-                  decoration: const InputDecoration(
-                    labelText: 'Employee ID',
-                    labelStyle: TextStyle(color: Color(0xFF9E9E9E)),
-                  ),
-                ),
-                const SizedBox(height: 10),
-                TextField(
-                  controller: nameController,
-                  decoration: const InputDecoration(
-                    labelText: 'Employee Name',
-                    labelStyle: TextStyle(color: Color(0xFF9E9E9E)),
-                  ),
-                  onChanged: (value) {
-                    String capitalizeWords(String str) {
-                      return str
-                          .split(' ')
-                          .map((word) {
-                            if (word.isEmpty) return word;
-                            return word[0].toUpperCase() + word.substring(1);
-                          })
-                          .join(' ');
-                    }
-
-                    final capitalized = capitalizeWords(value);
-                    nameController.value = nameController.value.copyWith(
-                      text: capitalized,
-                      selection: TextSelection.collapsed(
-                        offset: capitalized.length,
-                      ),
-                    );
-                  },
-                ),
-              ],
-            ),
-          ),
-          actions: [
-            TextButton(
-              style: TextButton.styleFrom(
-                // primary: Colors.deepPurple, // Text color (Deep Purple)
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 20,
-                  vertical: 12,
-                ), // Padding
-                textStyle: const TextStyle(
-                  fontSize: 14, // Font size set to 14
-                  fontWeight:
-                      FontWeight.bold, // Optional: Add bold text for emphasis
-                ),
-              ),
-              onPressed: () async {
-                final id = int.tryParse(idController.text);
-                final name = nameController.text.trim();
-
-                if (id != null && name.isNotEmpty) {
-                  final exists = await _employeeIdExists(id);
-                  if (exists) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Employee ID already exists'),
-                        backgroundColor: Colors.deepPurple,
-                      ),
-                    );
-                  } else {
-                    await _dbHelper.insertEmployeeWithId(id, name);
-                    // Add employee to current week
-                    final weekStart = _currentWeekStart.millisecondsSinceEpoch;
-                    await _dbHelper.addEmployeeToWeek(id, weekStart);
-                    Navigator.pop(context);
-                    await _loadEmployees();
-                    // Update shift table to include new employee
-                    setState(() {
-                      final currentSet = _selectedEmployeesForShift.toSet();
-                      currentSet.add(id);
-                      _selectedEmployeesForShift = currentSet.toList();
-                    });
-                  }
-                }
-              },
-              child: const Text(
-                'Add', // Button text
-                style: TextStyle(
-                  color: Colors.deepPurple,
-                  fontSize: 18,
-                ), // Text color (deep purple)
-              ),
-            ),
-          ],
-        );
-      },
-    );
+  // Find the highest current ID
+  int nextId = 1; // Default start
+  if (employees.isNotEmpty) {
+    final ids = employees.map((e) => e['employee_id'] as int).toList();
+    nextId = (ids.reduce((a, b) => a > b ? a : b)) + 1;
   }
+
+  idController.text = nextId.toString(); // Set default value
+
+  await showDialog(
+    context: context,
+    builder: (_) {
+      return Dialog(
+        insetPadding: const EdgeInsets.all(16), // Padding around the dialog
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20), // Rounded corners
+        ),
+        child: Container(
+          width: MediaQuery.of(context).size.width * 0.9, // Increased width (80% of screen width)
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Employee ID (Editable)
+              TextField(
+                controller: idController,
+                keyboardType: TextInputType.number,
+                decoration: const InputDecoration(
+                  labelText: 'Employee ID',
+                  labelStyle: TextStyle(color: Color(0xFF9E9E9E)),
+                ),
+              ),
+              const SizedBox(height: 10),
+              // Employee Name (Editable with Capitalization)
+              TextField(
+                controller: nameController,
+                decoration: const InputDecoration(
+                  labelText: 'Employee Name',
+                  labelStyle: TextStyle(color: Color(0xFF9E9E9E)),
+                ),
+                onChanged: (value) {
+                  String capitalizeWords(String str) {
+                    return str
+                        .split(' ')
+                        .map((word) {
+                          if (word.isEmpty) return word;
+                          return word[0].toUpperCase() + word.substring(1);
+                        })
+                        .join(' ');
+                  }
+
+                  final capitalized = capitalizeWords(value);
+                  nameController.value = nameController.value.copyWith(
+                    text: capitalized,
+                    selection: TextSelection.collapsed(
+                      offset: capitalized.length,
+                    ),
+                  );
+                },
+              ),
+              const SizedBox(height: 20),
+              // Action Buttons
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  TextButton(
+                    style: TextButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 24,
+                        vertical: 12,
+                      ),
+                    ),
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                    },
+                    child: const Text(
+                      'Cancel',
+                      style: TextStyle(
+                        color: Colors.grey,
+                        fontSize: 18,
+                        // fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  TextButton(
+                    style: TextButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 24,
+                        vertical: 12,
+                      ),
+                    ),
+                    onPressed: () async {
+                      final id = int.tryParse(idController.text);
+                      final name = nameController.text.trim();
+
+                      if (id != null && name.isNotEmpty) {
+                        final exists = await _employeeIdExists(id);
+                        if (exists) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Employee ID already exists'),
+                              backgroundColor: Colors.deepPurple,
+                            ),
+                          );
+                        } else {
+                          await _dbHelper.insertEmployeeWithId(id, name);
+                          // Add employee to current week
+                          final weekStart = _currentWeekStart.millisecondsSinceEpoch;
+                          await _dbHelper.addEmployeeToWeek(id, weekStart);
+                          Navigator.pop(context);
+                          await _loadEmployees();
+                          // Update shift table to include new employee
+                          setState(() {
+                            final currentSet = _selectedEmployeesForShift.toSet();
+                            currentSet.add(id);
+                            _selectedEmployeesForShift = currentSet.toList();
+                          });
+                        }
+                      }
+                    },
+                    child: const Text(
+                      'Add', // Button text
+                      style: TextStyle(
+                        color: Colors.deepPurple,
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      );
+    },
+  );
+}
+
 
   Future<bool> _employeeIdExists(int id) async {
     final employees = await _dbHelper.getEmployees();
@@ -366,6 +393,7 @@ class _HomeScreenState extends State<HomeScreen> {
       barrierDismissible: false,
       builder: (BuildContext dialogContext) {
         return Dialog(
+          insetPadding: const EdgeInsets.all(16),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(
               30,
@@ -447,83 +475,92 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _showShiftDialog(int employeeId, String day) async {
-    final employee = _employees.firstWhere((e) => e.employeeId == employeeId);
-    final weekStart = _currentWeekStart.millisecondsSinceEpoch;
+  final employee = _employees.firstWhere((e) => e.employeeId == employeeId);
+  final weekStart = _currentWeekStart.millisecondsSinceEpoch;
 
-    final existingShift = _shiftTimings.firstWhere(
-      (st) =>
-          st['employee_id'] == employeeId &&
-          st['day'] == day.toLowerCase() &&
-          st['week_start'] == weekStart,
-      orElse: () => {},
-    );
+  final existingShift = _shiftTimings.firstWhere(
+    (st) =>
+        st['employee_id'] == employeeId &&
+        st['day'] == day.toLowerCase() &&
+        st['week_start'] == weekStart,
+    orElse: () => {},
+  );
 
-    String? shiftName = existingShift['shift_name'];
-    var startTimeVal = existingShift['start_time'];
-    var endTimeVal = existingShift['end_time'];
-    TimeOfDay? startTime;
-    TimeOfDay? endTime;
+  String? shiftName = existingShift['shift_name'];
+  var startTimeVal = existingShift['start_time'];
+  var endTimeVal = existingShift['end_time'];
+  TimeOfDay? startTime;
+  TimeOfDay? endTime;
 
-    String? startTimeStr;
-    String? endTimeStr;
+  String? startTimeStr;
+  String? endTimeStr;
 
-    if (startTimeVal != null) {
-      if (startTimeVal is int) {
-        final dt = DateTime.fromMillisecondsSinceEpoch(startTimeVal);
-        startTimeStr =
-            '${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
-      } else if (startTimeVal is String) {
-        startTimeStr = startTimeVal;
-      }
+  if (startTimeVal != null) {
+    if (startTimeVal is int) {
+      final dt = DateTime.fromMillisecondsSinceEpoch(startTimeVal);
+      startTimeStr =
+          '${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
+    } else if (startTimeVal is String) {
+      startTimeStr = startTimeVal;
     }
+  }
 
-    if (endTimeVal != null) {
-      if (endTimeVal is int) {
-        final dt = DateTime.fromMillisecondsSinceEpoch(endTimeVal);
-        endTimeStr =
-            '${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
-      } else if (endTimeVal is String) {
-        endTimeStr = endTimeVal;
-      }
+  if (endTimeVal != null) {
+    if (endTimeVal is int) {
+      final dt = DateTime.fromMillisecondsSinceEpoch(endTimeVal);
+      endTimeStr =
+          '${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
+    } else if (endTimeVal is String) {
+      endTimeStr = endTimeVal;
     }
+  }
 
-    if (startTimeStr != null &&
-        startTimeStr.isNotEmpty &&
-        startTimeStr != 'null') {
-      final parts = startTimeStr.split(':');
-      if (parts.length == 2) {
-        startTime = TimeOfDay(
-          hour: int.tryParse(parts[0]) ?? 0,
-          minute: int.tryParse(parts[1]) ?? 0,
-        );
-      }
+  if (startTimeStr != null &&
+      startTimeStr.isNotEmpty &&
+      startTimeStr != 'null') {
+    final parts = startTimeStr.split(':');
+    if (parts.length == 2) {
+      startTime = TimeOfDay(
+        hour: int.tryParse(parts[0]) ?? 0,
+        minute: int.tryParse(parts[1]) ?? 0,
+      );
     }
+  }
 
-    if (endTimeStr != null && endTimeStr.isNotEmpty && endTimeStr != 'null') {
-      final parts = endTimeStr.split(':');
-      if (parts.length == 2) {
-        endTime = TimeOfDay(
-          hour: int.tryParse(parts[0]) ?? 0,
-          minute: int.tryParse(parts[1]) ?? 0,
-        );
-      }
+  if (endTimeStr != null && endTimeStr.isNotEmpty && endTimeStr != 'null') {
+    final parts = endTimeStr.split(':');
+    if (parts.length == 2) {
+      endTime = TimeOfDay(
+        hour: int.tryParse(parts[0]) ?? 0,
+        minute: int.tryParse(parts[1]) ?? 0,
+      );
     }
+  }
 
-    final shiftNameController = TextEditingController(text: shiftName);
+  final shiftNameController = TextEditingController(text: shiftName);
 
-    await showDialog(
-      context: context,
-      builder: (context) {
-        return StatefulBuilder(
-          builder: (context, setState) {
-            return AlertDialog(
-              title: Text(
-                '${employee.name} - ${day.toUpperCase()}',
-                style: TextStyle(fontSize: 24),
-              ),
-              content: Column(
+  await showDialog(
+    context: context,
+    builder: (context) {
+      return Dialog(
+        insetPadding: const EdgeInsets.all(16), // Padding around the dialog
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20), // Rounded corners
+        ),
+        child: Container(
+          width: MediaQuery.of(context).size.width * 0.9, // Increased width
+          padding: const EdgeInsets.all(20),
+          child: StatefulBuilder(
+            builder: (context, setState) {
+              return Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
+                  Text(
+                    '${employee.name} - ${day.toUpperCase()}',
+                    style: TextStyle(fontSize: 24),
+                  ),
+                  const SizedBox(height: 16),
+                  // Shift Name AutoComplete
                   Autocomplete<String>(
                     optionsBuilder: (TextEditingValue textEditingValue) {
                       // Get unique shift name + time strings from all _shiftTimings
@@ -646,6 +683,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     },
                   ),
                   const SizedBox(height: 16),
+                  // Start Time Picker
                   ListTile(
                     title: Text(
                       startTime != null
@@ -665,6 +703,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       }
                     },
                   ),
+                  // End Time Picker
                   ListTile(
                     title: Text(
                       endTime != null
@@ -684,95 +723,101 @@ class _HomeScreenState extends State<HomeScreen> {
                       }
                     },
                   ),
-                ],
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.pop(context),
-                  child: const Text(
-                    'Cancel',
-                    style: TextStyle(color: Colors.black, fontSize: 18),
-                  ),
-                ),
-                TextButton(
-                  style: TextButton.styleFrom(
-                    // primary: Colors.deepPurple[700], // Text color (Deep Purple)
-                    padding: const EdgeInsets.symmetric(
-                      vertical: 12,
-                      horizontal: 20,
-                    ), // Optional padding for button
-                    textStyle: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ), // Optional text style
-                  ),
-                  onPressed: () async {
-                    final name = shiftNameController.text.trim();
-                    final hasName = name.isNotEmpty;
-                    final hasTime = startTime != null && endTime != null;
-
-                    if (hasName || hasTime) {
-                      int? startTimeMillis;
-                      int? endTimeMillis;
-
-                      if (hasTime) {
-                        final startDateTime = DateTime(
-                          _selectedDay.year,
-                          _selectedDay.month,
-                          _selectedDay.day,
-                          startTime!.hour,
-                          startTime!.minute,
-                        );
-                        startTimeMillis = startDateTime.millisecondsSinceEpoch;
-
-                        final endDateTime = DateTime(
-                          _selectedDay.year,
-                          _selectedDay.month,
-                          _selectedDay.day,
-                          endTime!.hour,
-                          endTime!.minute,
-                        );
-                        endTimeMillis = endDateTime.millisecondsSinceEpoch;
-                      }
-
-                      await _dbHelper.insertOrUpdateShift(
-                        employeeId: employeeId,
-                        day: day.toLowerCase(),
-                        weekStart: weekStart,
-                        shiftName: hasName ? name : null,
-                        startTime: startTimeMillis,
-                        endTime: endTimeMillis,
-                      );
-
-                      await _loadData();
-                      if (!mounted) return;
-                      Navigator.pop(context);
-                    } else {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text(
-                            'Please enter a shift name or time range.',
-                          ),
-                          backgroundColor: Colors.redAccent,
+                  const SizedBox(height: 16),
+                  // Action buttons in a Row
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(context),
+                        child: const Text(
+                          'Cancel',
+                          style: TextStyle(color: Colors.black, fontSize: 18),
                         ),
-                      );
-                    }
-                  },
-                  child: const Text(
-                    'Save',
-                    style: TextStyle(
-                      color: Colors.deepPurple,
-                      fontSize: 18,
-                    ), // Text color (Deep Purple)
+                      ),
+                      TextButton(
+                        style: TextButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(
+                            vertical: 12,
+                            horizontal: 20,
+                          ),
+                          textStyle: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        onPressed: () async {
+                          final name = shiftNameController.text.trim();
+                          final hasName = name.isNotEmpty;
+                          final hasTime = startTime != null && endTime != null;
+
+                          if (hasName || hasTime) {
+                            int? startTimeMillis;
+                            int? endTimeMillis;
+
+                            if (hasTime) {
+                              final startDateTime = DateTime(
+                                _selectedDay.year,
+                                _selectedDay.month,
+                                _selectedDay.day,
+                                startTime!.hour,
+                                startTime!.minute,
+                              );
+                              startTimeMillis = startDateTime.millisecondsSinceEpoch;
+
+                              final endDateTime = DateTime(
+                                _selectedDay.year,
+                                _selectedDay.month,
+                                _selectedDay.day,
+                                endTime!.hour,
+                                endTime!.minute,
+                              );
+                              endTimeMillis = endDateTime.millisecondsSinceEpoch;
+                            }
+
+                            await _dbHelper.insertOrUpdateShift(
+                              employeeId: employeeId,
+                              day: day.toLowerCase(),
+                              weekStart: weekStart,
+                              shiftName: hasName ? name : null,
+                              startTime: startTimeMillis,
+                              endTime: endTimeMillis,
+                            );
+
+                            await _loadData();
+                            if (!mounted) return;
+                            Navigator.pop(context);
+                          } else {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text(
+                                  'Please enter a shift name or time range.',
+                                ),
+                                backgroundColor: Colors.redAccent,
+                              ),
+                            );
+                          }
+                        },
+                        child: const Text(
+                          'Save',
+                          style: TextStyle(
+                            color: Colors.deepPurple,
+                            fontSize: 18,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
-                ),
-              ],
-            );
-          },
-        );
-      },
-    );
-  }
+                ],
+              );
+            },
+          ),
+        ),
+      );
+    },
+  );
+}
+
 
   @override
   Widget build(BuildContext context) {
@@ -1550,6 +1595,7 @@ class _HomeScreenState extends State<HomeScreen> {
         return StatefulBuilder(
           builder: (context, setState) {
             return Dialog(
+              insetPadding: const EdgeInsets.all(16),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(16),
               ),

@@ -117,8 +117,8 @@ class _AddEmployeeScreenState extends State<AddEmployeeScreen> {
                       'Cancel',
                       style: TextStyle(
                         color: Colors.grey,
-                        fontSize: 14,
-                        fontWeight: FontWeight.bold,
+                        fontSize: 18,
+                        // fontWeight: FontWeight.bold,
                       ),
                     ),
                   ),
@@ -225,8 +225,8 @@ class _AddEmployeeScreenState extends State<AddEmployeeScreen> {
                       'Cancel',
                       style: TextStyle(
                         color: Colors.grey, // Text color (deep purple)
-                        fontSize: 14, // Font size
-                        fontWeight: FontWeight.bold, // Bold font
+                        fontSize: 18, // Font size
+                        // fontWeight: FontWeight.bold, // Bold font
                       ),
                     ),
                   ),
