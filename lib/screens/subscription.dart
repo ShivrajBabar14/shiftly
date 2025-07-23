@@ -1,6 +1,7 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:razorpay_flutter/razorpay_flutter.dart';
+import 'package:in_app_purchase/in_app_purchase.dart';
 
 class ShiftlyProScreen extends StatefulWidget {
   @override
@@ -8,65 +9,101 @@ class ShiftlyProScreen extends StatefulWidget {
 }
 
 class _ShiftlyProScreenState extends State<ShiftlyProScreen> {
-  late Razorpay _razorpay;
   String selectedPlan = '';
-  int selectedAmount = 0; // Amount in paisa
+  int selectedAmount = 0; // Amount in rupees
+  late InAppPurchase _inAppPurchase;
+  late StreamSubscription<List<PurchaseDetails>> _purchaseSubscription;
+  List<ProductDetails> _products = [];
 
   @override
   void initState() {
     super.initState();
-    _razorpay = Razorpay();
+    _inAppPurchase = InAppPurchase.instance;
+    _initializePurchaseStream();
+    _loadProducts();
+  }
 
-    _razorpay.on(Razorpay.EVENT_PAYMENT_SUCCESS, _handlePaymentSuccess);
-    _razorpay.on(Razorpay.EVENT_PAYMENT_ERROR, _handlePaymentError);
-    _razorpay.on(Razorpay.EVENT_EXTERNAL_WALLET, _handleExternalWallet);
+  // Initialize the purchase stream and handle updates
+  void _initializePurchaseStream() {
+    final purchaseUpdated = _inAppPurchase.purchaseStream;
+    _purchaseSubscription = purchaseUpdated.listen((purchaseDetailsList) {
+      _listenToPurchaseUpdated(purchaseDetailsList);
+    });
+  }
+
+  // Handle purchase updates (success, failure, etc.)
+  void _listenToPurchaseUpdated(List<PurchaseDetails> purchaseDetailsList) {
+    for (var purchaseDetails in purchaseDetailsList) {
+      if (purchaseDetails.status == PurchaseStatus.purchased) {
+        _verifyPurchase(purchaseDetails);
+      } else if (purchaseDetails.status == PurchaseStatus.error) {
+        // Handle errors here
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Purchase failed: ${purchaseDetails.error?.message}'),
+          ),
+        );
+      }
+    }
+  }
+
+  // Verify the purchase (this should be done on your backend ideally)
+  void _verifyPurchase(PurchaseDetails purchaseDetails) {
+    // Acknowledge the purchase on Google Play
+    if (purchaseDetails.pendingCompletePurchase) {
+      _inAppPurchase.completePurchase(purchaseDetails);
+    }
+    // You can also check if the product is valid and grant the user access here
+    // For example, provide them with the "Shiftly Pro" features.
+    print('Purchase successful: ${purchaseDetails.productID}');
+  }
+
+  // Query the available products (Monthly, Annually)
+  Future<void> _loadProducts() async {
+    const Set<String> _kIds = {
+      'shiftwise_monthly',
+      'shiftwise_yearly',
+    }; // Product IDs from Google Play
+    ProductDetailsResponse response = await _inAppPurchase.queryProductDetails(
+      _kIds,
+    );
+
+    if (response.notFoundIDs.isNotEmpty) {
+      // Handle the case where some products are not found
+      print("Products not found: ${response.notFoundIDs}");
+    }
+
+    setState(() {
+      _products = response.productDetails;
+    });
+  }
+
+  Future<void> _startPurchase(String productId) async {
+    // Find the product matching the productId
+    final ProductDetails? product = _products.firstWhere(
+      (product) => product.id == productId,
+      orElse: () {
+        // Return a default ProductDetails or throw an exception
+        throw 'Product with ID $productId not found!';
+      },
+    );
+
+    // Ensure the product is not null before proceeding
+    if (product == null) {
+      print('Product not found for id: $productId');
+      return;
+    }
+
+    final PurchaseParam purchaseParam = PurchaseParam(productDetails: product);
+
+    // Initiate the purchase flow
+    _inAppPurchase.buyNonConsumable(purchaseParam: purchaseParam);
   }
 
   @override
   void dispose() {
+    _purchaseSubscription.cancel();
     super.dispose();
-    _razorpay.clear();
-  }
-
-  void _startPayment(int amount, String planType) {
-    var options = {
-      'key': 'rzp_test_K2K20arHghyhnD', // Razorpay test key
-      'amount': amount * 100, // Razorpay amount is in paisa
-      'name': 'Shiftly Pro',
-      'description': planType,
-      'prefill': {'contact': '9123456789', 'email': 'testuser@example.com'},
-      'theme': {'color': '#673AB7'},
-      'method': {
-        'netbanking': true,
-        'card': true,
-        'upi': true,
-        'wallet': false, // Disable wallet payments including Google Pay
-      },
-    };
-
-    try {
-      _razorpay.open(options);
-    } catch (e) {
-      debugPrint('Error: $e');
-    }
-  }
-
-  void _handlePaymentSuccess(PaymentSuccessResponse response) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text("Payment successful: ${response.paymentId}")),
-    );
-  }
-
-  void _handlePaymentError(PaymentFailureResponse response) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text("Payment failed: ${response.message}")),
-    );
-  }
-
-  void _handleExternalWallet(ExternalWalletResponse response) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text("External Wallet: ${response.walletName}")),
-    );
   }
 
   @override
@@ -154,7 +191,6 @@ class _ShiftlyProScreenState extends State<ShiftlyProScreen> {
               ),
 
               const SizedBox(height: 50),
-              
 
               // Go Pro button
               SizedBox(
@@ -168,12 +204,18 @@ class _ShiftlyProScreenState extends State<ShiftlyProScreen> {
                     padding: const EdgeInsets.symmetric(vertical: 12),
                   ),
                   onPressed: () {
-                    if (selectedAmount > 0 && selectedPlan.isNotEmpty) {
-                      _startPayment(selectedAmount, selectedPlan);
-                    } else {
+                    if (selectedPlan.isEmpty) {
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(content: Text('Please select a plan.')),
                       );
+                      return;
+                    }
+
+                    // Trigger purchase based on the selected plan
+                    if (selectedPlan == 'Monthly') {
+                      _startPurchase('shiftwise_monthly');
+                    } else if (selectedPlan == 'Annually') {
+                      _startPurchase('shiftwise_yearly');
                     }
                   },
                   child: Text(
