@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
+import 'package:in_app_purchase_android/in_app_purchase_android.dart';
 
 class ShiftlyProScreen extends StatefulWidget {
   @override
@@ -13,7 +14,7 @@ class _ShiftlyProScreenState extends State<ShiftlyProScreen> {
   int selectedAmount = 0; // Amount in rupees
   late InAppPurchase _inAppPurchase;
   late StreamSubscription<List<PurchaseDetails>> _purchaseSubscription;
-  List<ProductDetails> _products = [];
+  List<GooglePlayProductDetails> _products = [];
 
   @override
   void initState() {
@@ -74,25 +75,20 @@ class _ShiftlyProScreenState extends State<ShiftlyProScreen> {
     }
 
     setState(() {
-      _products = response.productDetails;
+      _products = response.productDetails
+          .whereType<GooglePlayProductDetails>()
+          .toList();
     });
   }
 
   Future<void> _startPurchase(String productId) async {
     // Find the product matching the productId
-    final ProductDetails? product = _products.firstWhere(
+    final GooglePlayProductDetails product = _products.firstWhere(
       (product) => product.id == productId,
       orElse: () {
-        // Return a default ProductDetails or throw an exception
         throw 'Product with ID $productId not found!';
       },
     );
-
-    // Ensure the product is not null before proceeding
-    if (product == null) {
-      print('Product not found for id: $productId');
-      return;
-    }
 
     final PurchaseParam purchaseParam = PurchaseParam(productDetails: product);
 
@@ -166,24 +162,22 @@ class _ShiftlyProScreenState extends State<ShiftlyProScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
                   buildPriceCard(
-                    price: '₹ 199.00',
+                    price: _getPriceForProduct('shiftwise_monthly'),
                     label: 'Monthly',
                     isSelected: selectedPlan == 'Monthly',
                     onTap: () {
                       setState(() {
                         selectedPlan = 'Monthly';
-                        selectedAmount = 199;
                       });
                     },
                   ),
                   buildPriceCard(
-                    price: '₹ 599.00',
+                    price: _getPriceForProduct('shiftwise_yearly'),
                     label: 'Annually',
                     isSelected: selectedPlan == 'Annually',
                     onTap: () {
                       setState(() {
                         selectedPlan = 'Annually';
-                        selectedAmount = 599;
                       });
                     },
                   ),
@@ -233,6 +227,17 @@ class _ShiftlyProScreenState extends State<ShiftlyProScreen> {
         ),
       ),
     );
+  }
+
+  String _getPriceForProduct(String productId) {
+    try {
+      final GooglePlayProductDetails product = _products.firstWhere(
+        (product) => product.id == productId,
+      );
+      return product.price;
+    } catch (e) {
+      return '₹ 0.00';
+    }
   }
 
   Widget buildFeature({
