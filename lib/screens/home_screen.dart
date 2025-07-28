@@ -6,6 +6,7 @@ import 'package:table_calendar/table_calendar.dart';
 import 'package:shiftly/db/database_helper.dart';
 import 'package:shiftly/models/employee.dart';
 import 'subscription.dart';
+import 'package:shiftly/widgets/limits_dialog.dart';
 
 import 'package:shared_preferences/shared_preferences.dart';
 import 'sidbar.dart';
@@ -37,6 +38,11 @@ class _HomeScreenState extends State<HomeScreen> {
   final dbHelper = DatabaseHelper();
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
+  // Add isFreeUser flag to indicate free user status
+  bool isFreeUser = true;
+
+  Timer? _autoBackupTimer;
+
   @override
   void initState() {
     super.initState();
@@ -51,9 +57,15 @@ class _HomeScreenState extends State<HomeScreen> {
     _calculateWeekRange(_selectedDay);
 
     // Set up auto-backup timer for every 2 hours (for testing)
-    Timer.periodic(const Duration(minutes: 2), (timer) async {
-      await DatabaseHelper().backupDatabase();
-    });
+    if (!isFreeUser) {
+      _autoBackupTimer = Timer.periodic(const Duration(hours: 2), (timer) async {
+        await DatabaseHelper().backupDatabase();
+      });
+    } else {
+      // Cancel any existing auto backup timer for free users
+      _autoBackupTimer?.cancel();
+      _autoBackupTimer = null;
+    }
 
     // Then load data
     _initWeekStartAndLoadData();
@@ -62,6 +74,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   void dispose() {
+    _autoBackupTimer?.cancel();
     _horizontalController.dispose();
     _verticalController.dispose();
     super.dispose();
@@ -475,348 +488,374 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _showShiftDialog(int employeeId, String day) async {
-  final employee = _employees.firstWhere((e) => e.employeeId == employeeId);
-  final weekStart = _currentWeekStart.millisecondsSinceEpoch;
-
-  final existingShift = _shiftTimings.firstWhere(
-    (st) =>
-        st['employee_id'] == employeeId &&
-        st['day'] == day.toLowerCase() &&
-        st['week_start'] == weekStart,
-    orElse: () => {},
-  );
-
-  String? shiftName = existingShift['shift_name'];
-  var startTimeVal = existingShift['start_time'];
-  var endTimeVal = existingShift['end_time'];
-  TimeOfDay? startTime;
-  TimeOfDay? endTime;
-
-  String? startTimeStr;
-  String? endTimeStr;
-
-  if (startTimeVal != null) {
-    if (startTimeVal is int) {
-      final dt = DateTime.fromMillisecondsSinceEpoch(startTimeVal);
-      startTimeStr =
-          '${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
-    } else if (startTimeVal is String) {
-      startTimeStr = startTimeVal;
+    // Check free user limit for shift scheduling week
+    if (isFreeUser) {
+      final selectedDate = _currentWeekStart.add(Duration(days: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].indexOf(day)));
+      if (selectedDate.isBefore(_currentWeekStart) || selectedDate.isAfter(_currentWeekEnd)) {
+        // Show limits dialog
+        await showDialog(
+          context: context,
+          builder: (context) {
+            return LimitsDialog(
+              onGoPro: () {
+                Navigator.of(context).pop();
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => ShiftlyProScreen()),
+                );
+              },
+              onContinueFree: () {
+                Navigator.of(context).pop();
+              },
+            );
+          },
+        );
+        return;
+      }
     }
-  }
 
-  if (endTimeVal != null) {
-    if (endTimeVal is int) {
-      final dt = DateTime.fromMillisecondsSinceEpoch(endTimeVal);
-      endTimeStr =
-          '${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
-    } else if (endTimeVal is String) {
-      endTimeStr = endTimeVal;
+    final employee = _employees.firstWhere((e) => e.employeeId == employeeId);
+    final weekStart = _currentWeekStart.millisecondsSinceEpoch;
+
+    final existingShift = _shiftTimings.firstWhere(
+      (st) =>
+          st['employee_id'] == employeeId &&
+          st['day'] == day.toLowerCase() &&
+          st['week_start'] == weekStart,
+      orElse: () => {},
+    );
+
+    String? shiftName = existingShift['shift_name'];
+    var startTimeVal = existingShift['start_time'];
+    var endTimeVal = existingShift['end_time'];
+    TimeOfDay? startTime;
+    TimeOfDay? endTime;
+
+    String? startTimeStr;
+    String? endTimeStr;
+
+    if (startTimeVal != null) {
+      if (startTimeVal is int) {
+        final dt = DateTime.fromMillisecondsSinceEpoch(startTimeVal);
+        startTimeStr =
+            '${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
+      } else if (startTimeVal is String) {
+        startTimeStr = startTimeVal;
+      }
     }
-  }
 
-  if (startTimeStr != null &&
-      startTimeStr.isNotEmpty &&
-      startTimeStr != 'null') {
-    final parts = startTimeStr.split(':');
-    if (parts.length == 2) {
-      startTime = TimeOfDay(
-        hour: int.tryParse(parts[0]) ?? 0,
-        minute: int.tryParse(parts[1]) ?? 0,
-      );
+    if (endTimeVal != null) {
+      if (endTimeVal is int) {
+        final dt = DateTime.fromMillisecondsSinceEpoch(endTimeVal);
+        endTimeStr =
+            '${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
+      } else if (endTimeVal is String) {
+        endTimeStr = endTimeVal;
+      }
     }
-  }
 
-  if (endTimeStr != null && endTimeStr.isNotEmpty && endTimeStr != 'null') {
-    final parts = endTimeStr.split(':');
-    if (parts.length == 2) {
-      endTime = TimeOfDay(
-        hour: int.tryParse(parts[0]) ?? 0,
-        minute: int.tryParse(parts[1]) ?? 0,
-      );
+    if (startTimeStr != null &&
+        startTimeStr.isNotEmpty &&
+        startTimeStr != 'null') {
+      final parts = startTimeStr.split(':');
+      if (parts.length == 2) {
+        startTime = TimeOfDay(
+          hour: int.tryParse(parts[0]) ?? 0,
+          minute: int.tryParse(parts[1]) ?? 0,
+        );
+      }
     }
-  }
 
-  final shiftNameController = TextEditingController(text: shiftName);
+    if (endTimeStr != null && endTimeStr.isNotEmpty && endTimeStr != 'null') {
+      final parts = endTimeStr.split(':');
+      if (parts.length == 2) {
+        endTime = TimeOfDay(
+          hour: int.tryParse(parts[0]) ?? 0,
+          minute: int.tryParse(parts[1]) ?? 0,
+        );
+      }
+    }
 
-  await showDialog(
-    context: context,
-    builder: (context) {
-      return Dialog(
-        insetPadding: const EdgeInsets.all(16), // Padding around the dialog
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20), // Rounded corners
-        ),
-        child: Container(
-          width: MediaQuery.of(context).size.width * 0.9, // Increased width
-          padding: const EdgeInsets.all(20),
-          child: StatefulBuilder(
-            builder: (context, setState) {
-              return Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    '${employee.name} - ${day.toUpperCase()}',
-                    style: TextStyle(fontSize: 24),
-                  ),
-                  const SizedBox(height: 16),
-                  // Shift Name AutoComplete
-                  Autocomplete<String>(
-                    optionsBuilder: (TextEditingValue textEditingValue) {
-                      // Get unique shift name + time strings from all _shiftTimings
-                      final allShiftSuggestions = _shiftTimings
-                          .where(
-                            (st) =>
-                                st['shift_name'] != null &&
-                                (st['shift_name'] as String).isNotEmpty,
-                          )
-                          .map((st) {
-                            final shiftName = st['shift_name'] as String;
-                            final startTimeMillis = st['start_time'];
-                            final endTimeMillis = st['end_time'];
+    final shiftNameController = TextEditingController(text: shiftName);
 
-                            String formatTime(int? millis) {
-                              if (millis == null) return '';
-                              final dt = DateTime.fromMillisecondsSinceEpoch(
-                                millis,
-                              );
-                              return '${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
-                            }
+    await showDialog(
+      context: context,
+      builder: (context) {
+        return Dialog(
+          insetPadding: const EdgeInsets.all(16), // Padding around the dialog
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20), // Rounded corners
+          ),
+          child: Container(
+            width: MediaQuery.of(context).size.width * 0.9, // Increased width
+            padding: const EdgeInsets.all(20),
+            child: StatefulBuilder(
+              builder: (context, setState) {
+                return Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      '${employee.name} - ${day.toUpperCase()}',
+                      style: TextStyle(fontSize: 24),
+                    ),
+                    const SizedBox(height: 16),
+                    // Shift Name AutoComplete
+                    Autocomplete<String>(
+                      optionsBuilder: (TextEditingValue textEditingValue) {
+                        // Get unique shift name + time strings from all _shiftTimings
+                        final allShiftSuggestions = _shiftTimings
+                            .where(
+                              (st) =>
+                                  st['shift_name'] != null &&
+                                  (st['shift_name'] as String).isNotEmpty,
+                            )
+                            .map((st) {
+                              final shiftName = st['shift_name'] as String;
+                              final startTimeMillis = st['start_time'];
+                              final endTimeMillis = st['end_time'];
 
-                            final startTimeStr = formatTime(startTimeMillis);
-                            final endTimeStr = formatTime(endTimeMillis);
+                              String formatTime(int? millis) {
+                                if (millis == null) return '';
+                                final dt = DateTime.fromMillisecondsSinceEpoch(
+                                  millis,
+                                );
+                                return '${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
+                              }
 
-                            if (startTimeStr.isNotEmpty &&
-                                endTimeStr.isNotEmpty) {
-                              return '$shiftName ($startTimeStr-$endTimeStr)';
-                            } else {
-                              return shiftName;
-                            }
-                          })
-                          .toSet()
-                          .toList();
+                              final startTimeStr = formatTime(startTimeMillis);
+                              final endTimeStr = formatTime(endTimeMillis);
 
-                      if (textEditingValue.text == '') {
-                        // Return all suggestions when input is empty to show suggestions on focus
-                        return allShiftSuggestions;
-                      }
+                              if (startTimeStr.isNotEmpty &&
+                                  endTimeStr.isNotEmpty) {
+                                return '$shiftName ($startTimeStr-$endTimeStr)';
+                              } else {
+                                return shiftName;
+                              }
+                            })
+                            .toSet()
+                            .toList();
 
-                      final filteredSuggestions = allShiftSuggestions
-                          .where(
-                            (suggestion) => suggestion.toLowerCase().contains(
-                              textEditingValue.text.toLowerCase(),
-                            ),
-                          )
-                          .toList();
+                        if (textEditingValue.text == '') {
+                          // Return all suggestions when input is empty to show suggestions on focus
+                          return allShiftSuggestions;
+                        }
 
-                      return filteredSuggestions;
-                    },
-                    displayStringForOption: (option) => option,
-                    fieldViewBuilder:
-                        (
-                          BuildContext context,
-                          TextEditingController fieldTextEditingController,
-                          FocusNode fieldFocusNode,
-                          VoidCallback onFieldSubmitted,
-                        ) {
-                          // Initialize with shiftNameController.text (which is only shift name without time)
-                          fieldTextEditingController.text =
-                              shiftNameController.text;
-                          fieldTextEditingController.selection =
-                              TextSelection.collapsed(
-                                offset: fieldTextEditingController.text.length,
-                              );
-                          // Remove listener that modifies text to avoid reintroducing time in input field
-                          return TextField(
-                            controller: fieldTextEditingController,
-                            focusNode: fieldFocusNode,
-                            decoration: const InputDecoration(
-                              labelText: 'Shift Name',
-                              focusedBorder: UnderlineInputBorder(
-                                borderSide: BorderSide(
-                                  color: Colors.deepPurple,
+                        final filteredSuggestions = allShiftSuggestions
+                            .where(
+                              (suggestion) => suggestion.toLowerCase().contains(
+                                textEditingValue.text.toLowerCase(),
+                              ),
+                            )
+                            .toList();
+
+                        return filteredSuggestions;
+                      },
+                      displayStringForOption: (option) => option,
+                      fieldViewBuilder:
+                          (
+                            BuildContext context,
+                            TextEditingController fieldTextEditingController,
+                            FocusNode fieldFocusNode,
+                            VoidCallback onFieldSubmitted,
+                          ) {
+                            // Initialize with shiftNameController.text (which is only shift name without time)
+                            fieldTextEditingController.text =
+                                shiftNameController.text;
+                            fieldTextEditingController.selection =
+                                TextSelection.collapsed(
+                                  offset: fieldTextEditingController.text.length,
+                                );
+                            // Remove listener that modifies text to avoid reintroducing time in input field
+                            return TextField(
+                              controller: fieldTextEditingController,
+                              focusNode: fieldFocusNode,
+                              decoration: const InputDecoration(
+                                labelText: 'Shift Name',
+                                focusedBorder: UnderlineInputBorder(
+                                  borderSide: BorderSide(
+                                    color: Colors.deepPurple,
+                                  ),
                                 ),
                               ),
-                            ),
-                            cursorColor: Colors.deepPurple,
-                          );
-                        },
-                    onSelected: (String selection) {
-                      // Extract shift name and time from selection string
-                      final regex = RegExp(
-                        r'^(.*?)\s*(\((\d{2}):(\d{2})-(\d{2}):(\d{2})\))?\$',
-                      );
-                      final match = regex.firstMatch(selection);
-                      final selectedShiftName =
-                          match?.group(1)?.trim() ?? selection;
-
-                      // Parse start and end time if present
-                      TimeOfDay? selectedStartTime;
-                      TimeOfDay? selectedEndTime;
-                      if (match != null && match.group(2) != null) {
-                        final startHour = int.tryParse(match.group(3) ?? '');
-                        final startMinute = int.tryParse(match.group(4) ?? '');
-                        final endHour = int.tryParse(match.group(5) ?? '');
-                        final endMinute = int.tryParse(match.group(6) ?? '');
-                        if (startHour != null && startMinute != null) {
-                          selectedStartTime = TimeOfDay(
-                            hour: startHour,
-                            minute: startMinute,
-                          );
-                        }
-                        if (endHour != null && endMinute != null) {
-                          selectedEndTime = TimeOfDay(
-                            hour: endHour,
-                            minute: endMinute,
-                          );
-                        }
-                      }
-
-                      shiftNameController.text = selectedShiftName;
-                      shiftName = selectedShiftName;
-
-                      // Update startTime and endTime in dialog state
-                      setState(() {
-                        startTime = selectedStartTime;
-                        endTime = selectedEndTime;
-                      });
-                    },
-                  ),
-                  const SizedBox(height: 16),
-                  // Start Time Picker
-                  ListTile(
-                    title: Text(
-                      startTime != null
-                          ? 'Start Time: ${startTime!.format(context)}'
-                          : 'Start Time',
-                    ),
-                    trailing: const Icon(Icons.access_time),
-                    onTap: () async {
-                      final picked = await showTimePicker(
-                        context: context,
-                        initialTime: startTime ?? TimeOfDay.now(),
-                      );
-                      if (picked != null) {
-                        setState(() {
-                          startTime = picked;
-                        });
-                      }
-                    },
-                  ),
-                  // End Time Picker
-                  ListTile(
-                    title: Text(
-                      endTime != null
-                          ? 'End Time: ${endTime!.format(context)}'
-                          : 'End Time',
-                    ),
-                    trailing: const Icon(Icons.access_time),
-                    onTap: () async {
-                      final picked = await showTimePicker(
-                        context: context,
-                        initialTime: endTime ?? TimeOfDay.now(),
-                      );
-                      if (picked != null) {
-                        setState(() {
-                          endTime = picked;
-                        });
-                      }
-                    },
-                  ),
-                  const SizedBox(height: 16),
-                  // Action buttons in a Row
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      TextButton(
-                        onPressed: () => Navigator.pop(context),
-                        child: const Text(
-                          'Cancel',
-                          style: TextStyle(color: Colors.black, fontSize: 18),
-                        ),
-                      ),
-                      TextButton(
-                        style: TextButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(
-                            vertical: 12,
-                            horizontal: 20,
-                          ),
-                          textStyle: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        onPressed: () async {
-                          final name = shiftNameController.text.trim();
-                          final hasName = name.isNotEmpty;
-                          final hasTime = startTime != null && endTime != null;
-
-                          if (hasName || hasTime) {
-                            int? startTimeMillis;
-                            int? endTimeMillis;
-
-                            if (hasTime) {
-                              final startDateTime = DateTime(
-                                _selectedDay.year,
-                                _selectedDay.month,
-                                _selectedDay.day,
-                                startTime!.hour,
-                                startTime!.minute,
-                              );
-                              startTimeMillis = startDateTime.millisecondsSinceEpoch;
-
-                              final endDateTime = DateTime(
-                                _selectedDay.year,
-                                _selectedDay.month,
-                                _selectedDay.day,
-                                endTime!.hour,
-                                endTime!.minute,
-                              );
-                              endTimeMillis = endDateTime.millisecondsSinceEpoch;
-                            }
-
-                            await _dbHelper.insertOrUpdateShift(
-                              employeeId: employeeId,
-                              day: day.toLowerCase(),
-                              weekStart: weekStart,
-                              shiftName: hasName ? name : null,
-                              startTime: startTimeMillis,
-                              endTime: endTimeMillis,
+                              cursorColor: Colors.deepPurple,
                             );
+                          },
+                      onSelected: (String selection) {
+                        // Extract shift name and time from selection string
+                        final regex = RegExp(
+                          r'^(.*?)\s*(\((\d{2}):(\d{2})-(\d{2}):(\d{2})\))?\$',
+                        );
+                        final match = regex.firstMatch(selection);
+                        final selectedShiftName =
+                            match?.group(1)?.trim() ?? selection;
 
-                            await _loadData();
-                            if (!mounted) return;
-                            Navigator.pop(context);
-                          } else {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text(
-                                  'Please enter a shift name or time range.',
-                                ),
-                                backgroundColor: Colors.redAccent,
-                              ),
+                        // Parse start and end time if present
+                        TimeOfDay? selectedStartTime;
+                        TimeOfDay? selectedEndTime;
+                        if (match != null && match.group(2) != null) {
+                          final startHour = int.tryParse(match.group(3) ?? '');
+                          final startMinute = int.tryParse(match.group(4) ?? '');
+                          final endHour = int.tryParse(match.group(5) ?? '');
+                          final endMinute = int.tryParse(match.group(6) ?? '');
+                          if (startHour != null && startMinute != null) {
+                            selectedStartTime = TimeOfDay(
+                              hour: startHour,
+                              minute: startMinute,
                             );
                           }
-                        },
-                        child: const Text(
-                          'Save',
-                          style: TextStyle(
-                            color: Colors.deepPurple,
-                            fontSize: 18,
+                          if (endHour != null && endMinute != null) {
+                            selectedEndTime = TimeOfDay(
+                              hour: endHour,
+                              minute: endMinute,
+                            );
+                          }
+                        }
+
+                        shiftNameController.text = selectedShiftName;
+                        shiftName = selectedShiftName;
+
+                        // Update startTime and endTime in dialog state
+                        setState(() {
+                          startTime = selectedStartTime;
+                          endTime = selectedEndTime;
+                        });
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    // Start Time Picker
+                    ListTile(
+                      title: Text(
+                        startTime != null
+                            ? 'Start Time: ${startTime!.format(context)}'
+                            : 'Start Time',
+                      ),
+                      trailing: const Icon(Icons.access_time),
+                      onTap: () async {
+                        final picked = await showTimePicker(
+                          context: context,
+                          initialTime: startTime ?? TimeOfDay.now(),
+                        );
+                        if (picked != null) {
+                          setState(() {
+                            startTime = picked;
+                          });
+                        }
+                      },
+                    ),
+                    // End Time Picker
+                    ListTile(
+                      title: Text(
+                        endTime != null
+                            ? 'End Time: ${endTime!.format(context)}'
+                            : 'End Time',
+                      ),
+                      trailing: const Icon(Icons.access_time),
+                      onTap: () async {
+                        final picked = await showTimePicker(
+                          context: context,
+                          initialTime: endTime ?? TimeOfDay.now(),
+                        );
+                        if (picked != null) {
+                          setState(() {
+                            endTime = picked;
+                          });
+                        }
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    // Action buttons in a Row
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        TextButton(
+                          onPressed: () => Navigator.pop(context),
+                          child: const Text(
+                            'Cancel',
+                            style: TextStyle(color: Colors.black, fontSize: 18),
                           ),
                         ),
-                      ),
-                    ],
-                  ),
-                ],
-              );
-            },
+                        TextButton(
+                          style: TextButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(
+                              vertical: 12,
+                              horizontal: 20,
+                            ),
+                            textStyle: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          onPressed: () async {
+                            final name = shiftNameController.text.trim();
+                            final hasName = name.isNotEmpty;
+                            final hasTime = startTime != null && endTime != null;
+
+                            if (hasName || hasTime) {
+                              int? startTimeMillis;
+                              int? endTimeMillis;
+
+                              if (hasTime) {
+                                final startDateTime = DateTime(
+                                  _selectedDay.year,
+                                  _selectedDay.month,
+                                  _selectedDay.day,
+                                  startTime!.hour,
+                                  startTime!.minute,
+                                );
+                                startTimeMillis = startDateTime.millisecondsSinceEpoch;
+
+                                final endDateTime = DateTime(
+                                  _selectedDay.year,
+                                  _selectedDay.month,
+                                  _selectedDay.day,
+                                  endTime!.hour,
+                                  endTime!.minute,
+                                );
+                                endTimeMillis = endDateTime.millisecondsSinceEpoch;
+                              }
+
+                              await _dbHelper.insertOrUpdateShift(
+                                employeeId: employeeId,
+                                day: day.toLowerCase(),
+                                weekStart: weekStart,
+                                shiftName: hasName ? name : null,
+                                startTime: startTimeMillis,
+                                endTime: endTimeMillis,
+                              );
+
+                              await _loadData();
+                              if (!mounted) return;
+                              Navigator.pop(context);
+                            } else {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text(
+                                    'Please enter a shift name or time range.',
+                                  ),
+                                  backgroundColor: Colors.redAccent,
+                                ),
+                              );
+                            }
+                          },
+                          child: const Text(
+                            'Save',
+                            style: TextStyle(
+                              color: Colors.deepPurple,
+                              fontSize: 18,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                );
+              },
+            ),
           ),
-        ),
-      );
-    },
-  );
-}
+        );
+      },
+    );
+  }
 
 
   @override
@@ -1550,6 +1589,34 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _showAddEmployeeDialog() async {
+    final weekStart = _currentWeekStart.millisecondsSinceEpoch;
+    final rawWeekEmployees = await _dbHelper.getEmployeesForWeek(weekStart);
+    final currentWeekEmployees = rawWeekEmployees
+        .map((e) => Employee.fromMap(e))
+        .toList();
+
+    // Check free user limit for max 5 employees
+    if (isFreeUser && currentWeekEmployees.length >= 5) {
+      await showDialog(
+        context: context,
+        builder: (context) {
+          return LimitsDialog(
+            onGoPro: () {
+              Navigator.of(context).pop();
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => ShiftlyProScreen()),
+              );
+            },
+            onContinueFree: () {
+              Navigator.of(context).pop();
+            },
+          );
+        },
+      );
+      return;
+    }
+
     final rawAllEmployees = await _dbHelper.getEmployees();
     print('DEBUG: All employees raw data: \$rawAllEmployees');
     final allEmployees = rawAllEmployees
@@ -1557,13 +1624,6 @@ class _HomeScreenState extends State<HomeScreen> {
         .toList();
     print('DEBUG: All employees parsed: \$allEmployees');
 
-    final weekStart = _currentWeekStart.millisecondsSinceEpoch;
-    final rawWeekEmployees = await _dbHelper.getEmployeesForWeek(weekStart);
-    print('DEBUG: Current week employees raw data: \$rawWeekEmployees');
-    final currentWeekEmployees = rawWeekEmployees
-        .map((e) => Employee.fromMap(e))
-        .toList();
-    print('DEBUG: Current week employees parsed: \$currentWeekEmployees');
     final currentWeekEmployeeIds = currentWeekEmployees
         .map((e) => e.employeeId!)
         .toSet();
