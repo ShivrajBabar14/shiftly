@@ -651,40 +651,52 @@ class _HomeScreenState extends State<HomeScreen> {
                         return filteredSuggestions;
                       },
                       displayStringForOption: (option) => option,
-                      fieldViewBuilder:
-                          (
-                            BuildContext context,
-                            TextEditingController fieldTextEditingController,
-                            FocusNode fieldFocusNode,
-                            VoidCallback onFieldSubmitted,
-                          ) {
-                            // Initialize with shiftNameController.text (which is only shift name without time)
-                            fieldTextEditingController.text =
-                                shiftNameController.text;
-                            fieldTextEditingController.selection =
-                                TextSelection.collapsed(
-                                  offset: fieldTextEditingController.text.length,
-                                );
-                            // Remove listener that modifies text to avoid reintroducing time in input field
-                            return TextField(
-                              controller: fieldTextEditingController,
-                              focusNode: fieldFocusNode,
-                              decoration: const InputDecoration(
-                                labelText: 'Shift Name',
-                                focusedBorder: UnderlineInputBorder(
-                                  borderSide: BorderSide(
-                                    color: Colors.deepPurple,
-                                  ),
-                                ),
-                              ),
-                              cursorColor: Colors.deepPurple,
-                            );
-                          },
+fieldViewBuilder:
+  (
+    BuildContext context,
+    TextEditingController fieldTextEditingController,
+    FocusNode fieldFocusNode,
+    VoidCallback onFieldSubmitted,
+  ) {
+    // Use shiftNameController directly to keep text in sync
+return TextField(
+  controller: shiftNameController,
+  focusNode: fieldFocusNode,
+  decoration: const InputDecoration(
+    labelText: 'Shift Name',
+    focusedBorder: UnderlineInputBorder(
+      borderSide: BorderSide(
+        color: Colors.deepPurple,
+      ),
+    ),
+  ),
+  cursorColor: Colors.deepPurple,
+  onChanged: (value) {
+    String capitalizeWords(String str) {
+      return str
+          .split(' ')
+          .map((word) {
+            if (word.isEmpty) return word;
+            return word[0].toUpperCase() + word.substring(1);
+          })
+          .join(' ');
+    }
+
+    final capitalized = capitalizeWords(value);
+    if (capitalized != value) {
+      shiftNameController.value = shiftNameController.value.copyWith(
+        text: capitalized,
+        selection: TextSelection.collapsed(offset: capitalized.length),
+      );
+    }
+  },
+);
+  },
                       onSelected: (String selection) {
                         // Extract shift name and time from selection string
-                        final regex = RegExp(
-                          r'^(.*?)\s*(\((\d{2}):(\d{2})-(\d{2}):(\d{2})\))?\$',
-                        );
+final regex = RegExp(
+  r'^(.*?)\s*(\((\d{2}):(\d{2})-(\d{2}):(\d{2})\))?',
+);
                         final match = regex.firstMatch(selection);
                         final selectedShiftName =
                             match?.group(1)?.trim() ?? selection;
