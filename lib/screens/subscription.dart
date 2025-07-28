@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
 import 'package:in_app_purchase_android/in_app_purchase_android.dart';
-
+import '../widgets/success.dart';
 class ShiftlyProScreen extends StatefulWidget {
   @override
   State<ShiftlyProScreen> createState() => _ShiftlyProScreenState();
@@ -49,15 +49,29 @@ class _ShiftlyProScreenState extends State<ShiftlyProScreen> {
   }
 
   // Verify the purchase (this should be done on your backend ideally)
-  void _verifyPurchase(PurchaseDetails purchaseDetails) {
-    // Acknowledge the purchase on Google Play
-    if (purchaseDetails.pendingCompletePurchase) {
-      _inAppPurchase.completePurchase(purchaseDetails);
-    }
-    // You can also check if the product is valid and grant the user access here
-    // For example, provide them with the "Shiftly Pro" features.
-    print('Purchase successful: ${purchaseDetails.productID}');
+  void _verifyPurchase(PurchaseDetails purchaseDetails) async {
+  // Acknowledge the purchase on Google Play
+  if (purchaseDetails.pendingCompletePurchase) {
+    await _inAppPurchase.completePurchase(purchaseDetails);
   }
+
+  // Show success dialog
+  if (mounted) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => SuccessDialog(
+        onContinue: () {
+          Navigator.pop(context); // Close the success dialog
+          Navigator.pop(context); // Optionally close the ShiftlyProScreen
+        },
+        logoImage: AssetImage('assets/app_logo.png'), // Your logo path
+      ),
+    );
+  }
+
+  print('Purchase successful: ${purchaseDetails.productID}');
+}
 
   // Query the available products (Monthly, Annually)
   Future<void> _loadProducts() async {
