@@ -64,15 +64,7 @@ class AppDrawer extends StatelessWidget {
                     Navigator.of(context).pop();
                     final dbHelper = DatabaseHelper();
 
-                    // Request storage permission
-                    bool permissionGranted = await dbHelper
-                        .checkStoragePermissions();
-                    if (!permissionGranted) {
-                      scaffoldMessenger.showSnackBar(
-                        SnackBar(content: Text('Storage permission denied.')),
-                      );
-                      return;
-                    }
+                    // Removed storage permission check to allow direct file selection
 
                     // Open file picker to select backup file
                     try {
