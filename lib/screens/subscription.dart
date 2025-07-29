@@ -357,14 +357,17 @@ void _listenToPurchaseUpdated(List<PurchaseDetails> purchaseDetailsList) async {
                   ),
                 ),
                 const SizedBox(height: 4),
-                Text(
-                  label,
-                  style: GoogleFonts.questrial(
-                    fontSize: 14,
-                    color: Colors.deepPurple,
+                Padding(
+                  padding: EdgeInsets.only(bottom: label == 'Annually' ? 4 : 4),
+                  child: Text(
+                    label,
+                    style: GoogleFonts.questrial(
+                      fontSize: 14,
+                      color: Colors.deepPurple,
+                    ),
                   ),
                 ),
-                SizedBox(height: badge != null ? 24 : 0),
+                SizedBox(height: badge != null ? 1 : 0),
               ],
             ),
           ),
