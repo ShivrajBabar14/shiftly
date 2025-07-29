@@ -633,7 +633,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     const SizedBox(height: 24),
 
                     const Text('Shift name', style: TextStyle(fontSize: 16)),
-                    const SizedBox(height: 4),
+                    // const SizedBox(height: 4),
 
                     RawAutocomplete<String>(
                       optionsBuilder: (TextEditingValue textEditingValue) {
@@ -733,7 +733,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               decoration: const InputDecoration(
                                 isDense: true,
                                 contentPadding: EdgeInsets.symmetric(
-                                  vertical: 12,
+                                  vertical: 6,
                                 ),
                                 border: UnderlineInputBorder(),
                               ),
