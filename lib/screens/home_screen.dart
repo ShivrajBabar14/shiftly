@@ -58,7 +58,9 @@ class _HomeScreenState extends State<HomeScreen> {
 
     // Set up auto-backup timer for every 2 hours (for testing)
     if (!isFreeUser) {
-      _autoBackupTimer = Timer.periodic(const Duration(hours: 2), (timer) async {
+      _autoBackupTimer = Timer.periodic(const Duration(hours: 2), (
+        timer,
+      ) async {
         await DatabaseHelper().backupDatabase();
       });
     } else {
@@ -129,152 +131,155 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _addEmployeeDialog() async {
-  final TextEditingController nameController = TextEditingController();
-  final TextEditingController idController = TextEditingController();
+    final TextEditingController nameController = TextEditingController();
+    final TextEditingController idController = TextEditingController();
 
-  // Get all employees
-  final employees = await _dbHelper.getEmployees();
+    // Get all employees
+    final employees = await _dbHelper.getEmployees();
 
-  // Find the highest current ID
-  int nextId = 1; // Default start
-  if (employees.isNotEmpty) {
-    final ids = employees.map((e) => e['employee_id'] as int).toList();
-    nextId = (ids.reduce((a, b) => a > b ? a : b)) + 1;
-  }
+    // Find the highest current ID
+    int nextId = 1; // Default start
+    if (employees.isNotEmpty) {
+      final ids = employees.map((e) => e['employee_id'] as int).toList();
+      nextId = (ids.reduce((a, b) => a > b ? a : b)) + 1;
+    }
 
-  idController.text = nextId.toString(); // Set default value
+    idController.text = nextId.toString(); // Set default value
 
-  await showDialog(
-    context: context,
-    builder: (_) {
-      return Dialog(
-        insetPadding: const EdgeInsets.all(16), // Padding around the dialog
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20), // Rounded corners
-        ),
-        child: Container(
-          width: MediaQuery.of(context).size.width * 0.9, // Increased width (80% of screen width)
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // Employee ID (Editable)
-              TextField(
-                controller: idController,
-                keyboardType: TextInputType.number,
-                decoration: const InputDecoration(
-                  labelText: 'Employee ID',
-                  labelStyle: TextStyle(color: Color(0xFF9E9E9E)),
-                ),
-              ),
-              const SizedBox(height: 10),
-              // Employee Name (Editable with Capitalization)
-              TextField(
-                controller: nameController,
-                decoration: const InputDecoration(
-                  labelText: 'Employee Name',
-                  labelStyle: TextStyle(color: Color(0xFF9E9E9E)),
-                ),
-                onChanged: (value) {
-                  String capitalizeWords(String str) {
-                    return str
-                        .split(' ')
-                        .map((word) {
-                          if (word.isEmpty) return word;
-                          return word[0].toUpperCase() + word.substring(1);
-                        })
-                        .join(' ');
-                  }
-
-                  final capitalized = capitalizeWords(value);
-                  nameController.value = nameController.value.copyWith(
-                    text: capitalized,
-                    selection: TextSelection.collapsed(
-                      offset: capitalized.length,
-                    ),
-                  );
-                },
-              ),
-              const SizedBox(height: 20),
-              // Action Buttons
-              Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  TextButton(
-                    style: TextButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 24,
-                        vertical: 12,
-                      ),
-                    ),
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                    },
-                    child: const Text(
-                      'Cancel',
-                      style: TextStyle(
-                        color: Colors.grey,
-                        fontSize: 18,
-                        // fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  TextButton(
-                    style: TextButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 24,
-                        vertical: 12,
-                      ),
-                    ),
-                    onPressed: () async {
-                      final id = int.tryParse(idController.text);
-                      final name = nameController.text.trim();
-
-                      if (id != null && name.isNotEmpty) {
-                        final exists = await _employeeIdExists(id);
-                        if (exists) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('Employee ID already exists'),
-                              backgroundColor: Colors.deepPurple,
-                            ),
-                          );
-                        } else {
-                          await _dbHelper.insertEmployeeWithId(id, name);
-                          // Add employee to current week
-                          final weekStart = _currentWeekStart.millisecondsSinceEpoch;
-                          await _dbHelper.addEmployeeToWeek(id, weekStart);
-                          Navigator.pop(context);
-                          await _loadEmployees();
-                          // Update shift table to include new employee
-                          setState(() {
-                            final currentSet = _selectedEmployeesForShift.toSet();
-                            currentSet.add(id);
-                            _selectedEmployeesForShift = currentSet.toList();
-                          });
-                        }
-                      }
-                    },
-                    child: const Text(
-                      'Add', // Button text
-                      style: TextStyle(
-                        color: Colors.deepPurple,
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ],
+    await showDialog(
+      context: context,
+      builder: (_) {
+        return Dialog(
+          insetPadding: const EdgeInsets.all(16), // Padding around the dialog
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20), // Rounded corners
           ),
-        ),
-      );
-    },
-  );
-}
+          child: Container(
+            width:
+                MediaQuery.of(context).size.width *
+                0.9, // Increased width (80% of screen width)
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Employee ID (Editable)
+                TextField(
+                  controller: idController,
+                  keyboardType: TextInputType.number,
+                  decoration: const InputDecoration(
+                    labelText: 'Employee ID',
+                    labelStyle: TextStyle(color: Color(0xFF9E9E9E)),
+                  ),
+                ),
+                const SizedBox(height: 10),
+                // Employee Name (Editable with Capitalization)
+                TextField(
+                  controller: nameController,
+                  decoration: const InputDecoration(
+                    labelText: 'Employee Name',
+                    labelStyle: TextStyle(color: Color(0xFF9E9E9E)),
+                  ),
+                  onChanged: (value) {
+                    String capitalizeWords(String str) {
+                      return str
+                          .split(' ')
+                          .map((word) {
+                            if (word.isEmpty) return word;
+                            return word[0].toUpperCase() + word.substring(1);
+                          })
+                          .join(' ');
+                    }
 
+                    final capitalized = capitalizeWords(value);
+                    nameController.value = nameController.value.copyWith(
+                      text: capitalized,
+                      selection: TextSelection.collapsed(
+                        offset: capitalized.length,
+                      ),
+                    );
+                  },
+                ),
+                const SizedBox(height: 20),
+                // Action Buttons
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    TextButton(
+                      style: TextButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 24,
+                          vertical: 12,
+                        ),
+                      ),
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                      },
+                      child: const Text(
+                        'Cancel',
+                        style: TextStyle(
+                          color: Colors.grey,
+                          fontSize: 18,
+                          // fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    TextButton(
+                      style: TextButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 24,
+                          vertical: 12,
+                        ),
+                      ),
+                      onPressed: () async {
+                        final id = int.tryParse(idController.text);
+                        final name = nameController.text.trim();
+
+                        if (id != null && name.isNotEmpty) {
+                          final exists = await _employeeIdExists(id);
+                          if (exists) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Employee ID already exists'),
+                                backgroundColor: Colors.deepPurple,
+                              ),
+                            );
+                          } else {
+                            await _dbHelper.insertEmployeeWithId(id, name);
+                            // Add employee to current week
+                            final weekStart =
+                                _currentWeekStart.millisecondsSinceEpoch;
+                            await _dbHelper.addEmployeeToWeek(id, weekStart);
+                            Navigator.pop(context);
+                            await _loadEmployees();
+                            // Update shift table to include new employee
+                            setState(() {
+                              final currentSet = _selectedEmployeesForShift
+                                  .toSet();
+                              currentSet.add(id);
+                              _selectedEmployeesForShift = currentSet.toList();
+                            });
+                          }
+                        }
+                      },
+                      child: const Text(
+                        'Add', // Button text
+                        style: TextStyle(
+                          color: Colors.deepPurple,
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
 
   Future<bool> _employeeIdExists(int id) async {
     final employees = await _dbHelper.getEmployees();
@@ -490,8 +495,13 @@ class _HomeScreenState extends State<HomeScreen> {
   void _showShiftDialog(int employeeId, String day) async {
     // Check free user limit for shift scheduling week
     if (isFreeUser) {
-      final selectedDate = _currentWeekStart.add(Duration(days: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].indexOf(day)));
-      if (selectedDate.isBefore(_currentWeekStart) || selectedDate.isAfter(_currentWeekEnd)) {
+      final selectedDate = _currentWeekStart.add(
+        Duration(
+          days: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].indexOf(day),
+        ),
+      );
+      if (selectedDate.isBefore(_currentWeekStart) ||
+          selectedDate.isAfter(_currentWeekEnd)) {
         // Show limits dialog
         await showDialog(
           context: context,
@@ -582,12 +592,12 @@ class _HomeScreenState extends State<HomeScreen> {
       context: context,
       builder: (context) {
         return Dialog(
-          insetPadding: const EdgeInsets.all(16), // Padding around the dialog
+          insetPadding: const EdgeInsets.all(16),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20), // Rounded corners
+            borderRadius: BorderRadius.circular(20),
           ),
           child: Container(
-            width: MediaQuery.of(context).size.width * 0.9, // Increased width
+            width: MediaQuery.of(context).size.width * 0.9,
             padding: const EdgeInsets.all(20),
             child: StatefulBuilder(
               builder: (context, setState) {
@@ -599,22 +609,22 @@ class _HomeScreenState extends State<HomeScreen> {
                       style: TextStyle(fontSize: 24),
                     ),
                     const SizedBox(height: 16),
-                    // Shift Name AutoComplete
-                    Autocomplete<String>(
+                    // Autocomplete with visible dropdown
+                    RawAutocomplete<String>(
                       optionsBuilder: (TextEditingValue textEditingValue) {
-                        // Get unique shift name + time strings from all _shiftTimings
+                        final input = textEditingValue.text.toLowerCase();
                         final allShiftSuggestions = _shiftTimings
                             .where(
                               (st) =>
                                   st['shift_name'] != null &&
-                                  (st['shift_name'] as String).isNotEmpty,
+                                  st['shift_name'] != '',
                             )
                             .map((st) {
-                              final shiftName = st['shift_name'] as String;
-                              final startTimeMillis = st['start_time'];
-                              final endTimeMillis = st['end_time'];
+                              final name = st['shift_name'] as String;
+                              final start = st['start_time'];
+                              final end = st['end_time'];
 
-                              String formatTime(int? millis) {
+                              String format(int? millis) {
                                 if (millis == null) return '';
                                 final dt = DateTime.fromMillisecondsSinceEpoch(
                                   millis,
@@ -622,119 +632,140 @@ class _HomeScreenState extends State<HomeScreen> {
                                 return '${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
                               }
 
-                              final startTimeStr = formatTime(startTimeMillis);
-                              final endTimeStr = formatTime(endTimeMillis);
+                              final s = format(start);
+                              final e = format(end);
 
-                              if (startTimeStr.isNotEmpty &&
-                                  endTimeStr.isNotEmpty) {
-                                return '$shiftName ($startTimeStr-$endTimeStr)';
-                              } else {
-                                return shiftName;
-                              }
+                              return (s.isNotEmpty && e.isNotEmpty)
+                                  ? '$name ($s-$e)'
+                                  : name;
                             })
                             .toSet()
                             .toList();
 
-                        if (textEditingValue.text == '') {
-                          // Return all suggestions when input is empty to show suggestions on focus
-                          return allShiftSuggestions;
-                        }
+                        if (input.isEmpty) return allShiftSuggestions;
 
-                        final filteredSuggestions = allShiftSuggestions
-                            .where(
-                              (suggestion) => suggestion.toLowerCase().contains(
-                                textEditingValue.text.toLowerCase(),
-                              ),
-                            )
-                            .toList();
-
-                        return filteredSuggestions;
+                        return allShiftSuggestions.where(
+                          (opt) => opt.toLowerCase().contains(input),
+                        );
                       },
-                      displayStringForOption: (option) => option,
-fieldViewBuilder:
-  (
-    BuildContext context,
-    TextEditingController fieldTextEditingController,
-    FocusNode fieldFocusNode,
-    VoidCallback onFieldSubmitted,
-  ) {
-    // Use shiftNameController directly to keep text in sync
-return TextField(
-  controller: shiftNameController,
-  focusNode: fieldFocusNode,
-  decoration: const InputDecoration(
-    labelText: 'Shift Name',
-    focusedBorder: UnderlineInputBorder(
-      borderSide: BorderSide(
-        color: Colors.deepPurple,
-      ),
-    ),
-  ),
-  cursorColor: Colors.deepPurple,
-  onChanged: (value) {
-    String capitalizeWords(String str) {
-      return str
-          .split(' ')
-          .map((word) {
-            if (word.isEmpty) return word;
-            return word[0].toUpperCase() + word.substring(1);
-          })
-          .join(' ');
-    }
 
-    final capitalized = capitalizeWords(value);
-    if (capitalized != value) {
-      shiftNameController.value = shiftNameController.value.copyWith(
-        text: capitalized,
-        selection: TextSelection.collapsed(offset: capitalized.length),
-      );
-    }
-  },
-);
-  },
                       onSelected: (String selection) {
-                        // Extract shift name and time from selection string
-final regex = RegExp(
-  r'^(.*?)\s*(\((\d{2}):(\d{2})-(\d{2}):(\d{2})\))?',
-);
+                        // Extract only shift name without time part
+                        final regex = RegExp(
+                          r'^(.*?)\s*\((\d{2}):(\d{2})-(\d{2}):(\d{2})\)?$',
+                        );
                         final match = regex.firstMatch(selection);
-                        final selectedShiftName =
-                            match?.group(1)?.trim() ?? selection;
+                        final cleanName = match?.group(1)?.trim() ?? selection;
 
-                        // Parse start and end time if present
-                        TimeOfDay? selectedStartTime;
-                        TimeOfDay? selectedEndTime;
-                        if (match != null && match.group(2) != null) {
-                          final startHour = int.tryParse(match.group(3) ?? '');
-                          final startMinute = int.tryParse(match.group(4) ?? '');
-                          final endHour = int.tryParse(match.group(5) ?? '');
-                          final endMinute = int.tryParse(match.group(6) ?? '');
-                          if (startHour != null && startMinute != null) {
-                            selectedStartTime = TimeOfDay(
-                              hour: startHour,
-                              minute: startMinute,
+                        // Set clean shift name into controller
+                        WidgetsBinding.instance.addPostFrameCallback((_) {
+                          shiftNameController
+                            ..text = cleanName
+                            ..selection = TextSelection.collapsed(
+                              offset: cleanName.length,
                             );
+                        });
+
+                        // Set start and end time in time pickers
+                        if (match != null) {
+                          final sHour = int.tryParse(match.group(2) ?? '');
+                          final sMin = int.tryParse(match.group(3) ?? '');
+                          final eHour = int.tryParse(match.group(4) ?? '');
+                          final eMin = int.tryParse(match.group(5) ?? '');
+
+                          if (sHour != null && sMin != null) {
+                            startTime = TimeOfDay(hour: sHour, minute: sMin);
                           }
-                          if (endHour != null && endMinute != null) {
-                            selectedEndTime = TimeOfDay(
-                              hour: endHour,
-                              minute: endMinute,
-                            );
+                          if (eHour != null && eMin != null) {
+                            endTime = TimeOfDay(hour: eHour, minute: eMin);
                           }
                         }
+                      },
 
-                        shiftNameController.text = selectedShiftName;
-                        shiftName = selectedShiftName;
+                      fieldViewBuilder:
+                          (
+                            context,
+                            textEditingController,
+                            focusNode,
+                            onFieldSubmitted,
+                          ) {
+                            // Initial population
+                            if (textEditingController.text.isEmpty &&
+                                shiftNameController.text.isNotEmpty) {
+                              textEditingController.text =
+                                  shiftNameController.text;
+                              textEditingController.selection =
+                                  TextSelection.collapsed(
+                                    offset: shiftNameController.text.length,
+                                  );
+                            }
 
-                        // Update startTime and endTime in dialog state
-                        setState(() {
-                          startTime = selectedStartTime;
-                          endTime = selectedEndTime;
-                        });
+                            // Keep in sync
+                            textEditingController.addListener(() {
+                              if (textEditingController.text !=
+                                  shiftNameController.text) {
+                                shiftNameController.text =
+                                    textEditingController.text;
+                              }
+                            });
+
+                            return TextField(
+                              controller: textEditingController,
+                              focusNode: focusNode,
+                              decoration: const InputDecoration(
+                                labelText: 'Shift Name',
+                                focusedBorder: UnderlineInputBorder(
+                                  borderSide: BorderSide(
+                                    color: Colors.deepPurple,
+                                  ),
+                                ),
+                              ),
+                              cursorColor: Colors.deepPurple,
+                              onChanged: (value) {
+                                // Capitalize input
+                                String cap = value
+                                    .split(' ')
+                                    .map(
+                                      (word) => word.isEmpty
+                                          ? word
+                                          : '${word[0].toUpperCase()}${word.substring(1)}',
+                                    )
+                                    .join(' ');
+
+                                if (cap != value) {
+                                  textEditingController.value =
+                                      TextEditingValue(
+                                        text: cap,
+                                        selection: TextSelection.collapsed(
+                                          offset: cap.length,
+                                        ),
+                                      );
+                                }
+                              },
+                            );
+                          },
+
+                      optionsViewBuilder: (context, onSelected, options) {
+                        return Material(
+                          elevation: 4,
+                          child: ConstrainedBox(
+                            constraints: BoxConstraints(maxHeight: 200),
+                            child: ListView(
+                              padding: EdgeInsets.zero,
+                              shrinkWrap: true,
+                              children: options.map((option) {
+                                return ListTile(
+                                  title: Text(option),
+                                  onTap: () => onSelected(option),
+                                );
+                              }).toList(),
+                            ),
+                          ),
+                        );
                       },
                     ),
+
                     const SizedBox(height: 16),
-                    // Start Time Picker
                     ListTile(
                       title: Text(
                         startTime != null
@@ -754,7 +785,6 @@ final regex = RegExp(
                         }
                       },
                     ),
-                    // End Time Picker
                     ListTile(
                       title: Text(
                         endTime != null
@@ -775,7 +805,6 @@ final regex = RegExp(
                       },
                     ),
                     const SizedBox(height: 16),
-                    // Action buttons in a Row
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
@@ -798,9 +827,12 @@ final regex = RegExp(
                             ),
                           ),
                           onPressed: () async {
-                            final name = shiftNameController.text.trim();
-                            final hasName = name.isNotEmpty;
-                            final hasTime = startTime != null && endTime != null;
+                            shiftName = shiftNameController.text
+                                .trim(); // Sync the value
+                            final hasName =
+                                shiftName != null && shiftName!.isNotEmpty;
+                            final hasTime =
+                                startTime != null && endTime != null;
 
                             if (hasName || hasTime) {
                               int? startTimeMillis;
@@ -814,7 +846,8 @@ final regex = RegExp(
                                   startTime!.hour,
                                   startTime!.minute,
                                 );
-                                startTimeMillis = startDateTime.millisecondsSinceEpoch;
+                                startTimeMillis =
+                                    startDateTime.millisecondsSinceEpoch;
 
                                 final endDateTime = DateTime(
                                   _selectedDay.year,
@@ -823,14 +856,15 @@ final regex = RegExp(
                                   endTime!.hour,
                                   endTime!.minute,
                                 );
-                                endTimeMillis = endDateTime.millisecondsSinceEpoch;
+                                endTimeMillis =
+                                    endDateTime.millisecondsSinceEpoch;
                               }
 
                               await _dbHelper.insertOrUpdateShift(
                                 employeeId: employeeId,
                                 day: day.toLowerCase(),
                                 weekStart: weekStart,
-                                shiftName: hasName ? name : null,
+                                shiftName: hasName ? shiftName : null,
                                 startTime: startTimeMillis,
                                 endTime: endTimeMillis,
                               );
@@ -849,6 +883,7 @@ final regex = RegExp(
                               );
                             }
                           },
+
                           child: const Text(
                             'Save',
                             style: TextStyle(
@@ -868,7 +903,6 @@ final regex = RegExp(
       },
     );
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -1056,7 +1090,6 @@ final regex = RegExp(
                           ),
                           child: _buildShiftTable(),
                         )),
-
           ),
         ],
       ),
@@ -1328,51 +1361,69 @@ final regex = RegExp(
                           },
                           children: [
                             TableRow(
-                            children: List.generate(days.length, (index) {
-                              final dayDate = _currentWeekStart.add(
-                                Duration(days: index),
-                              );
-                              final isToday = DateUtils.isSameDay(
-                                dayDate,
-                                today,
-                              );
-                              return Container(
-                                height: rowHeight,
-                                alignment: Alignment.center,
-                                    decoration: BoxDecoration(
-                                      color: Colors.deepPurple,
-                                      border: Border(
-                                        top: isToday ? BorderSide(color: Color(0xFF03DAC5), width: 2.0) : BorderSide(color: Colors.grey.shade300, width: 1.0),
-                                        left: isToday ? BorderSide(color: Color(0xFF03DAC5), width: 2.0) : BorderSide(color: Colors.grey.shade300, width: 1.0),
-                                        right: BorderSide(
-                                          color: isToday ? Color(0xFF03DAC5) : Colors.grey.shade300,
-                                          width: 2.0,
+                              children: List.generate(days.length, (index) {
+                                final dayDate = _currentWeekStart.add(
+                                  Duration(days: index),
+                                );
+                                final isToday = DateUtils.isSameDay(
+                                  dayDate,
+                                  today,
+                                );
+                                return Container(
+                                  height: rowHeight,
+                                  alignment: Alignment.center,
+                                  decoration: BoxDecoration(
+                                    color: Colors.deepPurple,
+                                    border: Border(
+                                      top: isToday
+                                          ? BorderSide(
+                                              color: Color(0xFF03DAC5),
+                                              width: 2.0,
+                                            )
+                                          : BorderSide(
+                                              color: Colors.grey.shade300,
+                                              width: 1.0,
+                                            ),
+                                      left: isToday
+                                          ? BorderSide(
+                                              color: Color(0xFF03DAC5),
+                                              width: 2.0,
+                                            )
+                                          : BorderSide(
+                                              color: Colors.grey.shade300,
+                                              width: 1.0,
+                                            ),
+                                      right: BorderSide(
+                                        color: isToday
+                                            ? Color(0xFF03DAC5)
+                                            : Colors.grey.shade300,
+                                        width: 2.0,
+                                      ),
+                                    ),
+                                  ),
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Text(
+                                        days[index],
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 14.0,
                                         ),
                                       ),
-                                    ),
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Text(
-                                      days[index],
-                                      style: const TextStyle(
-                                        color: Colors.white,
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 14.0,
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        dateFormat.format(dayDate),
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 13.0,
+                                        ),
                                       ),
-                                    ),
-                                    const SizedBox(height: 4),
-                                    Text(
-                                      dateFormat.format(dayDate),
-                                      style: const TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 13.0,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              );
-                            }),
+                                    ],
+                                  ),
+                                );
+                              }),
                             ),
                           ],
                         ),
@@ -1480,14 +1531,49 @@ final regex = RegExp(
                                                       : Colors.grey.shade100,
                                                   border: Border(
                                                     left: dayIndex == todayIndex
-                                                        ? BorderSide(color: Color(0xFF03DAC5), width: 2.0)
-                                                        : BorderSide(color: Colors.grey.shade300, width: 1.0),
-                                                    right: dayIndex == todayIndex
-                                                        ? BorderSide(color: Color(0xFF03DAC5), width: 2.0)
-                                                        : BorderSide(color: Colors.grey.shade300, width: 1.0),
-                                                    bottom: dayIndex == todayIndex && index == visibleEmployees.length - 1
-                                                        ? BorderSide(color: Color(0xFF03DAC5), width: 2.0)
-                                                        : BorderSide(color: Colors.transparent),
+                                                        ? BorderSide(
+                                                            color: Color(
+                                                              0xFF03DAC5,
+                                                            ),
+                                                            width: 2.0,
+                                                          )
+                                                        : BorderSide(
+                                                            color: Colors
+                                                                .grey
+                                                                .shade300,
+                                                            width: 1.0,
+                                                          ),
+                                                    right:
+                                                        dayIndex == todayIndex
+                                                        ? BorderSide(
+                                                            color: Color(
+                                                              0xFF03DAC5,
+                                                            ),
+                                                            width: 2.0,
+                                                          )
+                                                        : BorderSide(
+                                                            color: Colors
+                                                                .grey
+                                                                .shade300,
+                                                            width: 1.0,
+                                                          ),
+                                                    bottom:
+                                                        dayIndex ==
+                                                                todayIndex &&
+                                                            index ==
+                                                                visibleEmployees
+                                                                        .length -
+                                                                    1
+                                                        ? BorderSide(
+                                                            color: Color(
+                                                              0xFF03DAC5,
+                                                            ),
+                                                            width: 2.0,
+                                                          )
+                                                        : BorderSide(
+                                                            color: Colors
+                                                                .transparent,
+                                                          ),
                                                   ),
                                                 ),
                                                 child: (hasName || hasTime)
