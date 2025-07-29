@@ -504,16 +504,17 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _showShiftDialog(int employeeId, String day) async {
-    // Check free user limit for shift scheduling week
+    // Get the selected date for the shift
+    final selectedDate = _currentWeekStart.add(
+      Duration(
+        days: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].indexOf(day),
+      ),
+    );
+
+    // Check if the user is a free user
     if (isFreeUser) {
-      final selectedDate = _currentWeekStart.add(
-        Duration(
-          days: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].indexOf(day),
-        ),
-      );
-      if (selectedDate.isBefore(_currentWeekStart) ||
-          selectedDate.isAfter(_currentWeekEnd)) {
-        // Show limits dialog
+      // If the selected date is outside the current week, show upgrade dialog
+      if (_isOutsideCurrentWeek(selectedDate)) {
         await showDialog(
           context: context,
           builder: (context) {
@@ -535,6 +536,7 @@ class _HomeScreenState extends State<HomeScreen> {
       }
     }
 
+    // Proceed with shift dialog for the current week
     final employee = _employees.firstWhere((e) => e.employeeId == employeeId);
     final weekStart = _currentWeekStart.millisecondsSinceEpoch;
 
@@ -552,6 +554,7 @@ class _HomeScreenState extends State<HomeScreen> {
     TimeOfDay? startTime;
     TimeOfDay? endTime;
 
+    // Process the existing shift times
     String? startTimeStr;
     String? endTimeStr;
 
@@ -575,6 +578,7 @@ class _HomeScreenState extends State<HomeScreen> {
       }
     }
 
+    // Convert string times to TimeOfDay
     if (startTimeStr != null &&
         startTimeStr.isNotEmpty &&
         startTimeStr != 'null') {
@@ -599,6 +603,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
     final shiftNameController = TextEditingController(text: shiftName);
 
+    // Show shift dialog for the user
     await showDialog(
       context: context,
       builder: (context) {
@@ -777,6 +782,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
 
                     const SizedBox(height: 16),
+                    // Time pickers for start and end time
                     ListTile(
                       title: Text(
                         startTime != null
@@ -816,6 +822,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       },
                     ),
                     const SizedBox(height: 16),
+                    // Save or cancel buttons
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
@@ -838,8 +845,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             ),
                           ),
                           onPressed: () async {
-                            shiftName = shiftNameController.text
-                                .trim(); // Sync the value
+                            shiftName = shiftNameController.text.trim();
                             final hasName =
                                 shiftName != null && shiftName!.isNotEmpty;
                             final hasTime =
@@ -871,29 +877,6 @@ class _HomeScreenState extends State<HomeScreen> {
                                     endDateTime.millisecondsSinceEpoch;
                               }
 
-                              if (isFreeUser &&
-                                  _isOutsideCurrentWeek(_selectedDay)) {
-                                await showDialog(
-                                  context: context,
-                                  builder: (context) => LimitsDialog(
-                                    onGoPro: () {
-                                      Navigator.of(context).pop();
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (context) =>
-                                              ShiftlyProScreen(),
-                                        ),
-                                      );
-                                    },
-                                    onContinueFree: () {
-                                      Navigator.of(context).pop();
-                                    },
-                                  ),
-                                );
-                                return;
-                              }
-
                               await _dbHelper.insertOrUpdateShift(
                                 employeeId: employeeId,
                                 day: day.toLowerCase(),
@@ -917,7 +900,6 @@ class _HomeScreenState extends State<HomeScreen> {
                               );
                             }
                           },
-
                           child: const Text(
                             'Save',
                             style: TextStyle(
