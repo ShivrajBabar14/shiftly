@@ -197,6 +197,13 @@ class _ShiftlyProScreenState extends State<ShiftlyProScreen> {
                 subtitle:
                     'Add more than 5 employees to your team with a paid plan',
               ),
+               const SizedBox(height: 25),
+              buildFeature(
+                assetPath: 'assets/schedule.png',
+                title: 'Advanced Shift Scheduling',
+                subtitle:
+                    'Create shifts for the upcoming weeks in advance.',
+              ),
 
               const SizedBox(height: 50),
 
