@@ -3,7 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
 import 'package:in_app_purchase_android/in_app_purchase_android.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../widgets/success.dart';
+
 class ShiftlyProScreen extends StatefulWidget {
   @override
   State<ShiftlyProScreen> createState() => _ShiftlyProScreenState();
@@ -15,6 +17,7 @@ class _ShiftlyProScreenState extends State<ShiftlyProScreen> {
   late InAppPurchase _inAppPurchase;
   late StreamSubscription<List<PurchaseDetails>> _purchaseSubscription;
   List<GooglePlayProductDetails> _products = [];
+  bool isSubscribed = false;
 
   @override
   void initState() {
@@ -22,6 +25,67 @@ class _ShiftlyProScreenState extends State<ShiftlyProScreen> {
     _inAppPurchase = InAppPurchase.instance;
     _initializePurchaseStream();
     _loadProducts();
+    _restoreSubscriptionStatus();
+  }
+
+  Future<void> _restoreSubscriptionStatus() async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+
+    final bool available = await InAppPurchase.instance.isAvailable();
+
+    if (!available) {
+      print('In-app purchase not available');
+      return;
+    }
+
+    // Trigger restore purchases to get past purchases via purchaseStream
+    await InAppPurchase.instance.restorePurchases();
+
+    // The purchaseStream listener will handle updating subscription status
+    // Here, we can load the stored subscription status from SharedPreferences
+    final bool? storedStatus = prefs.getBool('isSubscribed');
+    setState(() {
+      isSubscribed = storedStatus ?? false;
+    });
+  }
+
+  void _listenToPurchaseUpdated(
+    List<PurchaseDetails> purchaseDetailsList,
+  ) async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+
+    bool activeSubscriptionFound = false;
+
+    for (var purchaseDetails in purchaseDetailsList) {
+      if (purchaseDetails.status == PurchaseStatus.purchased) {
+        if (purchaseDetails.productID == 'shiftwise_monthly' ||
+            purchaseDetails.productID == 'shiftwise_yearly') {
+          activeSubscriptionFound = true;
+          // Complete the purchase if pending
+          if (purchaseDetails.pendingCompletePurchase) {
+            await _inAppPurchase.completePurchase(purchaseDetails);
+          }
+        }
+      }
+    }
+
+    await prefs.setBool('isSubscribed', activeSubscriptionFound);
+    setState(() {
+      isSubscribed = activeSubscriptionFound;
+    });
+
+    if (activeSubscriptionFound) {
+      print('Subscription active and stored locally.');
+
+      if (mounted) {
+        showSuccessDialog(
+          context: context,
+          onContinue: () {
+            Navigator.pop(context); // Or navigate to home/dashboard
+          },
+        );
+      }
+    }
   }
 
   // Initialize the purchase stream and handle updates
@@ -33,45 +97,10 @@ class _ShiftlyProScreenState extends State<ShiftlyProScreen> {
   }
 
   // Handle purchase updates (success, failure, etc.)
-  void _listenToPurchaseUpdated(List<PurchaseDetails> purchaseDetailsList) {
-    for (var purchaseDetails in purchaseDetailsList) {
-      if (purchaseDetails.status == PurchaseStatus.purchased) {
-        _verifyPurchase(purchaseDetails);
-      } else if (purchaseDetails.status == PurchaseStatus.error) {
-        // Handle errors here
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Purchase failed: ${purchaseDetails.error?.message}'),
-          ),
-        );
-      }
-    }
-  }
+  // Remove duplicate _listenToPurchaseUpdated method to avoid conflict
 
   // Verify the purchase (this should be done on your backend ideally)
-  void _verifyPurchase(PurchaseDetails purchaseDetails) async {
-  // Acknowledge the purchase on Google Play
-  if (purchaseDetails.pendingCompletePurchase) {
-    await _inAppPurchase.completePurchase(purchaseDetails);
-  }
-
-  // Show success dialog
-  if (mounted) {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) => SuccessDialog(
-        onContinue: () {
-          Navigator.pop(context); // Close the success dialog
-          Navigator.pop(context); // Optionally close the ShiftlyProScreen
-        },
-        logoImage: AssetImage('assets/app_logo.png'), // Your logo path
-      ),
-    );
-  }
-
-  print('Purchase successful: ${purchaseDetails.productID}');
-}
+  // Removed unused _verifyPurchase method as it is not referenced
 
   // Query the available products (Monthly, Annually)
   Future<void> _loadProducts() async {
