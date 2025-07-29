@@ -936,12 +936,18 @@ class _HomeScreenState extends State<HomeScreen> {
             },
           ),
         ),
-        title: const Text(
-          'Shiftly',
-          style: TextStyle(
-            color: Colors.deepPurple,
-            fontWeight: FontWeight.bold,
-          ),
+        title: Row(
+          mainAxisAlignment:
+              MainAxisAlignment.start, // Aligns the title to the left
+          children: const [
+            Text(
+              'Shiftwise',
+              style: TextStyle(
+                color: Colors.deepPurple,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ],
         ),
         actions: [
           Container(
