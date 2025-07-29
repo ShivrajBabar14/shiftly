@@ -619,13 +619,22 @@ class _HomeScreenState extends State<HomeScreen> {
               builder: (context, setState) {
                 return Column(
                   mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      '${employee.name} - ${day.toUpperCase()}',
-                      style: TextStyle(fontSize: 24),
+                    Center(
+                      child: Text(
+                        '${employee.name} – ${day.toUpperCase()} (${selectedDate.day})',
+                        style: const TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
                     ),
-                    const SizedBox(height: 16),
-                    // Autocomplete with visible dropdown
+                    const SizedBox(height: 24),
+
+                    const Text('Shift name', style: TextStyle(fontSize: 16)),
+                    const SizedBox(height: 4),
+
                     RawAutocomplete<String>(
                       optionsBuilder: (TextEditingValue textEditingValue) {
                         final input = textEditingValue.text.toLowerCase();
@@ -664,16 +673,13 @@ class _HomeScreenState extends State<HomeScreen> {
                           (opt) => opt.toLowerCase().contains(input),
                         );
                       },
-
                       onSelected: (String selection) {
-                        // Extract only shift name without time part
                         final regex = RegExp(
                           r'^(.*?)\s*\((\d{2}):(\d{2})-(\d{2}):(\d{2})\)?$',
                         );
                         final match = regex.firstMatch(selection);
                         final cleanName = match?.group(1)?.trim() ?? selection;
 
-                        // Set clean shift name into controller
                         WidgetsBinding.instance.addPostFrameCallback((_) {
                           shiftNameController
                             ..text = cleanName
@@ -682,7 +688,6 @@ class _HomeScreenState extends State<HomeScreen> {
                             );
                         });
 
-                        // Set start and end time in time pickers
                         if (match != null) {
                           final sHour = int.tryParse(match.group(2) ?? '');
                           final sMin = int.tryParse(match.group(3) ?? '');
@@ -697,7 +702,6 @@ class _HomeScreenState extends State<HomeScreen> {
                           }
                         }
                       },
-
                       fieldViewBuilder:
                           (
                             context,
@@ -705,7 +709,6 @@ class _HomeScreenState extends State<HomeScreen> {
                             focusNode,
                             onFieldSubmitted,
                           ) {
-                            // Initial population
                             if (textEditingController.text.isEmpty &&
                                 shiftNameController.text.isNotEmpty) {
                               textEditingController.text =
@@ -716,7 +719,6 @@ class _HomeScreenState extends State<HomeScreen> {
                                   );
                             }
 
-                            // Keep in sync
                             textEditingController.addListener(() {
                               if (textEditingController.text !=
                                   shiftNameController.text) {
@@ -729,16 +731,13 @@ class _HomeScreenState extends State<HomeScreen> {
                               controller: textEditingController,
                               focusNode: focusNode,
                               decoration: const InputDecoration(
-                                labelText: 'Shift Name',
-                                focusedBorder: UnderlineInputBorder(
-                                  borderSide: BorderSide(
-                                    color: Colors.deepPurple,
-                                  ),
+                                isDense: true,
+                                contentPadding: EdgeInsets.symmetric(
+                                  vertical: 12,
                                 ),
+                                border: UnderlineInputBorder(),
                               ),
-                              cursorColor: Colors.deepPurple,
                               onChanged: (value) {
-                                // Capitalize input
                                 String cap = value
                                     .split(' ')
                                     .map(
@@ -747,7 +746,6 @@ class _HomeScreenState extends State<HomeScreen> {
                                           : '${word[0].toUpperCase()}${word.substring(1)}',
                                     )
                                     .join(' ');
-
                                 if (cap != value) {
                                   textEditingController.value =
                                       TextEditingValue(
@@ -760,12 +758,11 @@ class _HomeScreenState extends State<HomeScreen> {
                               },
                             );
                           },
-
                       optionsViewBuilder: (context, onSelected, options) {
                         return Material(
                           elevation: 4,
                           child: ConstrainedBox(
-                            constraints: BoxConstraints(maxHeight: 200),
+                            constraints: const BoxConstraints(maxHeight: 200),
                             child: ListView(
                               padding: EdgeInsets.zero,
                               shrinkWrap: true,
@@ -781,48 +778,106 @@ class _HomeScreenState extends State<HomeScreen> {
                       },
                     ),
 
-                    const SizedBox(height: 16),
-                    // Time pickers for start and end time
-                    ListTile(
-                      title: Text(
-                        startTime != null
-                            ? 'Start Time: ${startTime!.format(context)}'
-                            : 'Start Time',
-                      ),
-                      trailing: const Icon(Icons.access_time),
-                      onTap: () async {
-                        final picked = await showTimePicker(
-                          context: context,
-                          initialTime: startTime ?? TimeOfDay.now(),
-                        );
-                        if (picked != null) {
-                          setState(() {
-                            startTime = picked;
-                          });
-                        }
-                      },
+                    const SizedBox(height: 24),
+
+                    Row(
+                      children: [
+                        // Start Time
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text('Start Time'),
+                              const SizedBox(height: 8),
+                              InkWell(
+                                onTap: () async {
+                                  final picked = await showTimePicker(
+                                    context: context,
+                                    initialTime: startTime ?? TimeOfDay.now(),
+                                  );
+                                  if (picked != null) {
+                                    setState(() {
+                                      startTime = picked;
+                                    });
+                                  }
+                                },
+                                child: Container(
+                                  height: 48,
+                                  decoration: BoxDecoration(
+                                    color: Colors.grey[200],
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 12,
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      const Icon(Icons.access_time, size: 20),
+                                      const SizedBox(width: 8),
+                                      Text(
+                                        startTime != null
+                                            ? startTime!.format(context)
+                                            : '',
+                                        style: const TextStyle(fontSize: 16),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        // End Time
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text('End Time'),
+                              const SizedBox(height: 8),
+                              InkWell(
+                                onTap: () async {
+                                  final picked = await showTimePicker(
+                                    context: context,
+                                    initialTime: endTime ?? TimeOfDay.now(),
+                                  );
+                                  if (picked != null) {
+                                    setState(() {
+                                      endTime = picked;
+                                    });
+                                  }
+                                },
+                                child: Container(
+                                  height: 48,
+                                  decoration: BoxDecoration(
+                                    color: Colors.grey[200],
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 12,
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      const Icon(Icons.access_time, size: 20),
+                                      const SizedBox(width: 8),
+                                      Text(
+                                        endTime != null
+                                            ? endTime!.format(context)
+                                            : '',
+                                        style: const TextStyle(fontSize: 16),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
                     ),
-                    ListTile(
-                      title: Text(
-                        endTime != null
-                            ? 'End Time: ${endTime!.format(context)}'
-                            : 'End Time',
-                      ),
-                      trailing: const Icon(Icons.access_time),
-                      onTap: () async {
-                        final picked = await showTimePicker(
-                          context: context,
-                          initialTime: endTime ?? TimeOfDay.now(),
-                        );
-                        if (picked != null) {
-                          setState(() {
-                            endTime = picked;
-                          });
-                        }
-                      },
-                    ),
-                    const SizedBox(height: 16),
-                    // Save or cancel buttons
+
+                    const SizedBox(height: 24),
+
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
@@ -830,20 +885,14 @@ class _HomeScreenState extends State<HomeScreen> {
                           onPressed: () => Navigator.pop(context),
                           child: const Text(
                             'Cancel',
-                            style: TextStyle(color: Colors.black, fontSize: 18),
-                          ),
-                        ),
-                        TextButton(
-                          style: TextButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(
-                              vertical: 12,
-                              horizontal: 20,
-                            ),
-                            textStyle: const TextStyle(
-                              fontSize: 16,
+                            style: TextStyle(
+                              color: Colors.black,
+                              fontSize: 18,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
+                        ),
+                        TextButton(
                           onPressed: () async {
                             shiftName = shiftNameController.text.trim();
                             final hasName =
@@ -905,6 +954,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             style: TextStyle(
                               color: Colors.deepPurple,
                               fontSize: 18,
+                              fontWeight: FontWeight.bold,
                             ),
                           ),
                         ),
