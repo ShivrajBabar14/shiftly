@@ -40,6 +40,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   // Add isFreeUser flag to indicate free user status
   bool isFreeUser = true;
+  bool _subscriptionStatusLoaded = false;
 
   bool _isOutsideCurrentWeek(DateTime date) {
     final now = DateTime.now();
@@ -58,6 +59,9 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
 
+    // Load subscription status from SharedPreferences
+    _loadSubscriptionStatus();
+
     // Calendar-related initializations
     _selectedDay = DateTime.now();
     _focusedDay = DateTime.now();
@@ -66,6 +70,15 @@ class _HomeScreenState extends State<HomeScreen> {
 
     // Initialize week range first
     _calculateWeekRange(_selectedDay);
+  }
+
+  Future<void> _loadSubscriptionStatus() async {
+    final prefs = await SharedPreferences.getInstance();
+    final subscribed = prefs.getBool('isSubscribed') ?? false;
+    setState(() {
+      isFreeUser = !subscribed;
+      _subscriptionStatusLoaded = true;
+    });
 
     // Set up auto-backup timer for every 2 hours (for testing)
     if (!isFreeUser) {
