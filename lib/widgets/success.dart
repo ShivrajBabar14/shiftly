@@ -83,7 +83,7 @@ class SuccessDialog extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             const Text(
-              'Get access to all premium features\nwith Excelled Pro.',
+              'Get access to all premium features\nwith Shiftwise Pro.',
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 16,

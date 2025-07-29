@@ -12,8 +12,7 @@ class ShiftlyProScreen extends StatefulWidget {
 }
 
 class _ShiftlyProScreenState extends State<ShiftlyProScreen> {
-  String selectedPlan = '';
-  int selectedAmount = 0; // Amount in rupees
+  String selectedPlan = 'Annually';
   late InAppPurchase _inAppPurchase;
   late StreamSubscription<List<PurchaseDetails>> _purchaseSubscription;
   List<GooglePlayProductDetails> _products = [];
@@ -30,65 +29,41 @@ class _ShiftlyProScreenState extends State<ShiftlyProScreen> {
 
   Future<void> _restoreSubscriptionStatus() async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
-
     final bool available = await InAppPurchase.instance.isAvailable();
-
-    if (!available) {
-      print('In-app purchase not available');
-      return;
-    }
-
-    // Trigger restore purchases to get past purchases via purchaseStream
+    if (!available) return;
     await InAppPurchase.instance.restorePurchases();
-
-    // The purchaseStream listener will handle updating subscription status
-    // Here, we can load the stored subscription status from SharedPreferences
     final bool? storedStatus = prefs.getBool('isSubscribed');
     setState(() {
       isSubscribed = storedStatus ?? false;
     });
   }
 
-  void _listenToPurchaseUpdated(
-    List<PurchaseDetails> purchaseDetailsList,
-  ) async {
+  void _listenToPurchaseUpdated(List<PurchaseDetails> purchaseDetailsList) async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
-
     bool activeSubscriptionFound = false;
-
     for (var purchaseDetails in purchaseDetailsList) {
       if (purchaseDetails.status == PurchaseStatus.purchased) {
         if (purchaseDetails.productID == 'shiftwise_monthly' ||
             purchaseDetails.productID == 'shiftwise_yearly') {
           activeSubscriptionFound = true;
-          // Complete the purchase if pending
           if (purchaseDetails.pendingCompletePurchase) {
             await _inAppPurchase.completePurchase(purchaseDetails);
           }
         }
       }
     }
-
     await prefs.setBool('isSubscribed', activeSubscriptionFound);
     setState(() {
       isSubscribed = activeSubscriptionFound;
     });
-
-    if (activeSubscriptionFound) {
-      print('Subscription active and stored locally.');
-
-      if (mounted) {
-        showSuccessDialog(
-          context: context,
-          onContinue: () {
-            Navigator.pop(context); // Or navigate to home/dashboard
-          },
-        );
-      }
+    if (activeSubscriptionFound && mounted) {
+      showSuccessDialog(
+        context: context,
+        onContinue: () => Navigator.pop(context),
+      );
     }
   }
 
-  // Initialize the purchase stream and handle updates
   void _initializePurchaseStream() {
     final purchaseUpdated = _inAppPurchase.purchaseStream;
     _purchaseSubscription = purchaseUpdated.listen((purchaseDetailsList) {
@@ -96,27 +71,9 @@ class _ShiftlyProScreenState extends State<ShiftlyProScreen> {
     });
   }
 
-  // Handle purchase updates (success, failure, etc.)
-  // Remove duplicate _listenToPurchaseUpdated method to avoid conflict
-
-  // Verify the purchase (this should be done on your backend ideally)
-  // Removed unused _verifyPurchase method as it is not referenced
-
-  // Query the available products (Monthly, Annually)
   Future<void> _loadProducts() async {
-    const Set<String> _kIds = {
-      'shiftwise_monthly',
-      'shiftwise_yearly',
-    }; // Product IDs from Google Play
-    ProductDetailsResponse response = await _inAppPurchase.queryProductDetails(
-      _kIds,
-    );
-
-    if (response.notFoundIDs.isNotEmpty) {
-      // Handle the case where some products are not found
-      print("Products not found: ${response.notFoundIDs}");
-    }
-
+    const Set<String> _kIds = {'shiftwise_monthly', 'shiftwise_yearly'};
+    ProductDetailsResponse response = await _inAppPurchase.queryProductDetails(_kIds);
     setState(() {
       _products = response.productDetails
           .whereType<GooglePlayProductDetails>()
@@ -125,17 +82,11 @@ class _ShiftlyProScreenState extends State<ShiftlyProScreen> {
   }
 
   Future<void> _startPurchase(String productId) async {
-    // Find the product matching the productId
     final GooglePlayProductDetails product = _products.firstWhere(
       (product) => product.id == productId,
-      orElse: () {
-        throw 'Product with ID $productId not found!';
-      },
+      orElse: () => throw 'Product with ID $productId not found!',
     );
-
     final PurchaseParam purchaseParam = PurchaseParam(productDetails: product);
-
-    // Initiate the purchase flow
     _inAppPurchase.buyNonConsumable(purchaseParam: purchaseParam);
   }
 
@@ -145,17 +96,43 @@ class _ShiftlyProScreenState extends State<ShiftlyProScreen> {
     super.dispose();
   }
 
+  String _getPriceForProduct(String productId) {
+    try {
+      final product = _products.firstWhere(
+        (product) => product.id == productId,
+      );
+      return product.price;
+    } catch (e) {
+      return '₹ 0.00';
+    }
+  }
+
+  double? _calculateDiscountPercentage() {
+    try {
+      final monthly = _products.firstWhere((p) => p.id == 'shiftwise_monthly');
+      final yearly = _products.firstWhere((p) => p.id == 'shiftwise_yearly');
+      final monthlyPrice = double.parse(monthly.rawPrice.toString());
+      final yearlyPrice = double.parse(yearly.rawPrice.toString());
+      final fullYearPrice = monthlyPrice * 12;
+      final discount = 100 - ((yearlyPrice / fullYearPrice) * 100);
+      return discount;
+    } catch (e) {
+      return null;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    final discount = _calculateDiscountPercentage();
+
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
-        child: Padding(
+        child: SingleChildScrollView(
           padding: const EdgeInsets.all(20),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Close icon
               Align(
                 alignment: Alignment.topLeft,
                 child: GestureDetector(
@@ -164,8 +141,6 @@ class _ShiftlyProScreenState extends State<ShiftlyProScreen> {
                 ),
               ),
               const SizedBox(height: 20),
-
-              // Title
               Center(
                 child: Text(
                   'Shiftly Pro',
@@ -175,14 +150,11 @@ class _ShiftlyProScreenState extends State<ShiftlyProScreen> {
                   ),
                 ),
               ),
-              const SizedBox(height: 50),
-
-              // Feature list
+              const SizedBox(height: 40),
               buildFeature(
                 assetPath: 'assets/users.png',
                 title: 'Unlimited Employee Access',
-                subtitle:
-                    'Add more than 5 employees to your team with a paid plan',
+                subtitle: 'Add more than 5 employees to your team with a paid plan',
               ),
               const SizedBox(height: 25),
               buildFeature(
@@ -194,20 +166,15 @@ class _ShiftlyProScreenState extends State<ShiftlyProScreen> {
               buildFeature(
                 assetPath: 'assets/schedule.png',
                 title: 'Unlimited Employee Access',
-                subtitle:
-                    'Add more than 5 employees to your team with a paid plan',
+                subtitle: 'Add more than 5 employees to your team with a paid plan',
               ),
-               const SizedBox(height: 25),
+              const SizedBox(height: 25),
               buildFeature(
                 assetPath: 'assets/schedule.png',
                 title: 'Advanced Shift Scheduling',
-                subtitle:
-                    'Create shifts for the upcoming weeks in advance.',
+                subtitle: 'Create shifts for the upcoming weeks in advance.',
               ),
-
-              const SizedBox(height: 50),
-
-              // Pricing
+              const SizedBox(height: 40),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
@@ -215,28 +182,41 @@ class _ShiftlyProScreenState extends State<ShiftlyProScreen> {
                     price: _getPriceForProduct('shiftwise_monthly'),
                     label: 'Monthly',
                     isSelected: selectedPlan == 'Monthly',
-                    onTap: () {
-                      setState(() {
-                        selectedPlan = 'Monthly';
-                      });
-                    },
+                    onTap: () => setState(() => selectedPlan = 'Monthly'),
                   ),
                   buildPriceCard(
                     price: _getPriceForProduct('shiftwise_yearly'),
                     label: 'Annually',
                     isSelected: selectedPlan == 'Annually',
-                    onTap: () {
-                      setState(() {
-                        selectedPlan = 'Annually';
-                      });
-                    },
+                    onTap: () => setState(() => selectedPlan = 'Annually'),
+                    badge: discount != null
+                        ? Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: Colors.deepPurple,
+                              borderRadius: BorderRadius.circular(8),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black12,
+                                  blurRadius: 4,
+                                  offset: Offset(0, 2),
+                                ),
+                              ],
+                            ),
+                            child: Text(
+                              'Save ${discount!.toStringAsFixed(0)}%',
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          )
+                        : null,
                   ),
                 ],
               ),
-
               const SizedBox(height: 50),
-
-              // Go Pro button
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
@@ -248,14 +228,6 @@ class _ShiftlyProScreenState extends State<ShiftlyProScreen> {
                     padding: const EdgeInsets.symmetric(vertical: 12),
                   ),
                   onPressed: () {
-                    if (selectedPlan.isEmpty) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('Please select a plan.')),
-                      );
-                      return;
-                    }
-
-                    // Trigger purchase based on the selected plan
                     if (selectedPlan == 'Monthly') {
                       _startPurchase('shiftwise_monthly');
                     } else if (selectedPlan == 'Annually') {
@@ -272,22 +244,12 @@ class _ShiftlyProScreenState extends State<ShiftlyProScreen> {
                   ),
                 ),
               ),
+              const SizedBox(height: 30),
             ],
           ),
         ),
       ),
     );
-  }
-
-  String _getPriceForProduct(String productId) {
-    try {
-      final GooglePlayProductDetails product = _products.firstWhere(
-        (product) => product.id == productId,
-      );
-      return product.price;
-    } catch (e) {
-      return '₹ 0.00';
-    }
   }
 
   Widget buildFeature({
@@ -300,7 +262,7 @@ class _ShiftlyProScreenState extends State<ShiftlyProScreen> {
       children: [
         CircleAvatar(
           radius: 22,
-          backgroundColor: Color(0xFFE5DCF4),
+          backgroundColor: const Color(0xFFE5DCF4),
           child: Image.asset(
             assetPath,
             width: 24,
@@ -319,7 +281,7 @@ class _ShiftlyProScreenState extends State<ShiftlyProScreen> {
                 style: GoogleFonts.questrial(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
-                  color: Color(0xFF424242),
+                  color: const Color(0xFF424242),
                 ),
               ),
               const SizedBox(height: 4),
@@ -327,7 +289,7 @@ class _ShiftlyProScreenState extends State<ShiftlyProScreen> {
                 subtitle,
                 style: GoogleFonts.questrial(
                   fontSize: 14,
-                  color: Color(0xFF616161),
+                  color: const Color(0xFF616161),
                 ),
               ),
             ],
@@ -342,40 +304,57 @@ class _ShiftlyProScreenState extends State<ShiftlyProScreen> {
     required String label,
     required bool isSelected,
     required VoidCallback onTap,
+    Widget? badge,
   }) {
     return GestureDetector(
       onTap: onTap,
-      child: Container(
-        width: 140,
-        padding: const EdgeInsets.symmetric(vertical: 12),
-        decoration: BoxDecoration(
-          border: Border.all(
-            color: isSelected ? Colors.deepPurple : Colors.grey.shade300,
-            width: 2,
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          Container(
+            width: 140,
+            padding: const EdgeInsets.symmetric(vertical: 12),
+            decoration: BoxDecoration(
+              border: Border.all(
+                color: isSelected ? Colors.deepPurple : Colors.grey.shade300,
+                width: 2,
+              ),
+              borderRadius: BorderRadius.circular(10),
+              color: isSelected
+                  ? Colors.deepPurple.withOpacity(0.1)
+                  : Colors.white,
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  price,
+                  style: GoogleFonts.questrial(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black87,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  label,
+                  style: GoogleFonts.questrial(
+                    fontSize: 14,
+                    color: Colors.deepPurple,
+                  ),
+                ),
+                SizedBox(height: badge != null ? 24 : 0),
+              ],
+            ),
           ),
-          borderRadius: BorderRadius.circular(10),
-          color: isSelected ? Colors.deepPurple.withOpacity(0.1) : Colors.white,
-        ),
-        child: Column(
-          children: [
-            Text(
-              price,
-              style: GoogleFonts.questrial(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: Colors.black87,
-              ),
+          if (badge != null)
+            Positioned(
+              bottom: -14,
+              left: 0,
+              right: 0,
+              child: Center(child: badge),
             ),
-            const SizedBox(height: 4),
-            Text(
-              label,
-              style: GoogleFonts.questrial(
-                fontSize: 14,
-                color: Colors.deepPurple,
-              ),
-            ),
-          ],
-        ),
+        ],
       ),
     );
   }
