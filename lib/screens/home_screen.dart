@@ -41,6 +41,17 @@ class _HomeScreenState extends State<HomeScreen> {
   // Add isFreeUser flag to indicate free user status
   bool isFreeUser = true;
 
+  bool _isOutsideCurrentWeek(DateTime date) {
+    final now = DateTime.now();
+    final currentWeekStart = now.subtract(
+      Duration(days: now.weekday - 1),
+    ); // Monday
+    final currentWeekEnd = currentWeekStart.add(
+      const Duration(days: 6),
+    ); // Sunday
+    return date.isBefore(currentWeekStart) || date.isAfter(currentWeekEnd);
+  }
+
   Timer? _autoBackupTimer;
 
   @override
@@ -858,6 +869,29 @@ class _HomeScreenState extends State<HomeScreen> {
                                 );
                                 endTimeMillis =
                                     endDateTime.millisecondsSinceEpoch;
+                              }
+
+                              if (isFreeUser &&
+                                  _isOutsideCurrentWeek(_selectedDay)) {
+                                await showDialog(
+                                  context: context,
+                                  builder: (context) => LimitsDialog(
+                                    onGoPro: () {
+                                      Navigator.of(context).pop();
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) =>
+                                              ShiftlyProScreen(),
+                                        ),
+                                      );
+                                    },
+                                    onContinueFree: () {
+                                      Navigator.of(context).pop();
+                                    },
+                                  ),
+                                );
+                                return;
                               }
 
                               await _dbHelper.insertOrUpdateShift(
