@@ -38,29 +38,50 @@ class _ShiftlyProScreenState extends State<ShiftlyProScreen> {
     });
   }
 
-  void _listenToPurchaseUpdated(List<PurchaseDetails> purchaseDetailsList) async {
+void _listenToPurchaseUpdated(List<PurchaseDetails> purchaseDetailsList) async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     bool activeSubscriptionFound = false;
+    String subscriptionType = '';
+    String orderId = '';
+    String purchaseToken = '';
+    String purchaseDate = '';
+
     for (var purchaseDetails in purchaseDetailsList) {
       if (purchaseDetails.status == PurchaseStatus.purchased) {
         if (purchaseDetails.productID == 'shiftwise_monthly' ||
             purchaseDetails.productID == 'shiftwise_yearly') {
           activeSubscriptionFound = true;
+          subscriptionType = purchaseDetails.productID == 'shiftwise_monthly' ? 'Monthly' : 'Yearly';
+          orderId = purchaseDetails.purchaseID ?? '';
+          purchaseToken = purchaseDetails.verificationData.serverVerificationData ?? '';
+          purchaseDate = purchaseDetails.transactionDate?.toString() ?? '';
           if (purchaseDetails.pendingCompletePurchase) {
             await _inAppPurchase.completePurchase(purchaseDetails);
           }
         }
       }
     }
+
     await prefs.setBool('isSubscribed', activeSubscriptionFound);
+    await prefs.setString('subscriptionType', subscriptionType);
+    await prefs.setString('orderId', orderId);
+    await prefs.setString('purchaseToken', purchaseToken);
+    await prefs.setString('purchaseDate', purchaseDate);
+
     setState(() {
       isSubscribed = activeSubscriptionFound;
     });
+
     if (activeSubscriptionFound && mounted) {
-      showSuccessDialog(
-        context: context,
-        onContinue: () => Navigator.pop(context),
-      );
+      // Close subscription screen first
+      Navigator.pop(context);
+      // Then show success dialog on previous screen
+      Future.delayed(Duration.zero, () {
+        showSuccessDialog(
+          context: context,
+          onContinue: () => Navigator.pop(context),
+        );
+      });
     }
   }
 
