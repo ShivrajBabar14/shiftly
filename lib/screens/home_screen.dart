@@ -7,11 +7,12 @@ import 'package:shiftly/db/database_helper.dart';
 import 'package:shiftly/models/employee.dart';
 import 'subscription.dart';
 import 'package:shiftly/widgets/limits_dialog.dart';
-
 import 'package:shared_preferences/shared_preferences.dart';
 import 'sidbar.dart';
 import 'employee_shift_screen.dart'; // Add import for new screen
 import 'package:shiftly/services/subscription_service.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -1072,22 +1073,38 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ),
         title: Row(
-          mainAxisAlignment:
-              MainAxisAlignment.start, // Aligns the title to the left
-          children: const [
-            Text(
+          mainAxisAlignment: MainAxisAlignment.start,
+          children: [
+            const Text(
               'Shiftwise',
               style: TextStyle(
                 color: Colors.deepPurple,
                 fontWeight: FontWeight.bold,
+                fontSize: 20,
               ),
             ),
+            if (!isFreeUser) ...[
+              const SizedBox(width: 8), // spacing between title and crown
+              Container(
+                padding: const EdgeInsets.all(6),
+                decoration: const BoxDecoration(
+                  color: Colors.deepPurple,
+                  shape: BoxShape.circle,
+                ),
+                child: SvgPicture.asset(
+                  'assets/crown.svg',
+                  width: 15,
+                  height: 15,
+                  color: Color.fromARGB(255, 255, 183, 0), // Gold yellow
+                ),
+              ),
+            ],
           ],
         ),
         actions: [
           if (isFreeUser)
             Container(
-              margin: EdgeInsets.only(right: 16), // Right margin
+              margin: const EdgeInsets.only(right: 16),
               child: ElevatedButton(
                 onPressed: () async {
                   final selectedEmployees = await Navigator.push<List<int>>(
@@ -1095,13 +1112,11 @@ class _HomeScreenState extends State<HomeScreen> {
                     MaterialPageRoute(builder: (context) => ShiftlyProScreen()),
                   );
 
-                  // Reload subscription status after returning from subscription screen
                   await _loadSubscriptionStatus();
 
                   if (selectedEmployees != null) {
                     await _loadData();
                     setState(() {
-                      // Add only newly added employees to _selectedEmployeesForShift
                       final currentSet = _selectedEmployeesForShift.toSet();
                       for (var empId in selectedEmployees) {
                         currentSet.add(empId);
@@ -1111,21 +1126,17 @@ class _HomeScreenState extends State<HomeScreen> {
                   }
                 },
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors
-                      .deepPurple, // Set the background color to deep purple
-                  foregroundColor: Colors.white, // Set the text color to white
-                  elevation: 1, // Set elevation to add a shadow
-                  padding: EdgeInsets.symmetric(
-                    horizontal: 5,
-                  ), // Horizontal padding only
-                  textStyle: TextStyle(fontSize: 16), // Text size
-                  minimumSize: Size(80, 30), // Set minimum size (width, height)
+                  backgroundColor: Colors.deepPurple,
+                  foregroundColor: Colors.white,
+                  elevation: 1,
+                  padding: const EdgeInsets.symmetric(horizontal: 5),
+                  textStyle: const TextStyle(fontSize: 16),
+                  minimumSize: const Size(80, 30),
                   shape: RoundedRectangleBorder(
-                    // Reduced border radius here
                     borderRadius: BorderRadius.circular(6),
                   ),
                 ),
-                child: Text('Go Pro'),
+                child: const Text('Go Pro'),
               ),
             ),
         ],
@@ -1405,7 +1416,6 @@ class _HomeScreenState extends State<HomeScreen> {
     const double rowHeight = 70.0;
     final today = DateTime.now();
 
-    // Calculate todayIndex relative to _currentWeekStart
     final todayIndex = today.difference(_currentWeekStart).inDays;
 
     final visibleEmployees = _selectedEmployeesForShift.isEmpty
@@ -1414,442 +1424,431 @@ class _HomeScreenState extends State<HomeScreen> {
               .where((e) => _selectedEmployeesForShift.contains(e.employeeId))
               .toList();
 
-    return Row(
-      children: [
-        // Employee Name Column
-        SizedBox(
-          width: 100.0,
-          child: Column(
-            children: [
-              Container(
-                height: rowHeight,
-                alignment: Alignment.centerLeft,
-                padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                decoration: BoxDecoration(
-                  color: Colors.deepPurple,
-                  border: Border(
-                    bottom: BorderSide(color: Colors.grey.shade300),
-                    right: BorderSide(color: Colors.grey.shade400, width: 1.5),
-                  ),
-                ),
-                child: const Text(
-                  'Employee',
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                  ),
-                ),
-              ),
-              Expanded(
-                child: ListView.builder(
-                  controller: _verticalController,
-                  itemCount: visibleEmployees.length,
-                  itemBuilder: (context, index) {
-                    final employee = visibleEmployees[index];
-                    return GestureDetector(
-                      onLongPress: () =>
-                          _showDeleteEmployeeDialog(employee.employeeId!),
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) =>
-                                EmployeeShiftScreen(employee: employee),
-                          ),
-                        );
-                      },
-                      child: Container(
-                        height: rowHeight,
-                        alignment: Alignment.centerLeft,
-                        padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                        decoration: BoxDecoration(
-                          color: index.isEven
-                              ? Colors.white
-                              : Colors.grey.shade100,
-                          border: Border(
-                            bottom: BorderSide(color: Colors.grey.shade300),
-                            right: BorderSide(
-                              color: Colors.grey.shade400,
-                              width: 1.5,
-                            ),
-                          ),
-                        ),
-                        child: Text(
-                          employee.name
-                              .split(' ')
-                              .map(
-                                (word) => word.isNotEmpty
-                                    ? word[0].toUpperCase() + word.substring(1)
-                                    : word,
-                              )
-                              .join(' '),
-                          style: const TextStyle(fontSize: 14.0),
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                    );
-                  },
-                ),
-              ),
-            ],
-          ),
-        ),
-
-        // Shift Table
-        Expanded(
-          child: Scrollbar(
-            thumbVisibility: true,
-            controller: _horizontalController,
-            child: SingleChildScrollView(
-              controller: _horizontalController,
-              scrollDirection: Axis.horizontal,
-              child: SizedBox(
-                width: cellWidth * days.length,
-                child: Column(
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return Stack(
+          children: [
+            Scrollbar(
+              thumbVisibility: true,
+              controller: _verticalController,
+              child: SingleChildScrollView(
+                controller: _verticalController,
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Days Header
-                    Stack(
+                    // Sticky Employee Column
+                    Column(
                       children: [
-                        Table(
-                          border: TableBorder(
-                            horizontalInside: BorderSide(
-                              color: Colors.grey.shade300,
+                        Container(
+                          height: rowHeight,
+                          width: 100.0,
+                          alignment: Alignment.centerLeft,
+                          padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                          decoration: BoxDecoration(
+                            color: Colors.deepPurple,
+                            border: Border(
+                              bottom: BorderSide(color: Colors.grey.shade300),
+                              right: BorderSide(
+                                color: Colors.grey.shade400,
+                                width: 1.5,
+                              ),
                             ),
-                            verticalInside: BorderSide(
-                              color: Colors.grey.shade300,
-                              width: 0.5,
-                            ),
-                            bottom: BorderSide(color: Colors.grey.shade300),
                           ),
-                          columnWidths: {
-                            for (int i = 0; i < days.length; i++)
-                              i: FixedColumnWidth(cellWidth),
-                          },
-                          children: [
-                            TableRow(
-                              children: List.generate(days.length, (index) {
-                                final dayDate = _currentWeekStart.add(
-                                  Duration(days: index),
-                                );
-                                final isToday = DateUtils.isSameDay(
-                                  dayDate,
-                                  today,
-                                );
-                                return Container(
-                                  height: rowHeight,
-                                  alignment: Alignment.center,
-                                  decoration: BoxDecoration(
-                                    color: Colors.deepPurple,
-                                    border: Border(
-                                      top: isToday
-                                          ? BorderSide(
-                                              color: Color(0xFF03DAC5),
-                                              width: 2.0,
-                                            )
-                                          : BorderSide(
-                                              color: Colors.grey.shade300,
-                                              width: 1.0,
-                                            ),
-                                      left: isToday
-                                          ? BorderSide(
-                                              color: Color(0xFF03DAC5),
-                                              width: 2.0,
-                                            )
-                                          : BorderSide(
-                                              color: Colors.grey.shade300,
-                                              width: 1.0,
-                                            ),
-                                      right: BorderSide(
-                                        color: isToday
-                                            ? Color(0xFF03DAC5)
-                                            : Colors.grey.shade300,
-                                        width: 2.0,
-                                      ),
+                          child: const Text(
+                            'Employee',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                        Column(
+                          children: List.generate(visibleEmployees.length, (
+                            index,
+                          ) {
+                            final employee = visibleEmployees[index];
+                            return GestureDetector(
+                              onLongPress: () => _showDeleteEmployeeDialog(
+                                employee.employeeId!,
+                              ),
+                              onTap: () => Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) =>
+                                      EmployeeShiftScreen(employee: employee),
+                                ),
+                              ),
+                              child: Container(
+                                height: rowHeight,
+                                width: 100.0,
+                                alignment: Alignment.centerLeft,
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 8.0,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: index.isEven
+                                      ? Colors.white
+                                      : Colors.grey.shade100,
+                                  border: Border(
+                                    bottom: BorderSide(
+                                      color: Colors.grey.shade300,
+                                    ),
+                                    right: BorderSide(
+                                      color: Colors.grey.shade400,
+                                      width: 1.5,
                                     ),
                                   ),
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Text(
-                                        days[index],
-                                        style: const TextStyle(
-                                          color: Colors.white,
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 14.0,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 4),
-                                      Text(
-                                        dateFormat.format(dayDate),
-                                        style: const TextStyle(
-                                          color: Colors.white,
-                                          fontSize: 13.0,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                );
-                              }),
-                            ),
-                          ],
+                                ),
+                                child: Text(
+                                  employee.name
+                                      .split(' ')
+                                      .map(
+                                        (word) => word.isNotEmpty
+                                            ? word[0].toUpperCase() +
+                                                  word.substring(1)
+                                            : word,
+                                      )
+                                      .join(' '),
+                                  style: const TextStyle(fontSize: 14.0),
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            );
+                          }),
                         ),
                       ],
                     ),
-
-                    // Shift Rows + Bounded Today Outline
+                    // Scrollable Shift Table
                     Expanded(
-                      child: LayoutBuilder(
-                        builder: (context, constraints) {
-                          final totalHeight =
-                              rowHeight * visibleEmployees.length;
-
-                          return Stack(
+                      child: SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        controller: _horizontalController,
+                        child: SizedBox(
+                          width: cellWidth * days.length,
+                          child: Column(
                             children: [
-                              SizedBox(
-                                height: totalHeight,
-                                child: ListView.builder(
-                                  controller: _verticalController,
-                                  itemCount: visibleEmployees.length,
-                                  itemBuilder: (context, index) {
-                                    final employee = visibleEmployees[index];
-                                    return Table(
-                                      border: TableBorder(
-                                        horizontalInside: BorderSide(
-                                          color: Colors.grey.shade300,
-                                        ),
-                                        verticalInside: BorderSide(
-                                          color: Colors.grey.shade300,
-                                          width: 1.0,
-                                        ),
-                                        bottom: BorderSide(
-                                          color: Colors.grey.shade300,
-                                        ),
-                                      ),
-                                      columnWidths: {
-                                        for (int i = 0; i < days.length; i++)
-                                          i: FixedColumnWidth(cellWidth),
-                                      },
-                                      children: [
-                                        TableRow(
-                                          children: List.generate(days.length, (
-                                            dayIndex,
-                                          ) {
-                                            final day = days[dayIndex];
-                                            final shift = _shiftTimings
-                                                .firstWhere(
-                                                  (st) =>
-                                                      st['employee_id'] ==
-                                                          employee.employeeId &&
-                                                      st['day']
-                                                              .toString()
-                                                              .toLowerCase() ==
-                                                          day.toLowerCase(),
-                                                  orElse: () => {},
-                                                );
-
-                                            final shiftName =
-                                                shift['shift_name']
-                                                    ?.toString() ??
-                                                '';
-                                            final startTimeMillis =
-                                                shift['start_time'];
-                                            final endTimeMillis =
-                                                shift['end_time'];
-
-                                            String formatTime(int? millis) {
-                                              if (millis == null) return '';
-                                              final dt =
-                                                  DateTime.fromMillisecondsSinceEpoch(
-                                                    millis,
-                                                  );
-                                              return '${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
-                                            }
-
-                                            final startTime = formatTime(
-                                              startTimeMillis,
-                                            );
-                                            final endTime = formatTime(
-                                              endTimeMillis,
-                                            );
-
-                                            final hasName =
-                                                shiftName.isNotEmpty;
-                                            final hasTime =
-                                                startTime.isNotEmpty &&
-                                                endTime.isNotEmpty;
-
-                                            return InkWell(
-                                              onTap: () {
-                                                _showShiftDialog(
-                                                  employee.employeeId!,
-                                                  day,
-                                                );
-                                              },
-                                              child: Container(
-                                                height: rowHeight,
-                                                alignment: Alignment.center,
-                                                padding: const EdgeInsets.all(
-                                                  4.0,
-                                                ),
-                                                decoration: BoxDecoration(
-                                                  color: index.isEven
-                                                      ? Colors.white
-                                                      : Colors.grey.shade100,
-                                                  border: Border(
-                                                    left: dayIndex == todayIndex
-                                                        ? BorderSide(
-                                                            color: Color(
-                                                              0xFF03DAC5,
-                                                            ),
-                                                            width: 2.0,
-                                                          )
-                                                        : BorderSide(
-                                                            color: Colors
-                                                                .grey
-                                                                .shade300,
-                                                            width: 1.0,
-                                                          ),
-                                                    right:
-                                                        dayIndex == todayIndex
-                                                        ? BorderSide(
-                                                            color: Color(
-                                                              0xFF03DAC5,
-                                                            ),
-                                                            width: 2.0,
-                                                          )
-                                                        : BorderSide(
-                                                            color: Colors
-                                                                .grey
-                                                                .shade300,
-                                                            width: 1.0,
-                                                          ),
-                                                    bottom:
-                                                        dayIndex ==
-                                                                todayIndex &&
-                                                            index ==
-                                                                visibleEmployees
-                                                                        .length -
-                                                                    1
-                                                        ? BorderSide(
-                                                            color: Color(
-                                                              0xFF03DAC5,
-                                                            ),
-                                                            width: 2.0,
-                                                          )
-                                                        : BorderSide(
-                                                            color: Colors
-                                                                .transparent,
-                                                          ),
-                                                  ),
-                                                ),
-                                                child: (hasName || hasTime)
-                                                    ? GestureDetector(
-                                                        onTap: () {
-                                                          _showShiftDialog(
-                                                            employee
-                                                                .employeeId!,
-                                                            day,
-                                                          );
-                                                        },
-                                                        child: Container(
-                                                          padding:
-                                                              const EdgeInsets.symmetric(
-                                                                vertical: 4.0,
-                                                                horizontal: 6.0,
-                                                              ),
-                                                          decoration: BoxDecoration(
-                                                            color: Colors
-                                                                .transparent,
-                                                            borderRadius:
-                                                                BorderRadius.circular(
-                                                                  4.0,
-                                                                ),
-                                                          ),
-                                                          child:
-                                                              hasName && hasTime
-                                                              ? RichText(
-                                                                  textAlign:
-                                                                      TextAlign
-                                                                          .center,
-                                                                  text: TextSpan(
-                                                                    children: [
-                                                                      TextSpan(
-                                                                        text:
-                                                                            shiftName,
-                                                                        style: const TextStyle(
-                                                                          fontWeight:
-                                                                              FontWeight.bold,
-                                                                          fontSize:
-                                                                              12.5,
-                                                                          color:
-                                                                              Colors.black,
-                                                                        ),
-                                                                      ),
-                                                                      TextSpan(
-                                                                        text:
-                                                                            '\n($startTime-$endTime)',
-                                                                        style: const TextStyle(
-                                                                          fontWeight:
-                                                                              FontWeight.normal,
-                                                                          fontSize:
-                                                                              12.5,
-                                                                          color:
-                                                                              Colors.black,
-                                                                        ),
-                                                                      ),
-                                                                    ],
-                                                                  ),
-                                                                )
-                                                              : Text(
-                                                                  hasName
-                                                                      ? shiftName
-                                                                      : '$startTime-$endTime',
-                                                                  textAlign:
-                                                                      TextAlign
-                                                                          .center,
-                                                                  style: const TextStyle(
-                                                                    fontWeight:
-                                                                        FontWeight
-                                                                            .bold,
-                                                                    fontSize:
-                                                                        12.5,
-                                                                    color: Colors
-                                                                        .black,
-                                                                  ),
-                                                                ),
-                                                        ),
-                                                      )
-                                                    : Icon(
-                                                        Icons.add,
-                                                        size: 16.0,
-                                                        color: Colors.grey[300],
-                                                      ),
-                                              ),
-                                            );
-                                          }),
-                                        ),
-                                      ],
-                                    );
+                              // Days Header
+                              Container(
+                                height: rowHeight,
+                                child: Table(
+                                  defaultVerticalAlignment:
+                                      TableCellVerticalAlignment.middle,
+                                  border: TableBorder(
+                                    horizontalInside: BorderSide(
+                                      color: Colors.grey.shade300,
+                                    ),
+                                    verticalInside: BorderSide(
+                                      color: Colors.grey.shade300,
+                                      width: 0.5,
+                                    ),
+                                    bottom: BorderSide(
+                                      color: Colors.grey.shade300,
+                                    ),
+                                  ),
+                                  columnWidths: {
+                                    for (int i = 0; i < days.length; i++)
+                                      i: FixedColumnWidth(cellWidth),
                                   },
+                                  children: [
+                                    TableRow(
+                                      children: List.generate(days.length, (
+                                        index,
+                                      ) {
+                                        final dayDate = _currentWeekStart.add(
+                                          Duration(days: index),
+                                        );
+                                        final isToday = DateUtils.isSameDay(
+                                          dayDate,
+                                          today,
+                                        );
+                                        return Container(
+                                          height: rowHeight,
+                                          alignment: Alignment.center,
+                                          decoration: BoxDecoration(
+                                            color: Colors.deepPurple,
+                                            border: Border(
+                                              top: isToday
+                                                  ? BorderSide(
+                                                      color: Color(0xFF03DAC5),
+                                                      width: 2.0,
+                                                    )
+                                                  : BorderSide(
+                                                      color:
+                                                          Colors.grey.shade300,
+                                                      width: 1.0,
+                                                    ),
+                                              left: isToday
+                                                  ? BorderSide(
+                                                      color: Color(0xFF03DAC5),
+                                                      width: 2.0,
+                                                    )
+                                                  : BorderSide(
+                                                      color:
+                                                          Colors.grey.shade300,
+                                                      width: 1.0,
+                                                    ),
+                                              right: BorderSide(
+                                                color: isToday
+                                                    ? Color(0xFF03DAC5)
+                                                    : Colors.grey.shade300,
+                                                width: 2.0,
+                                              ),
+                                            ),
+                                          ),
+                                          child: Column(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.center,
+                                            children: [
+                                              Text(
+                                                days[index],
+                                                style: const TextStyle(
+                                                  color: Colors.white,
+                                                  fontWeight: FontWeight.bold,
+                                                  fontSize: 14.0,
+                                                ),
+                                              ),
+                                              const SizedBox(height: 4),
+                                              Text(
+                                                dateFormat.format(dayDate),
+                                                style: const TextStyle(
+                                                  color: Colors.white,
+                                                  fontSize: 13.0,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        );
+                                      }),
+                                    ),
+                                  ],
                                 ),
                               ),
+                              // Shift Rows
+                              Column(
+                                children: List.generate(visibleEmployees.length, (
+                                  index,
+                                ) {
+                                  final employee = visibleEmployees[index];
+                                  return Table(
+                                    defaultVerticalAlignment:
+                                        TableCellVerticalAlignment.middle,
+                                    border: TableBorder(
+                                      horizontalInside: BorderSide(
+                                        color: Colors.grey.shade300,
+                                      ),
+                                      verticalInside: BorderSide(
+                                        color: Colors.grey.shade300,
+                                        width: 1.0,
+                                      ),
+                                      bottom: BorderSide(
+                                        color: Colors.grey.shade300,
+                                      ),
+                                    ),
+                                    columnWidths: {
+                                      for (int i = 0; i < days.length; i++)
+                                        i: FixedColumnWidth(cellWidth),
+                                    },
+                                    children: [
+                                      TableRow(
+                                        children: List.generate(days.length, (
+                                          dayIndex,
+                                        ) {
+                                          final day = days[dayIndex];
+                                          final shift = _shiftTimings
+                                              .firstWhere(
+                                                (st) =>
+                                                    st['employee_id'] ==
+                                                        employee.employeeId &&
+                                                    st['day']
+                                                            .toString()
+                                                            .toLowerCase() ==
+                                                        day.toLowerCase(),
+                                                orElse: () => {},
+                                              );
 
-                              // Today Column Outline — Ends Exactly After Last Employee Row
-                              if (todayIndex >= 0 && todayIndex < days.length)
-                                SizedBox.shrink(),
+                                          final shiftName =
+                                              shift['shift_name']?.toString() ??
+                                              '';
+                                          final startTimeMillis =
+                                              shift['start_time'];
+                                          final endTimeMillis =
+                                              shift['end_time'];
+
+                                          String formatTime(int? millis) {
+                                            if (millis == null) return '';
+                                            final dt =
+                                                DateTime.fromMillisecondsSinceEpoch(
+                                                  millis,
+                                                );
+                                            return '${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
+                                          }
+
+                                          final startTime = formatTime(
+                                            startTimeMillis,
+                                          );
+                                          final endTime = formatTime(
+                                            endTimeMillis,
+                                          );
+
+                                          final hasName = shiftName.isNotEmpty;
+                                          final hasTime =
+                                              startTime.isNotEmpty &&
+                                              endTime.isNotEmpty;
+
+                                          return InkWell(
+                                            onTap: () => _showShiftDialog(
+                                              employee.employeeId!,
+                                              day,
+                                            ),
+                                            child: Container(
+                                              height: rowHeight,
+                                              alignment: Alignment.center,
+                                              padding: const EdgeInsets.all(
+                                                4.0,
+                                              ),
+                                              decoration: BoxDecoration(
+                                                color: index.isEven
+                                                    ? Colors.white
+                                                    : Colors.grey.shade100,
+                                                border: Border(
+                                                  left: dayIndex == todayIndex
+                                                      ? BorderSide(
+                                                          color: Color(
+                                                            0xFF03DAC5,
+                                                          ),
+                                                          width: 2.0,
+                                                        )
+                                                      : BorderSide(
+                                                          color: Colors
+                                                              .grey
+                                                              .shade300,
+                                                          width: 1.0,
+                                                        ),
+                                                  right: dayIndex == todayIndex
+                                                      ? BorderSide(
+                                                          color: Color(
+                                                            0xFF03DAC5,
+                                                          ),
+                                                          width: 2.0,
+                                                        )
+                                                      : BorderSide(
+                                                          color: Colors
+                                                              .grey
+                                                              .shade300,
+                                                          width: 1.0,
+                                                        ),
+                                                  bottom:
+                                                      dayIndex == todayIndex &&
+                                                          index ==
+                                                              visibleEmployees
+                                                                      .length -
+                                                                  1
+                                                      ? BorderSide(
+                                                          color: Color(
+                                                            0xFF03DAC5,
+                                                          ),
+                                                          width: 2.0,
+                                                        )
+                                                      : BorderSide(
+                                                          color: Colors
+                                                              .transparent,
+                                                        ),
+                                                ),
+                                              ),
+                                              child: (hasName || hasTime)
+                                                  ? Container(
+                                                      padding:
+                                                          const EdgeInsets.symmetric(
+                                                            vertical: 4.0,
+                                                            horizontal: 6.0,
+                                                          ),
+                                                      decoration: BoxDecoration(
+                                                        color:
+                                                            Colors.transparent,
+                                                        borderRadius:
+                                                            BorderRadius.circular(
+                                                              4.0,
+                                                            ),
+                                                      ),
+                                                      child: hasName && hasTime
+                                                          ? RichText(
+                                                              textAlign:
+                                                                  TextAlign
+                                                                      .center,
+                                                              text: TextSpan(
+                                                                children: [
+                                                                  TextSpan(
+                                                                    text:
+                                                                        shiftName,
+                                                                    style: const TextStyle(
+                                                                      fontWeight:
+                                                                          FontWeight
+                                                                              .bold,
+                                                                      fontSize:
+                                                                          12.5,
+                                                                      color: Colors
+                                                                          .black,
+                                                                    ),
+                                                                  ),
+                                                                  TextSpan(
+                                                                    text:
+                                                                        '\n($startTime-$endTime)',
+                                                                    style: const TextStyle(
+                                                                      fontWeight:
+                                                                          FontWeight
+                                                                              .normal,
+                                                                      fontSize:
+                                                                          12.5,
+                                                                      color: Colors
+                                                                          .black,
+                                                                    ),
+                                                                  ),
+                                                                ],
+                                                              ),
+                                                            )
+                                                          : Text(
+                                                              hasName
+                                                                  ? shiftName
+                                                                  : '$startTime-$endTime',
+                                                              textAlign:
+                                                                  TextAlign
+                                                                      .center,
+                                                              style: const TextStyle(
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .bold,
+                                                                fontSize: 12.5,
+                                                                color: Colors
+                                                                    .black,
+                                                              ),
+                                                            ),
+                                                    )
+                                                  : Icon(
+                                                      Icons.add,
+                                                      size: 16.0,
+                                                      color: Colors.grey[300],
+                                                    ),
+                                            ),
+                                          );
+                                        }),
+                                      ),
+                                    ],
+                                  );
+                                }),
+                              ),
                             ],
-                          );
-                        },
+                          ),
+                        ),
                       ),
                     ),
                   ],
                 ),
               ),
             ),
-          ),
-        ),
-      ],
+          ],
+        );
+      },
     );
   }
 

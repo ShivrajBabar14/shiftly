@@ -321,21 +321,28 @@ class _AddEmployeeScreenState extends State<AddEmployeeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        titleSpacing: 0,
+        titleSpacing: 0, // Keeps default spacing
         leadingWidth: 40,
         backgroundColor: Colors.white,
         iconTheme: const IconThemeData(color: Colors.deepPurple),
-        title: Align(
-          alignment: Alignment.centerLeft,
-          child: const Text(
-            'Add Employee',
-            style: TextStyle(
-              color: Colors.deepPurple,
-              fontWeight: FontWeight.bold,
+        title: Padding(
+          padding: const EdgeInsets.only(
+            left: 20.0,
+          ), // 👈 Add space between arrow and title
+          child: Align(
+            alignment: Alignment.centerLeft,
+            child: const Text(
+              'Add Employees',
+              style: TextStyle(
+                color: Colors.deepPurple,
+                fontWeight: FontWeight.bold,
+                fontSize: 20,
+              ),
             ),
           ),
         ),
       ),
+
       body: ListView.builder(
         itemCount: _employees.length,
         itemBuilder: (context, index) {
