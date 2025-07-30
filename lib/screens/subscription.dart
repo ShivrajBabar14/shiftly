@@ -47,8 +47,11 @@ class _ShiftlyProScreenState extends State<ShiftlyProScreen> {
     String purchaseToken = '';
     String purchaseDate = '';
 
+    print('DEBUG: Purchase details list received: $purchaseDetailsList');
+
     for (var purchaseDetails in purchaseDetailsList) {
-      if (purchaseDetails.status == PurchaseStatus.purchased) {
+      print('DEBUG: PurchaseDetails status: ${purchaseDetails.status}, productID: ${purchaseDetails.productID}');
+      if (purchaseDetails.status == PurchaseStatus.purchased || purchaseDetails.status == PurchaseStatus.restored) {
         if (purchaseDetails.productID == 'shiftwise_monthly' ||
             purchaseDetails.productID == 'shiftwise_yearly') {
           activeSubscriptionFound = true;
@@ -83,7 +86,11 @@ class _ShiftlyProScreenState extends State<ShiftlyProScreen> {
       Future.delayed(Duration.zero, () {
         showSuccessDialog(
           context: context,
-          onContinue: () => Navigator.pop(context),
+          onContinue: () {
+            Navigator.pop(context); // Close the success dialog
+            Navigator.pop(context); // Close the subscription screen
+          },
+          logoImage: AssetImage('assets/app_logo.png'),
         );
       });
     }

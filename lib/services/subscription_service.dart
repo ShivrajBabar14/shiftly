@@ -21,12 +21,14 @@ class SubscriptionService {
   Future<void> loadSubscriptionStatus() async {
     final prefs = await SharedPreferences.getInstance();
     _isSubscribed = prefs.getBool('isSubscribed') ?? false;
+    print('DEBUG: SubscriptionService loaded isSubscribed: $_isSubscribed');
     _subscriptionStatusController.add(_isSubscribed);
   }
 
   Future<void> setSubscriptionStatus(bool status) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('isSubscribed', status);
+    print('DEBUG: SubscriptionService setSubscriptionStatus called with: $status');
     _isSubscribed = status;
     _subscriptionStatusController.add(_isSubscribed);
   }

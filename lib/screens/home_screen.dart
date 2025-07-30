@@ -62,26 +62,6 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
 
-    // Load subscription status from SubscriptionService
-    SubscriptionService().subscriptionStatusStream.listen((subscribed) {
-      setState(() {
-        isFreeUser = !subscribed;
-        _subscriptionStatusLoaded = true;
-      });
-
-      // Manage auto-backup timer based on subscription status
-      if (!isFreeUser) {
-        _autoBackupTimer ??= Timer.periodic(const Duration(hours: 2), (
-          timer,
-        ) async {
-          await DatabaseHelper().backupDatabase();
-        });
-      } else {
-        _autoBackupTimer?.cancel();
-        _autoBackupTimer = null;
-      }
-    });
-
     // Calendar-related initializations
     _selectedDay = DateTime.now();
     _focusedDay = DateTime.now();
@@ -98,11 +78,23 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> _loadSubscriptionStatus() async {
     await SubscriptionService().loadSubscriptionStatus();
     final subscribed = SubscriptionService().isSubscribed;
-    print('DEBUG: Subscription status loaded: \$subscribed');
+    print('DEBUG: Subscription status loaded: $subscribed');
     setState(() {
       isFreeUser = !subscribed;
       _subscriptionStatusLoaded = true;
     });
+
+    // Manage auto-backup timer based on subscription status
+    if (!isFreeUser) {
+      _autoBackupTimer ??= Timer.periodic(const Duration(hours: 2), (
+        timer,
+      ) async {
+        await DatabaseHelper().backupDatabase();
+      });
+    } else {
+      _autoBackupTimer?.cancel();
+      _autoBackupTimer = null;
+    }
 
     // Then load data
     _initWeekStartAndLoadData();
