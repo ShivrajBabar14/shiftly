@@ -5,6 +5,7 @@ import 'package:in_app_purchase/in_app_purchase.dart';
 import 'package:in_app_purchase_android/in_app_purchase_android.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../widgets/success.dart';
+import 'package:shiftly/services/subscription_service.dart';
 
 class ShiftlyProScreen extends StatefulWidget {
   @override
@@ -38,7 +39,7 @@ class _ShiftlyProScreenState extends State<ShiftlyProScreen> {
     });
   }
 
-void _listenToPurchaseUpdated(List<PurchaseDetails> purchaseDetailsList) async {
+  void _listenToPurchaseUpdated(List<PurchaseDetails> purchaseDetailsList) async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     bool activeSubscriptionFound = false;
     String subscriptionType = '';
@@ -67,6 +68,9 @@ void _listenToPurchaseUpdated(List<PurchaseDetails> purchaseDetailsList) async {
     await prefs.setString('orderId', orderId);
     await prefs.setString('purchaseToken', purchaseToken);
     await prefs.setString('purchaseDate', purchaseDate);
+
+    // Update subscription service status
+    await SubscriptionService().setSubscriptionStatus(activeSubscriptionFound);
 
     setState(() {
       isSubscribed = activeSubscriptionFound;

@@ -11,6 +11,7 @@ import 'package:shiftly/widgets/limits_dialog.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'sidbar.dart';
 import 'employee_shift_screen.dart'; // Add import for new screen
+import 'package:shiftly/services/subscription_service.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -42,6 +43,8 @@ class _HomeScreenState extends State<HomeScreen> {
   bool isFreeUser = true;
   bool _subscriptionStatusLoaded = false;
 
+  bool get isLoadingSubscription => !_subscriptionStatusLoaded;
+
   bool _isOutsideCurrentWeek(DateTime date) {
     final now = DateTime.now();
     final currentWeekStart = now.subtract(
@@ -59,8 +62,25 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
 
-    // Load subscription status from SharedPreferences
-    _loadSubscriptionStatus();
+    // Load subscription status from SubscriptionService
+    SubscriptionService().subscriptionStatusStream.listen((subscribed) {
+      setState(() {
+        isFreeUser = !subscribed;
+        _subscriptionStatusLoaded = true;
+      });
+
+      // Manage auto-backup timer based on subscription status
+      if (!isFreeUser) {
+        _autoBackupTimer ??= Timer.periodic(const Duration(hours: 2), (
+          timer,
+        ) async {
+          await DatabaseHelper().backupDatabase();
+        });
+      } else {
+        _autoBackupTimer?.cancel();
+        _autoBackupTimer = null;
+      }
+    });
 
     // Calendar-related initializations
     _selectedDay = DateTime.now();
@@ -70,28 +90,19 @@ class _HomeScreenState extends State<HomeScreen> {
 
     // Initialize week range first
     _calculateWeekRange(_selectedDay);
+
+    // Load initial subscription status and data
+    _loadSubscriptionStatus();
   }
 
   Future<void> _loadSubscriptionStatus() async {
-    final prefs = await SharedPreferences.getInstance();
-    final subscribed = prefs.getBool('isSubscribed') ?? false;
+    await SubscriptionService().loadSubscriptionStatus();
+    final subscribed = SubscriptionService().isSubscribed;
+    print('DEBUG: Subscription status loaded: \$subscribed');
     setState(() {
       isFreeUser = !subscribed;
       _subscriptionStatusLoaded = true;
     });
-
-    // Set up auto-backup timer for every 2 hours (for testing)
-    if (!isFreeUser) {
-      _autoBackupTimer = Timer.periodic(const Duration(hours: 2), (
-        timer,
-      ) async {
-        await DatabaseHelper().backupDatabase();
-      });
-    } else {
-      // Cancel any existing auto backup timer for free users
-      _autoBackupTimer?.cancel();
-      _autoBackupTimer = null;
-    }
 
     // Then load data
     _initWeekStartAndLoadData();
@@ -169,6 +180,11 @@ class _HomeScreenState extends State<HomeScreen> {
     }
 
     idController.text = nextId.toString(); // Set default value
+
+    print('DEBUG: isFreeUser in _addEmployeeDialog: \$isFreeUser');
+    print(
+      'DEBUG: currentWeekEmployees.length in _addEmployeeDialog: \${employees.length}',
+    );
 
     await showDialog(
       context: context,
@@ -312,7 +328,11 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> _loadData() async {
     try {
-      if (_currentWeekStart == null) return;
+      if (_currentWeekStart == null) {
+        // Defensive: _currentWeekStart should never be null here, but if it is, log and continue
+        print('Warning: _currentWeekStart is null in _loadData');
+        return;
+      }
 
       final weekStart = _currentWeekStart.millisecondsSinceEpoch;
       final weekData = await _dbHelper.getEmployeesWithShiftsForWeek(weekStart);
@@ -392,7 +412,10 @@ class _HomeScreenState extends State<HomeScreen> {
       Duration(days: startOfWeek.weekday - 1),
     );
 
-    if (newWeekStart == _currentWeekStart) return;
+    if (newWeekStart == _currentWeekStart) {
+      // No change in week, no action needed
+      return;
+    }
 
     setState(() {
       _currentWeekStart = newWeekStart;
@@ -524,9 +547,19 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
 
-    // Check if the user is a free user
+    if (isLoadingSubscription) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Loading subscription status, please wait...'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      return;
+    }
+
+    print('DEBUG: isFreeUser in _showShiftDialog: $isFreeUser');
+
     if (isFreeUser) {
-      // If the selected date is outside the current week, show upgrade dialog
       if (_isOutsideCurrentWeek(selectedDate)) {
         await showDialog(
           context: context,
@@ -983,6 +1016,53 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  Future<void> _handleAddEmployeePressed() async {
+    if (isLoadingSubscription) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Loading subscription status, please wait...'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      return;
+    }
+
+    print('DEBUG: isFreeUser in _handleAddEmployeePressed: $isFreeUser');
+
+    if (!isFreeUser) {
+      await _showAddEmployeeDialog();
+      return;
+    }
+
+    final weekStart = _currentWeekStart.millisecondsSinceEpoch;
+    final rawWeekEmployees = await _dbHelper.getEmployeesForWeek(weekStart);
+    final currentWeekEmployees = rawWeekEmployees
+        .map((e) => Employee.fromMap(e))
+        .toList();
+
+    if (currentWeekEmployees.length >= 5) {
+      await showDialog(
+        context: context,
+        builder: (context) {
+          return LimitsDialog(
+            onGoPro: () {
+              Navigator.of(context).pop();
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => ShiftlyProScreen()),
+              );
+            },
+            onContinueFree: () {
+              Navigator.of(context).pop();
+            },
+          );
+        },
+      );
+      return;
+    }
+    await _showAddEmployeeDialog();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -1013,47 +1093,53 @@ class _HomeScreenState extends State<HomeScreen> {
           ],
         ),
         actions: [
-          Container(
-            margin: EdgeInsets.only(right: 16), // Right margin
-            child: ElevatedButton(
-              onPressed: () async {
-                final selectedEmployees = await Navigator.push<List<int>>(
-                  context,
-                  MaterialPageRoute(builder: (context) => ShiftlyProScreen()),
-                );
-                if (selectedEmployees != null) {
-                  await _loadData();
-                  setState(() {
-                    // Add only newly added employees to _selectedEmployeesForShift
-                    final currentSet = _selectedEmployeesForShift.toSet();
-                    for (var empId in selectedEmployees) {
-                      currentSet.add(empId);
-                    }
-                    _selectedEmployeesForShift = currentSet.toList();
-                  });
-                }
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors
-                    .deepPurple, // Set the background color to deep purple
-                foregroundColor: Colors.white, // Set the text color to white
-                elevation: 1, // Set elevation to add a shadow
-                padding: EdgeInsets.symmetric(
-                  horizontal: 5,
-                ), // Horizontal padding only
-                textStyle: TextStyle(fontSize: 16), // Text size
-                minimumSize: Size(80, 30), // Set minimum size (width, height)
-                shape: RoundedRectangleBorder(
-                  // ✅ Reduced border radius here
-                  borderRadius: BorderRadius.circular(6),
+          if (isFreeUser)
+            Container(
+              margin: EdgeInsets.only(right: 16), // Right margin
+              child: ElevatedButton(
+                onPressed: () async {
+                  final selectedEmployees = await Navigator.push<List<int>>(
+                    context,
+                    MaterialPageRoute(builder: (context) => ShiftlyProScreen()),
+                  );
+
+                  // Reload subscription status after returning from subscription screen
+                  await _loadSubscriptionStatus();
+
+                  if (selectedEmployees != null) {
+                    await _loadData();
+                    setState(() {
+                      // Add only newly added employees to _selectedEmployeesForShift
+                      final currentSet = _selectedEmployeesForShift.toSet();
+                      for (var empId in selectedEmployees) {
+                        currentSet.add(empId);
+                      }
+                      _selectedEmployeesForShift = currentSet.toList();
+                    });
+                  }
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors
+                      .deepPurple, // Set the background color to deep purple
+                  foregroundColor: Colors.white, // Set the text color to white
+                  elevation: 1, // Set elevation to add a shadow
+                  padding: EdgeInsets.symmetric(
+                    horizontal: 5,
+                  ), // Horizontal padding only
+                  textStyle: TextStyle(fontSize: 16), // Text size
+                  minimumSize: Size(80, 30), // Set minimum size (width, height)
+                  shape: RoundedRectangleBorder(
+                    // Reduced border radius here
+                    borderRadius: BorderRadius.circular(6),
+                  ),
                 ),
+                child: Text('Go Pro'),
               ),
-              child: Text('Go Pro'),
             ),
-          ),
         ],
       ),
       body: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
           // Week Navigation
           Container(
@@ -1155,7 +1241,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                       ),
                                     ),
                                     onPressed: () {
-                                      _showAddEmployeeDialog();
+                                      _handleAddEmployeePressed();
                                     },
                                     child: const Text(
                                       'Add Employee',
@@ -1190,7 +1276,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 borderRadius: BorderRadius.circular(30.0),
               ),
               onPressed: () {
-                _showAddEmployeeDialog();
+                _handleAddEmployeePressed();
               },
               child: const Icon(Icons.add, color: Colors.white),
             ),
@@ -1775,12 +1861,23 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  void _showAddEmployeeDialog() async {
+  Future<void> _showAddEmployeeDialog() async {
     final weekStart = _currentWeekStart.millisecondsSinceEpoch;
     final rawWeekEmployees = await _dbHelper.getEmployeesForWeek(weekStart);
     final currentWeekEmployees = rawWeekEmployees
         .map((e) => Employee.fromMap(e))
         .toList();
+
+    // Check if subscription status is loaded
+    if (isLoadingSubscription) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Loading subscription status, please wait...'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      return;
+    }
 
     // Check free user limit for max 5 employees
     if (isFreeUser && currentWeekEmployees.length >= 5) {
