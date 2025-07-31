@@ -6,7 +6,7 @@
     <uses-permission android:name="com.android.vending.BILLING" />
 
     <application
-        android:label="Shiftly"
+        android:label="Shiftwise"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher"
         android:enableOnBackInvokedCallback="true">

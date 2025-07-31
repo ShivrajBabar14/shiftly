@@ -5,7 +5,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:file_picker/file_picker.dart';
 import 'add_employee_screen.dart';
-import 'package:shiftly/db/database_helper.dart';
+import 'package:Shiftwise/db/database_helper.dart';
 // import 'subscription.dart';
 // import 'package:excel/excel.dart';
 // import 'package:path_provider/path_provider.dart';

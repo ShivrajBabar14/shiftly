@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:shiftly/models/employee.dart';
-import 'package:shiftly/db/database_helper.dart';
+import 'package:Shiftwise/models/employee.dart';
+import 'package:Shiftwise/db/database_helper.dart';
 import 'package:flutter/services.dart';
 
 class AddEmployeeScreen extends StatefulWidget {

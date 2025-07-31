@@ -2,7 +2,7 @@ import 'dart:async';
 import 'dart:io';
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
-import 'package:shiftly/models/employee.dart';
+import 'package:Shiftwise/models/employee.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -62,12 +62,12 @@ class DatabaseHelper {
     try {
       // Get the original database file path consistent with _initDatabase()
       final directory = await getApplicationDocumentsDirectory();
-      final dbPath = join(directory.path, 'Shiftly', 'shiftly.db');
+      final dbPath = join(directory.path, 'Shiftwise', 'Shiftwise.db');
       final dbFile = File(dbPath);
 
       // Use hardcoded public Documents directory path for backup storage
       final backupDirectory = Directory('/storage/emulated/0/Documents');
-      final backupDir = Directory(join(backupDirectory.path, 'Shiftly'));
+      final backupDir = Directory(join(backupDirectory.path, 'Shiftwise'));
 
       if (!await backupDir.exists()) {
         await backupDir.create(recursive: true);
@@ -76,7 +76,7 @@ class DatabaseHelper {
       // Generate timestamp for backup filename
       final timestamp = DateTime.now().toIso8601String().replaceAll(':', '-');
       final backupFile = File(
-        join(backupDir.path, 'shiftly_backup_$timestamp.db'),
+        join(backupDir.path, 'Shiftwise_backup_$timestamp.db'),
       );
 
       // Copy the database to backup location
@@ -102,7 +102,7 @@ class DatabaseHelper {
     try {
       // Use hardcoded public Documents directory path for backup storage
       final backupDirectory = Directory('/storage/emulated/0/Documents');
-      final backupDir = Directory(join(backupDirectory.path, 'Shiftly'));
+      final backupDir = Directory(join(backupDirectory.path, 'Shiftwise'));
 
       if (!await backupDir.exists()) {
         print('❌ Backup directory does not exist.');
@@ -129,7 +129,7 @@ class DatabaseHelper {
 
       // Get current database file path consistent with _initDatabase()
       final directory = await getApplicationDocumentsDirectory();
-      final dbPath = join(directory.path, 'Shiftly', 'shiftly.db');
+      final dbPath = join(directory.path, 'Shiftwise', 'Shiftwise.db');
       final dbFile = File(dbPath);
 
       // Delete existing database if it exists
@@ -168,7 +168,7 @@ class DatabaseHelper {
       }
 
       final directory = await getApplicationDocumentsDirectory();
-      final dbPath = join(directory.path, 'Shiftly', 'shiftly.db');
+      final dbPath = join(directory.path, 'Shiftwise', 'Shiftwise.db');
       print('Target database path: $dbPath');
 
       // Reopen target database with write access
@@ -286,7 +286,7 @@ class DatabaseHelper {
 
   Future<Database> _initDatabase() async {
     final directory = await getApplicationDocumentsDirectory();
-    final path = join(directory.path, 'Shiftly', 'shiftly.db');
+    final path = join(directory.path, 'Shiftwise', 'Shiftwise.db');
 
     print('🔍 Database path: $path');
     final file = File(path);

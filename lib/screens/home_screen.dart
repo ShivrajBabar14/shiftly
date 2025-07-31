@@ -3,16 +3,15 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:table_calendar/table_calendar.dart';
-import 'package:shiftly/db/database_helper.dart';
-import 'package:shiftly/models/employee.dart';
+import 'package:Shiftwise/db/database_helper.dart';
+import 'package:Shiftwise/models/employee.dart';
 import 'subscription.dart';
-import 'package:shiftly/widgets/limits_dialog.dart';
+import 'package:Shiftwise/widgets/limits_dialog.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'sidbar.dart';
 import 'employee_shift_screen.dart'; // Add import for new screen
-import 'package:shiftly/services/subscription_service.dart';
+import 'package:Shiftwise/services/subscription_service.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -467,10 +466,17 @@ class _HomeScreenState extends State<HomeScreen> {
               mainAxisSize: MainAxisSize.min, // Prevent overflow
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
-                const Text(
-                  'Remove Employee from This Week',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                Center(
+                  child: const Text(
+                    'Remove Employee',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.deepPurple,
+                    ),
+                  ),
                 ),
+
                 const SizedBox(height: 16),
                 Text(
                   'Are you sure you want to remove ${employee.name} from this week\'s shift table?',
@@ -492,7 +498,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       },
                       child: const Text(
                         'Cancel',
-                        style: TextStyle(fontSize: 18),
+                        style: TextStyle(fontSize: 18, color: Colors.grey),
                       ),
                     ),
                     const SizedBox(width: 8),
@@ -918,19 +924,25 @@ class _HomeScreenState extends State<HomeScreen> {
                     const SizedBox(height: 24),
 
                     Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      mainAxisAlignment: MainAxisAlignment.end,
                       children: [
-                        TextButton(
-                          onPressed: () => Navigator.pop(context),
-                          child: const Text(
-                            'Cancel',
-                            style: TextStyle(
-                              color: Colors.black,
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
+                        Padding(
+                          padding: const EdgeInsets.only(
+                            right: 16.0,
+                          ), // Adjust as needed
+                          child: TextButton(
+                            onPressed: () => Navigator.pop(context),
+                            child: const Text(
+                              'Cancel',
+                              style: TextStyle(
+                                color: Colors.grey,
+                                fontSize: 18,
+                                // fontWeight: FontWeight.bold,
+                              ),
                             ),
                           ),
                         ),
+
                         TextButton(
                           onPressed: () async {
                             shiftName = shiftNameController.text.trim();

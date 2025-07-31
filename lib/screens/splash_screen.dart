@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'home_screen.dart';
 import 'dart:async';
-import 'package:shiftly/db/database_helper.dart';
+import 'package:Shiftwise/db/database_helper.dart';
 import 'dart:io';
 
 class SplashScreen extends StatefulWidget {
@@ -29,7 +29,7 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 
   void _createBackupDirectory() async {
-    final backupDir = Directory('/storage/emulated/0/Documents/Shiftly');
+    final backupDir = Directory('/storage/emulated/0/Documents/Shiftwise');
     if (!await backupDir.exists()) {
       await backupDir.create(recursive: true);
       print('Backup directory created at ${backupDir.path}');
@@ -48,7 +48,7 @@ class _SplashScreenState extends State<SplashScreen> {
         bool success = await dbHelper.backupDatabase();
         if (success) {
           print('Automatic database backup completed.');
-          print('Backup stored at /storage/emulated/0/Documents/Shiftly');
+          print('Backup stored at /storage/emulated/0/Documents/Shiftwise');
         } else {
           print('Automatic database backup failed.');
         }

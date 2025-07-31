@@ -2,8 +2,8 @@
 // import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:shiftly/db/database_helper.dart';
-import 'package:shiftly/models/employee.dart';
+import 'package:Shiftwise/db/database_helper.dart';
+import 'package:Shiftwise/models/employee.dart';
 // import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';

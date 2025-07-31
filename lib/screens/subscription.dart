@@ -5,7 +5,7 @@ import 'package:in_app_purchase/in_app_purchase.dart';
 import 'package:in_app_purchase_android/in_app_purchase_android.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../widgets/success.dart';
-import 'package:shiftly/services/subscription_service.dart';
+import 'package:Shiftwise/services/subscription_service.dart';
 
 class ShiftlyProScreen extends StatefulWidget {
   @override
@@ -175,7 +175,7 @@ class _ShiftlyProScreenState extends State<ShiftlyProScreen> {
               const SizedBox(height: 20),
               Center(
                 child: Text(
-                  'Shiftly Pro',
+                  'Shiftwise Pro',
                   style: GoogleFonts.questrial(
                     fontSize: 24,
                     fontWeight: FontWeight.bold,

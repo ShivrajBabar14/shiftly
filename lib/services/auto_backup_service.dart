@@ -1,5 +1,5 @@
 import 'dart:async';
-import 'package:shiftly/db/database_helper.dart';
+import 'package:Shiftwise/db/database_helper.dart';
 
 class AutoBackupService {
   Timer? _backupTimer;
