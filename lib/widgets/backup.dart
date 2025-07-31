@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:file_picker/file_picker.dart';
 
-void showBackupRestoreDialog(BuildContext context) {
+void showBackupRestoreDialog(BuildContext context, String initialDirectory) {
   showDialog(
     context: context,
     builder: (context) {
@@ -29,7 +30,7 @@ void showBackupRestoreDialog(BuildContext context) {
               ),
               const SizedBox(height: 4),
               Text(
-                '/storage/emulated/.......',
+                initialDirectory,
                 style: TextStyle(color: Colors.grey[700]),
               ),
               const SizedBox(height: 20),
@@ -46,9 +47,33 @@ void showBackupRestoreDialog(BuildContext context) {
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  onPressed: () {
-                    // Handle restore logic here
+                  onPressed: () async {
                     Navigator.pop(context); // Close dialog
+                    try {
+                      final result = await FilePicker.platform.pickFiles(
+                        type: FileType.any,
+                        initialDirectory: initialDirectory,
+                      );
+                      // Handle the selected file path here if needed
+                      if (result == null || result.files.isEmpty) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('No file selected.')),
+                        );
+                        return;
+                      }
+                      final filePath = result.files.single.path;
+                      if (filePath == null) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('Invalid file path.')),
+                        );
+                        return;
+                      }
+                      // You can add logic here to restore from the selected file if needed
+                    } catch (e) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('Error selecting file: $e')),
+                      );
+                    }
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.deepPurple,

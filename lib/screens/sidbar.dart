@@ -69,7 +69,7 @@ class AppDrawer extends StatelessWidget {
                         return;
                       }
 
-                      showBackupRestoreDialog(context);
+                      showBackupRestoreDialog(context, '/storage/emulated/0/Documents/Shiftwise');
                     } catch (e) {
                       scaffoldMessenger.showSnackBar(
                         SnackBar(content: Text('Error checking backup: $e')),
