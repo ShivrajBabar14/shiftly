@@ -10,7 +10,7 @@ import 'package:package_info_plus/package_info_plus.dart';
 
 class AppDrawer extends StatelessWidget {
   static const platform = MethodChannel(
-    'com.example.employeeshifttracker/mail',
+    'com.shift.schedule.app/mail',
   );
 
   @override
