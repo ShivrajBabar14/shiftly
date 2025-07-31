@@ -7,6 +7,7 @@ import 'package:file_picker/file_picker.dart';
 import 'add_employee_screen.dart';
 import 'package:Shiftwise/db/database_helper.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import '../widgets/backup.dart';
 
 class AppDrawer extends StatelessWidget {
   static const platform = MethodChannel(
@@ -60,60 +61,18 @@ class AppDrawer extends StatelessWidget {
                     final dbHelper = DatabaseHelper();
 
                     try {
-                      final result = await FilePicker.platform.pickFiles(
-                        type: FileType.any,
-                        initialDirectory: '/storage/emulated/0/',
-                      );
-
-                      if (result == null || result.files.isEmpty) {
+                      final backupDir = Directory('/storage/emulated/0/Documents/Shiftwise');
+                      if (!await backupDir.exists() || backupDir.listSync().isEmpty) {
                         scaffoldMessenger.showSnackBar(
-                          SnackBar(content: Text('No file selected.')),
+                          SnackBar(content: Text('Backup is not available')),
                         );
                         return;
                       }
 
-                      final filePath = result.files.single.path;
-                      if (filePath == null) {
-                        scaffoldMessenger.showSnackBar(
-                          SnackBar(content: Text('Invalid file path.')),
-                        );
-                        return;
-                      }
-
-                      bool restoreSuccess = await dbHelper.restoreFromFile(
-                        filePath,
-                      );
-                      if (restoreSuccess) {
-                        bool backupSuccess = false;
-                        try {
-                          await dbHelper.backupDatabase();
-                          backupSuccess = true;
-                        } catch (_) {
-                          backupSuccess = false;
-                        }
-
-                        scaffoldMessenger.showSnackBar(
-                          SnackBar(
-                            content: Text(
-                              'Database restored from selected file. ' +
-                                  (backupSuccess
-                                      ? 'Backup created successfully.'
-                                      : 'Backup creation failed.'),
-                            ),
-                          ),
-                        );
-                      } else {
-                        scaffoldMessenger.showSnackBar(
-                          SnackBar(
-                            content: Text(
-                              'Failed to restore from selected file.',
-                            ),
-                          ),
-                        );
-                      }
+                      showBackupRestoreDialog(context);
                     } catch (e) {
                       scaffoldMessenger.showSnackBar(
-                        SnackBar(content: Text('Error selecting file: $e')),
+                        SnackBar(content: Text('Error checking backup: $e')),
                       );
                     }
                   },
