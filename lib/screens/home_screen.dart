@@ -48,15 +48,25 @@ class _HomeScreenState extends State<HomeScreen> {
 
   bool get isLoadingSubscription => !_subscriptionStatusLoaded;
 
-  bool _isOutsideCurrentWeek(DateTime date) {
+  DateTime get _actualCurrentWeekStart {
     final now = DateTime.now();
-    final currentWeekStart = now.subtract(
-      Duration(days: now.weekday - 1),
-    ); // Monday
-    final currentWeekEnd = currentWeekStart.add(
-      const Duration(days: 6),
-    ); // Sunday
-    return date.isBefore(currentWeekStart) || date.isAfter(currentWeekEnd);
+    final monday = DateTime(now.year, now.month, now.day).subtract(Duration(days: now.weekday - 1));
+    return monday;
+  }
+
+  DateTime get _actualCurrentWeekEnd {
+    final start = _actualCurrentWeekStart;
+    final sunday = DateTime(start.year, start.month, start.day).add(const Duration(days: 6, hours: 23, minutes: 59, seconds: 59));
+    return sunday;
+  }
+
+  bool _isOutsideActualCurrentWeek(DateTime date) {
+    return date.isBefore(_actualCurrentWeekStart) || date.isAfter(_actualCurrentWeekEnd);
+  }
+
+  bool _isOutsideCurrentWeek(DateTime date) {
+    // Use _currentWeekStart and _currentWeekEnd for consistency with UI
+    return date.isBefore(_currentWeekStart) || date.isAfter(_currentWeekEnd);
   }
 
   Timer? _autoBackupTimer;
@@ -568,7 +578,7 @@ class _HomeScreenState extends State<HomeScreen> {
     print('DEBUG: isFreeUser in _showShiftDialog: $isFreeUser');
 
     if (isFreeUser) {
-      if (_isOutsideCurrentWeek(selectedDate)) {
+      if (_isOutsideActualCurrentWeek(selectedDate)) {
         await showDialog(
           context: context,
           builder: (context) {
@@ -964,27 +974,27 @@ class _HomeScreenState extends State<HomeScreen> {
                               int? startTimeMillis;
                               int? endTimeMillis;
 
-                              if (hasTime) {
-                                final startDateTime = DateTime(
-                                  _selectedDay.year,
-                                  _selectedDay.month,
-                                  _selectedDay.day,
-                                  startTime!.hour,
-                                  startTime!.minute,
-                                );
-                                startTimeMillis =
-                                    startDateTime.millisecondsSinceEpoch;
+                            if (hasTime) {
+                              final startDateTime = DateTime(
+                                selectedDate.year,
+                                selectedDate.month,
+                                selectedDate.day,
+                                startTime!.hour,
+                                startTime!.minute,
+                              );
+                              startTimeMillis =
+                                  startDateTime.millisecondsSinceEpoch;
 
-                                final endDateTime = DateTime(
-                                  _selectedDay.year,
-                                  _selectedDay.month,
-                                  _selectedDay.day,
-                                  endTime!.hour,
-                                  endTime!.minute,
-                                );
-                                endTimeMillis =
-                                    endDateTime.millisecondsSinceEpoch;
-                              }
+                              final endDateTime = DateTime(
+                                selectedDate.year,
+                                selectedDate.month,
+                                selectedDate.day,
+                                endTime!.hour,
+                                endTime!.minute,
+                              );
+                              endTimeMillis =
+                                  endDateTime.millisecondsSinceEpoch;
+                            }
 
                               await _dbHelper.insertOrUpdateShift(
                                 employeeId: employeeId,
