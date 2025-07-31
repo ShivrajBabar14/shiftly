@@ -188,25 +188,19 @@ class _ShiftlyProScreenState extends State<ShiftlyProScreen> {
                 title: 'Unlimited Employee Access',
                 subtitle: 'Add more than 5 employees to your team with a paid plan',
               ),
-              const SizedBox(height: 25),
+              const SizedBox(height: 35),
               buildFeature(
                 assetPath: 'assets/backup.png',
                 title: 'Auto Backup',
                 subtitle: 'Keep your data safe with automatic backup feature',
               ),
-              const SizedBox(height: 25),
-              buildFeature(
-                assetPath: 'assets/schedule.png',
-                title: 'Unlimited Employee Access',
-                subtitle: 'Add more than 5 employees to your team with a paid plan',
-              ),
-              const SizedBox(height: 25),
+              const SizedBox(height: 35),
               buildFeature(
                 assetPath: 'assets/schedule.png',
                 title: 'Advanced Shift Scheduling',
                 subtitle: 'Create shifts for the upcoming weeks in advance.',
               ),
-              const SizedBox(height: 40),
+              const SizedBox(height: 100),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
@@ -248,7 +242,7 @@ class _ShiftlyProScreenState extends State<ShiftlyProScreen> {
                   ),
                 ],
               ),
-              const SizedBox(height: 50),
+              const SizedBox(height: 60),
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(

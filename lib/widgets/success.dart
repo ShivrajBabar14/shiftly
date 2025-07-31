@@ -95,7 +95,10 @@ class SuccessDialog extends StatelessWidget {
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
-                onPressed: onContinue,
+                onPressed: () {
+                  Navigator.of(context).pop(); // Close the dialog
+                  onContinue(); // Then call the onContinue callback
+                },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.deepPurple,
                   padding: const EdgeInsets.symmetric(vertical: 14),

@@ -33,7 +33,7 @@ class LimitsDialog extends StatelessWidget {
             ),
             const SizedBox(height: 20),
             _buildFeatureItem('Add unlimited employees'),
-            _buildFeatureItem('Enable auto backups'),
+            _buildFeatureItem('Auto Backup'),
             _buildFeatureItem('Access advanced shift scheduling'),
             const SizedBox(height: 24),
             Row(
@@ -86,7 +86,7 @@ class LimitsDialog extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Padding(
-            padding: EdgeInsets.only(top: 2),
+            padding: EdgeInsets.only(top: 6),
             child: Icon(Icons.circle, size: 6, color: Colors.black),
           ),
           const SizedBox(width: 12),
