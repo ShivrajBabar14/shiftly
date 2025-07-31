@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:Shiftwise/models/employee.dart';
 import 'package:Shiftwise/db/database_helper.dart';
 import 'package:flutter/services.dart';
+import 'package:Shiftwise/widgets/limits_dialog.dart';
 
 class AddEmployeeScreen extends StatefulWidget {
-  const AddEmployeeScreen({super.key});
+  final bool isFreeUser;
+  const AddEmployeeScreen({super.key, required this.isFreeUser});
 
   @override
   State<AddEmployeeScreen> createState() => _AddEmployeeScreenState();
@@ -36,8 +38,25 @@ class _AddEmployeeScreenState extends State<AddEmployeeScreen> {
     final TextEditingController nameController = TextEditingController();
     final TextEditingController idController = TextEditingController();
 
-    // Get all employees
+    // Check employee count and limit for free users
     final employees = await _dbHelper.getEmployees();
+    if (widget.isFreeUser && employees.length >= 5) {
+      await showDialog(
+        context: context,
+        builder: (context) {
+          return LimitsDialog(
+            onGoPro: () {
+              Navigator.of(context).pop();
+              // Navigate to pro screen or handle accordingly
+            },
+            onContinueFree: () {
+              Navigator.of(context).pop();
+            },
+          );
+        },
+      );
+      return;
+    }
 
     // Find the highest current ID
     int nextId = 1; // Default start

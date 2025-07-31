@@ -120,7 +120,7 @@ class AppDrawer extends StatelessWidget {
         if (title == 'All Employees') {
           Navigator.push(
             context,
-            MaterialPageRoute(builder: (context) => AddEmployeeScreen()),
+            MaterialPageRoute(builder: (context) => AddEmployeeScreen(isFreeUser: true)),
           );
         } else if (title == 'Write Feedback') {
           _launchFeedbackMail(context);
