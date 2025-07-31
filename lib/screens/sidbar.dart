@@ -51,7 +51,7 @@ class AppDrawer extends StatelessWidget {
                 ListTile(
                   leading: Icon(Icons.restore, color: Colors.deepPurple),
                   title: Text(
-                    'Restore Data',
+                    'Backup & Restore',
                     style: TextStyle(color: Colors.black87),
                   ),
                   onTap: () async {
@@ -130,7 +130,6 @@ class AppDrawer extends StatelessWidget {
               if (!snapshot.hasData) return SizedBox();
 
               final version = snapshot.data!.version;
-              final buildNumber = snapshot.data!.buildNumber;
 
               return Padding(
                 padding: const EdgeInsets.symmetric(

@@ -43,6 +43,9 @@ class _HomeScreenState extends State<HomeScreen> {
   bool isFreeUser = true;
   bool _subscriptionStatusLoaded = false;
 
+  // New flag to control overlay visibility
+  bool _showProOverlay = false;
+
   bool get isLoadingSubscription => !_subscriptionStatusLoaded;
 
   bool _isOutsideCurrentWeek(DateTime date) {
@@ -99,6 +102,9 @@ class _HomeScreenState extends State<HomeScreen> {
     // Then load data
     _initWeekStartAndLoadData();
     _loadEmployees();
+
+    // Check and update overlay visibility after loading subscription and employees
+    _checkProOverlayVisibility();
   }
 
   @override
@@ -361,6 +367,9 @@ class _HomeScreenState extends State<HomeScreen> {
             .map((e) => e.employeeId!)
             .toList();
       });
+
+      // Check and update overlay visibility after loading data
+      _checkProOverlayVisibility();
     } catch (e, st) {
       print('Error in _loadData: $e\n$st');
       setState(() => _isLoading = false);
@@ -1068,6 +1077,29 @@ class _HomeScreenState extends State<HomeScreen> {
     await _showAddEmployeeDialog();
   }
 
+  // New method to check if user is free for previous and next week and update overlay visibility
+  Future<void> _checkProOverlayVisibility() async {
+    if (!isFreeUser) {
+      setState(() {
+        _showProOverlay = false;
+      });
+      return;
+    }
+
+    final prevWeekStart = _currentWeekStart.subtract(const Duration(days: 7)).millisecondsSinceEpoch;
+    final nextWeekStart = _currentWeekStart.add(const Duration(days: 7)).millisecondsSinceEpoch;
+
+    final prevWeekShifts = await _dbHelper.getEmployeesWithShiftsForWeek(prevWeekStart);
+    final nextWeekShifts = await _dbHelper.getEmployeesWithShiftsForWeek(nextWeekStart);
+
+    final bool isFreePrevWeek = prevWeekShifts.isEmpty;
+    final bool isFreeNextWeek = nextWeekShifts.isEmpty;
+
+    setState(() {
+      _showProOverlay = isFreePrevWeek && isFreeNextWeek;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -1462,7 +1494,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               bottom: BorderSide(color: Colors.grey.shade300),
                               right: BorderSide(
                                 color: Colors.grey.shade400,
-                                width: 1.5,
+                                width: 0.3,
                               ),
                             ),
                           ),
@@ -1507,7 +1539,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                     ),
                                     right: BorderSide(
                                       color: Colors.grey.shade400,
-                                      width: 1.5,
+                                      width: 0.3,
                                     ),
                                   ),
                                 ),
@@ -1552,7 +1584,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                     ),
                                     verticalInside: BorderSide(
                                       color: Colors.grey.shade300,
-                                      width: 0.5,
+                                      width: 0,
                                     ),
                                     bottom: BorderSide(
                                       color: Colors.grey.shade300,
@@ -1583,28 +1615,28 @@ class _HomeScreenState extends State<HomeScreen> {
                                               top: isToday
                                                   ? BorderSide(
                                                       color: Color(0xFF03DAC5),
-                                                      width: 2.0,
+                                                      width: 1.0,
                                                     )
                                                   : BorderSide(
                                                       color:
                                                           Colors.grey.shade300,
-                                                      width: 1.0,
+                                                      width: 0,
                                                     ),
                                               left: isToday
                                                   ? BorderSide(
                                                       color: Color(0xFF03DAC5),
-                                                      width: 2.0,
+                                                      width: 1.0,
                                                     )
                                                   : BorderSide(
                                                       color:
                                                           Colors.grey.shade300,
-                                                      width: 1.0,
+                                                      width: 0,
                                                     ),
                                               right: BorderSide(
                                                 color: isToday
                                                     ? Color(0xFF03DAC5)
                                                     : Colors.grey.shade300,
-                                                width: 2.0,
+                                                width: 1.0,
                                               ),
                                             ),
                                           ),
@@ -1651,7 +1683,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                       ),
                                       verticalInside: BorderSide(
                                         color: Colors.grey.shade300,
-                                        width: 1.0,
+                                        width: 0,
                                       ),
                                       bottom: BorderSide(
                                         color: Colors.grey.shade300,
@@ -1717,7 +1749,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                               height: rowHeight,
                                               alignment: Alignment.center,
                                               padding: const EdgeInsets.all(
-                                                4.0,
+                                                1.0,
                                               ),
                                               decoration: BoxDecoration(
                                                 color: index.isEven
@@ -1729,26 +1761,26 @@ class _HomeScreenState extends State<HomeScreen> {
                                                           color: Color(
                                                             0xFF03DAC5,
                                                           ),
-                                                          width: 2.0,
+                                                          width: 1.0,
                                                         )
                                                       : BorderSide(
                                                           color: Colors
                                                               .grey
                                                               .shade300,
-                                                          width: 1.0,
+                                                          width: 0,
                                                         ),
                                                   right: dayIndex == todayIndex
                                                       ? BorderSide(
                                                           color: Color(
                                                             0xFF03DAC5,
                                                           ),
-                                                          width: 2.0,
+                                                          width: 1.0,
                                                         )
                                                       : BorderSide(
                                                           color: Colors
                                                               .grey
                                                               .shade300,
-                                                          width: 1.0,
+                                                          width: 0,
                                                         ),
                                                   bottom:
                                                       dayIndex == todayIndex &&
