@@ -6,12 +6,7 @@ import 'package:share_plus/share_plus.dart';
 import 'package:file_picker/file_picker.dart';
 import 'add_employee_screen.dart';
 import 'package:Shiftwise/db/database_helper.dart';
-// import 'subscription.dart';
-// import 'package:excel/excel.dart';
-// import 'package:path_provider/path_provider.dart';
-// import 'package:path/path.dart' as path;
-// import 'package:permission_handler/permission_handler.dart';
-import '../widgets/success.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 
 class AppDrawer extends StatelessWidget {
   static const platform = MethodChannel(
@@ -64,9 +59,6 @@ class AppDrawer extends StatelessWidget {
                     Navigator.of(context).pop();
                     final dbHelper = DatabaseHelper();
 
-                    // Removed storage permission check to allow direct file selection
-
-                    // Open file picker to select backup file
                     try {
                       final result = await FilePicker.platform.pickFiles(
                         type: FileType.any,
@@ -96,9 +88,10 @@ class AppDrawer extends StatelessWidget {
                         try {
                           await dbHelper.backupDatabase();
                           backupSuccess = true;
-                        } catch (e) {
+                        } catch (_) {
                           backupSuccess = false;
                         }
+
                         scaffoldMessenger.showSnackBar(
                           SnackBar(
                             content: Text(
@@ -125,34 +118,34 @@ class AppDrawer extends StatelessWidget {
                     }
                   },
                 ),
-                // _buildDrawerItem(Icons.upgrade, 'Subscription', context),
                 _buildDrawerItem(Icons.share, 'Share App', context),
                 _buildDrawerItem(Icons.star, 'Rate Us', context),
                 _buildDrawerItem(Icons.feedback, 'Write Feedback', context),
-
-                // ListTile(
-                //   leading: Icon(Icons.file_download, color: Colors.deepPurple),
-                //   title: Text(
-                //     'Export Data',
-                //     style: TextStyle(color: Colors.black87),
-                //   ),
-                //   onTap: () async {
-                //     Navigator.of(context).pop();
-                //     await _exportData(context);
-                //   },
-                // ),
               ],
             ),
           ),
-          Padding(
-            padding: EdgeInsets.all(16.0),
-            child: Align(
-              alignment: Alignment.centerLeft,
-              child: Text(
-                'Version (1.0.6)',
-                style: TextStyle(color: Colors.black),
-              ),
-            ),
+          FutureBuilder<PackageInfo>(
+            future: PackageInfo.fromPlatform(),
+            builder: (context, snapshot) {
+              if (!snapshot.hasData) return SizedBox();
+
+              final version = snapshot.data!.version;
+              final buildNumber = snapshot.data!.buildNumber;
+
+              return Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16.0,
+                  vertical: 12.0,
+                ),
+                child: Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    'Version $version',
+                    style: TextStyle(color: Colors.black54, fontSize: 14),
+                  ),
+                ),
+              );
+            },
           ),
         ],
       ),
@@ -164,18 +157,13 @@ class AppDrawer extends StatelessWidget {
       leading: Icon(icon, color: Colors.deepPurple),
       title: Text(title, style: TextStyle(color: Colors.black87)),
       onTap: () {
-        Navigator.of(context).pop(); // Close the drawer
+        Navigator.of(context).pop();
 
         if (title == 'All Employees') {
           Navigator.push(
             context,
             MaterialPageRoute(builder: (context) => AddEmployeeScreen()),
           );
-          // } else if (title == 'Subscription') {
-          //   Navigator.push(
-          //     context,
-          //     MaterialPageRoute(builder: (context) => ShiftlyProScreen()),
-          //   );
         } else if (title == 'Write Feedback') {
           _launchFeedbackMail(context);
         } else if (title == 'Rate Us') {
@@ -209,16 +197,11 @@ class AppDrawer extends StatelessWidget {
 
       if (await canLaunchUrl(emailLaunchUri)) {
         await launchUrl(emailLaunchUri, mode: LaunchMode.externalApplication);
-        return;
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('No mail app found on this device.')),
+        );
       }
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'No mail app found on this device. Please install a mail app to send feedback.',
-          ),
-        ),
-      );
     } on PlatformException catch (e) {
       print("Failed to open Gmail app: $e");
       ScaffoldMessenger.of(
@@ -265,76 +248,4 @@ class AppDrawer extends StatelessWidget {
       ).showSnackBar(SnackBar(content: Text('Failed to share the app.')));
     }
   }
-
-  // Future<void> _exportData(BuildContext context) async {
-  //   PermissionStatus status = await Permission.storage.request();
-  //   if (!status.isGranted) {
-  //     ScaffoldMessenger.of(context).showSnackBar(
-  //         SnackBar(content: Text('Storage permission denied')));
-  //     return;
-  //   }
-
-  //   try {
-  //     final dbHelper = DatabaseHelper();
-  //     final employees = await dbHelper.getEmployees();
-
-  //     var excel = Excel.createExcel();
-  //     var sheetObject = excel['Employees'];
-
-  //     // Add header row (no need for CellValue.string(), just direct values)
-  //     sheetObject.appendRow([
-  //       'Employee ID',
-  //       'Name',
-  //       // Add other columns as needed
-  //     ]);
-
-  //     // Add data rows (direct values)
-  //     for (var emp in employees) {
-  //       sheetObject.appendRow([
-  //         emp['employee_id'].toString(),
-  //         emp['name'].toString(),
-  //         // Add other fields as needed
-  //       ]);
-  //     }
-
-  //     // Get directory and save file
-  //     final directory = await getExternalStorageDirectory();
-  //     if (directory == null) {
-  //       throw Exception('Could not access storage directory');
-  //     }
-
-  //     final filePath = path.join(directory.path, 'employees_export.xlsx');
-  //     final fileBytes = excel.encode();
-
-  //     if (fileBytes == null) {
-  //       throw Exception('Failed to encode Excel file');
-  //     }
-
-  //     final file = File(filePath);
-  //     await file.writeAsBytes(fileBytes);
-
-  //     if (await file.exists()) {
-  //       ScaffoldMessenger.of(context).showSnackBar(
-  //         SnackBar(
-  //           content: Text('Data exported successfully to $filePath'),
-  //           action: SnackBarAction(
-  //             label: 'Open',
-  //             onPressed: () async {
-  //               if (await canLaunchUrl(Uri.file(filePath))) {
-  //                 await launchUrl(Uri.file(filePath));
-  //               }
-  //             },
-  //           ),
-  //         ),
-  //       );
-  //     } else {
-  //       throw Exception('File not found after export');
-  //     }
-  //   } catch (e) {
-  //     print('Export error: $e');
-  //     ScaffoldMessenger.of(context).showSnackBar(
-  //       SnackBar(content: Text('Failed to export data: ${e.toString()}')),
-  //     );
-  //   }
-  // }
 }
