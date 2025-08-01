@@ -50,25 +50,29 @@ class _HomeScreenState extends State<HomeScreen> {
 
   DateTime get _actualCurrentWeekStart {
     final now = DateTime.now();
-    final monday = DateTime(now.year, now.month, now.day).subtract(Duration(days: now.weekday - 1));
+    final monday = DateTime(
+      now.year,
+      now.month,
+      now.day,
+    ).subtract(Duration(days: now.weekday - 1));
     return monday;
   }
 
   DateTime get _actualCurrentWeekEnd {
     final start = _actualCurrentWeekStart;
-    final sunday = DateTime(start.year, start.month, start.day).add(const Duration(days: 6, hours: 23, minutes: 59, seconds: 59));
+    final sunday = DateTime(
+      start.year,
+      start.month,
+      start.day,
+    ).add(const Duration(days: 6, hours: 23, minutes: 59, seconds: 59));
     return sunday;
   }
 
   bool _isOutsideActualCurrentWeek(DateTime date) {
-    return date.isBefore(_actualCurrentWeekStart) || date.isAfter(_actualCurrentWeekEnd);
+    return date.isBefore(_actualCurrentWeekStart) ||
+        date.isAfter(_actualCurrentWeekEnd);
   }
-
-  bool _isOutsideCurrentWeek(DateTime date) {
-    // Use _currentWeekStart and _currentWeekEnd for consistency with UI
-    return date.isBefore(_currentWeekStart) || date.isAfter(_currentWeekEnd);
-  }
-
+  
   Timer? _autoBackupTimer;
 
   @override
@@ -163,15 +167,15 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  Future<void> _loadEmployeesForWeek(int weekId) async {
-    final employeeMaps = await dbHelper.getEmployeesForWeek(weekId);
+  // Future<void> _loadEmployeesForWeek(int weekId) async {
+  //   final employeeMaps = await dbHelper.getEmployeesForWeek(weekId);
 
-    final employees = employeeMaps.map((map) => Employee.fromMap(map)).toList();
+  //   final employees = employeeMaps.map((map) => Employee.fromMap(map)).toList();
 
-    setState(() {
-      _employees = employees;
-    });
-  }
+  //   setState(() {
+  //     _employees = employees;
+  //   });
+  // }
 
   Future<void> _addEmployeeDialog() async {
     final TextEditingController nameController = TextEditingController();
@@ -974,27 +978,27 @@ class _HomeScreenState extends State<HomeScreen> {
                               int? startTimeMillis;
                               int? endTimeMillis;
 
-                            if (hasTime) {
-                              final startDateTime = DateTime(
-                                selectedDate.year,
-                                selectedDate.month,
-                                selectedDate.day,
-                                startTime!.hour,
-                                startTime!.minute,
-                              );
-                              startTimeMillis =
-                                  startDateTime.millisecondsSinceEpoch;
+                              if (hasTime) {
+                                final startDateTime = DateTime(
+                                  selectedDate.year,
+                                  selectedDate.month,
+                                  selectedDate.day,
+                                  startTime!.hour,
+                                  startTime!.minute,
+                                );
+                                startTimeMillis =
+                                    startDateTime.millisecondsSinceEpoch;
 
-                              final endDateTime = DateTime(
-                                selectedDate.year,
-                                selectedDate.month,
-                                selectedDate.day,
-                                endTime!.hour,
-                                endTime!.minute,
-                              );
-                              endTimeMillis =
-                                  endDateTime.millisecondsSinceEpoch;
-                            }
+                                final endDateTime = DateTime(
+                                  selectedDate.year,
+                                  selectedDate.month,
+                                  selectedDate.day,
+                                  endTime!.hour,
+                                  endTime!.minute,
+                                );
+                                endTimeMillis =
+                                    endDateTime.millisecondsSinceEpoch;
+                              }
 
                               await _dbHelper.insertOrUpdateShift(
                                 employeeId: employeeId,
@@ -1096,11 +1100,19 @@ class _HomeScreenState extends State<HomeScreen> {
       return;
     }
 
-    final prevWeekStart = _currentWeekStart.subtract(const Duration(days: 7)).millisecondsSinceEpoch;
-    final nextWeekStart = _currentWeekStart.add(const Duration(days: 7)).millisecondsSinceEpoch;
+    final prevWeekStart = _currentWeekStart
+        .subtract(const Duration(days: 7))
+        .millisecondsSinceEpoch;
+    final nextWeekStart = _currentWeekStart
+        .add(const Duration(days: 7))
+        .millisecondsSinceEpoch;
 
-    final prevWeekShifts = await _dbHelper.getEmployeesWithShiftsForWeek(prevWeekStart);
-    final nextWeekShifts = await _dbHelper.getEmployeesWithShiftsForWeek(nextWeekStart);
+    final prevWeekShifts = await _dbHelper.getEmployeesWithShiftsForWeek(
+      prevWeekStart,
+    );
+    final nextWeekShifts = await _dbHelper.getEmployeesWithShiftsForWeek(
+      nextWeekStart,
+    );
 
     final bool isFreePrevWeek = prevWeekShifts.isEmpty;
     final bool isFreeNextWeek = nextWeekShifts.isEmpty;
@@ -1477,6 +1489,9 @@ class _HomeScreenState extends State<HomeScreen> {
         : _employees
               .where((e) => _selectedEmployeesForShift.contains(e.employeeId))
               .toList();
+
+    final bool isViewingNextWeek = _currentWeekStart.isAfter(DateTime.now());
+    final bool showOverlay = isFreeUser && isViewingNextWeek;
 
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -1900,6 +1915,77 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
             ),
+            if (showOverlay)
+              Positioned.fill(
+                child: Container(color: Colors.white.withOpacity(0.6)),
+              ),
+            if (showOverlay)
+              Align(
+                alignment: Alignment.topCenter,
+                child: Padding(
+                  padding: const EdgeInsets.only(
+                    top: 80,
+                  ), // Adjust top spacing as needed
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 20),
+                        child: Text(
+                          "Unlock Advanced Shift Scheduling",
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black87,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+                      const Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 20),
+                        child: Text(
+                          "You can create shifts for the upcoming weeks in advance with Pro version",
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: 14.5,
+                            color: Colors.black,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+                      ElevatedButton(
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => ShiftlyProScreen(),
+                            ),
+                          );
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.deepPurple,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 32,
+                            vertical: 10,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                        child: const Text(
+                          "Go Pro",
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
           ],
         );
       },
