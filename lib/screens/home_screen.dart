@@ -72,7 +72,7 @@ class _HomeScreenState extends State<HomeScreen> {
     return date.isBefore(_actualCurrentWeekStart) ||
         date.isAfter(_actualCurrentWeekEnd);
   }
-  
+
   Timer? _autoBackupTimer;
 
   @override
@@ -748,13 +748,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         final match = regex.firstMatch(selection);
                         final cleanName = match?.group(1)?.trim() ?? selection;
 
-                        WidgetsBinding.instance.addPostFrameCallback((_) {
-                          shiftNameController
-                            ..text = cleanName
-                            ..selection = TextSelection.collapsed(
-                              offset: cleanName.length,
-                            );
-                        });
+                        shiftNameController.text = cleanName;
 
                         if (match != null) {
                           final sHour = int.tryParse(match.group(2) ?? '');
@@ -762,14 +756,18 @@ class _HomeScreenState extends State<HomeScreen> {
                           final eHour = int.tryParse(match.group(4) ?? '');
                           final eMin = int.tryParse(match.group(5) ?? '');
 
-                          if (sHour != null && sMin != null) {
-                            startTime = TimeOfDay(hour: sHour, minute: sMin);
-                          }
-                          if (eHour != null && eMin != null) {
-                            endTime = TimeOfDay(hour: eHour, minute: eMin);
-                          }
+                          // ✅ Ensure setState is called so UI updates
+                          setState(() {
+                            if (sHour != null && sMin != null) {
+                              startTime = TimeOfDay(hour: sHour, minute: sMin);
+                            }
+                            if (eHour != null && eMin != null) {
+                              endTime = TimeOfDay(hour: eHour, minute: eMin);
+                            }
+                          });
                         }
                       },
+
                       fieldViewBuilder:
                           (
                             context,
@@ -1947,10 +1945,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         child: Text(
                           "You can create shifts for the upcoming weeks in advance with Pro version",
                           textAlign: TextAlign.center,
-                          style: TextStyle(
-                            fontSize: 14.5,
-                            color: Colors.black,
-                          ),
+                          style: TextStyle(fontSize: 14.5, color: Colors.black),
                         ),
                       ),
                       const SizedBox(height: 20),
