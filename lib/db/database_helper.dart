@@ -73,11 +73,19 @@ class DatabaseHelper {
         await backupDir.create(recursive: true);
       }
 
-      // Generate timestamp for backup filename
-      final timestamp = DateTime.now().toIso8601String().replaceAll(':', '-');
-      final backupFile = File(
-        join(backupDir.path, 'Shiftwise_backup_$timestamp.db'),
-      );
+      // Generate date string for backup filename (YYYY-MM-DD)
+      final now = DateTime.now();
+      final dateStr = '${now.year.toString().padLeft(4, '0')}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
+
+      // Construct backup file path for today's backup
+      final backupFilePath = join(backupDir.path, 'Shiftwise_backup_$dateStr.db');
+      final backupFile = File(backupFilePath);
+
+      // If backup file for today exists, delete it to replace
+      if (await backupFile.exists()) {
+        await backupFile.delete();
+        print('🗑️ Deleted existing backup file for today: $backupFilePath');
+      }
 
       // Copy the database to backup location
       await dbFile.copy(backupFile.path);
