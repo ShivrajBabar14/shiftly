@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:intl/intl.dart';
+import 'package:Shiftwise/db/database_helper.dart';
 
 void showBackupRestoreDialog(BuildContext context, String initialDirectory, {DateTime? lastBackupDate}) {
   showDialog(
@@ -53,32 +54,51 @@ void showBackupRestoreDialog(BuildContext context, String initialDirectory, {Dat
                 width: double.infinity,
                 child: ElevatedButton(
                   onPressed: () async {
-                    Navigator.pop(context); // Close dialog
                     try {
+                      final dbHelper = DatabaseHelper();
                       final result = await FilePicker.platform.pickFiles(
                         type: FileType.any,
                         initialDirectory: initialDirectory,
                       );
-                      // Handle the selected file path here if needed
                       if (result == null || result.files.isEmpty) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('No file selected.')),
-                        );
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text('No file selected.')),
+                          );
+                        }
                         return;
                       }
                       final filePath = result.files.single.path;
                       if (filePath == null) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('Invalid file path.')),
-                        );
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text('Invalid file path.')),
+                          );
+                        }
                         return;
                       }
-                      // You can add logic here to restore from the selected file if needed
+                      final success = await dbHelper.restoreFromFile(filePath);
+                      if (context.mounted) {
+                      if (success) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('Backup restored successfully. Please restart the app to apply changes.')),
+                        );
+                        // Removed app restart navigation to avoid widget build errors
+                        // User should manually restart the app to apply changes
+                      } else {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('Failed to restore backup.')),
+                        );
+                      }
+                      }
                     } catch (e) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('Error selecting file: $e')),
-                      );
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('Error selecting file: $e')),
+                        );
+                      }
                     }
+                    Navigator.pop(context); // Close dialog after showing SnackBar
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.deepPurple,
