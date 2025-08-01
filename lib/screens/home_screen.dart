@@ -562,7 +562,6 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _showShiftDialog(int employeeId, String day) async {
-    // Get the selected date for the shift
     final selectedDate = _currentWeekStart.add(
       Duration(
         days: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].indexOf(day),
@@ -579,32 +578,25 @@ class _HomeScreenState extends State<HomeScreen> {
       return;
     }
 
-    print('DEBUG: isFreeUser in _showShiftDialog: $isFreeUser');
-
-    if (isFreeUser) {
-      if (_isOutsideActualCurrentWeek(selectedDate)) {
-        await showDialog(
-          context: context,
-          builder: (context) {
-            return LimitsDialog(
-              onGoPro: () {
-                Navigator.of(context).pop();
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => ShiftlyProScreen()),
-                );
-              },
-              onContinueFree: () {
-                Navigator.of(context).pop();
-              },
-            );
-          },
-        );
-        return;
-      }
+    if (isFreeUser && _isOutsideActualCurrentWeek(selectedDate)) {
+      await showDialog(
+        context: context,
+        builder: (context) {
+          return LimitsDialog(
+            onGoPro: () {
+              Navigator.of(context).pop();
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => ShiftlyProScreen()),
+              );
+            },
+            onContinueFree: () => Navigator.of(context).pop(),
+          );
+        },
+      );
+      return;
     }
 
-    // Proceed with shift dialog for the current week
     final employee = _employees.firstWhere((e) => e.employeeId == employeeId);
     final weekStart = _currentWeekStart.millisecondsSinceEpoch;
 
@@ -622,7 +614,6 @@ class _HomeScreenState extends State<HomeScreen> {
     TimeOfDay? startTime;
     TimeOfDay? endTime;
 
-    // Process the existing shift times
     String? startTimeStr;
     String? endTimeStr;
 
@@ -646,7 +637,6 @@ class _HomeScreenState extends State<HomeScreen> {
       }
     }
 
-    // Convert string times to TimeOfDay
     if (startTimeStr != null &&
         startTimeStr.isNotEmpty &&
         startTimeStr != 'null') {
@@ -670,8 +660,8 @@ class _HomeScreenState extends State<HomeScreen> {
     }
 
     final shiftNameController = TextEditingController(text: shiftName);
+    final textEditingController = TextEditingController(text: shiftName);
 
-    // Show shift dialog for the user
     await showDialog(
       context: context,
       builder: (context) {
@@ -699,11 +689,10 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                     ),
                     const SizedBox(height: 24),
-
                     const Text('Shift name', style: TextStyle(fontSize: 16)),
-
-                    // const SizedBox(height: 4),
                     RawAutocomplete<String>(
+                      textEditingController: textEditingController,
+                      focusNode: FocusNode(),
                       optionsBuilder: (TextEditingValue textEditingValue) {
                         final input = textEditingValue.text.toLowerCase();
                         final allShiftSuggestions = _shiftTimings
@@ -736,7 +725,6 @@ class _HomeScreenState extends State<HomeScreen> {
                             .toList();
 
                         if (input.isEmpty) return allShiftSuggestions;
-
                         return allShiftSuggestions.where(
                           (opt) => opt.toLowerCase().contains(input),
                         );
@@ -749,6 +737,9 @@ class _HomeScreenState extends State<HomeScreen> {
                         final cleanName = match?.group(1)?.trim() ?? selection;
 
                         shiftNameController.text = cleanName;
+                        textEditingController.text = cleanName;
+                        textEditingController.selection =
+                            TextSelection.collapsed(offset: cleanName.length);
 
                         if (match != null) {
                           final sHour = int.tryParse(match.group(2) ?? '');
@@ -756,7 +747,6 @@ class _HomeScreenState extends State<HomeScreen> {
                           final eHour = int.tryParse(match.group(4) ?? '');
                           final eMin = int.tryParse(match.group(5) ?? '');
 
-                          // ✅ Ensure setState is called so UI updates
                           setState(() {
                             if (sHour != null && sMin != null) {
                               startTime = TimeOfDay(hour: sHour, minute: sMin);
@@ -767,34 +757,10 @@ class _HomeScreenState extends State<HomeScreen> {
                           });
                         }
                       },
-
                       fieldViewBuilder:
-                          (
-                            context,
-                            textEditingController,
-                            focusNode,
-                            onFieldSubmitted,
-                          ) {
-                            if (textEditingController.text.isEmpty &&
-                                shiftNameController.text.isNotEmpty) {
-                              textEditingController.text =
-                                  shiftNameController.text;
-                              textEditingController.selection =
-                                  TextSelection.collapsed(
-                                    offset: shiftNameController.text.length,
-                                  );
-                            }
-
-                            textEditingController.addListener(() {
-                              if (textEditingController.text !=
-                                  shiftNameController.text) {
-                                shiftNameController.text =
-                                    textEditingController.text;
-                              }
-                            });
-
+                          (context, controller, focusNode, onFieldSubmitted) {
                             return TextField(
-                              controller: textEditingController,
+                              controller: controller,
                               focusNode: focusNode,
                               decoration: const InputDecoration(
                                 isDense: true,
@@ -813,13 +779,12 @@ class _HomeScreenState extends State<HomeScreen> {
                                     )
                                     .join(' ');
                                 if (cap != value) {
-                                  textEditingController.value =
-                                      TextEditingValue(
-                                        text: cap,
-                                        selection: TextSelection.collapsed(
-                                          offset: cap.length,
-                                        ),
-                                      );
+                                  controller.value = TextEditingValue(
+                                    text: cap,
+                                    selection: TextSelection.collapsed(
+                                      offset: cap.length,
+                                    ),
+                                  );
                                 }
                               },
                             );
@@ -843,12 +808,9 @@ class _HomeScreenState extends State<HomeScreen> {
                         );
                       },
                     ),
-
                     const SizedBox(height: 24),
-
                     Row(
                       children: [
-                        // Start Time
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -894,7 +856,6 @@ class _HomeScreenState extends State<HomeScreen> {
                           ),
                         ),
                         const SizedBox(width: 16),
-                        // End Time
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -941,29 +902,18 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                       ],
                     ),
-
                     const SizedBox(height: 24),
-
                     Row(
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: [
-                        Padding(
-                          padding: const EdgeInsets.only(
-                            right: 16.0,
-                          ), // Adjust as needed
-                          child: TextButton(
-                            onPressed: () => Navigator.pop(context),
-                            child: const Text(
-                              'Cancel',
-                              style: TextStyle(
-                                color: Colors.grey,
-                                fontSize: 18,
-                                // fontWeight: FontWeight.bold,
-                              ),
-                            ),
+                        TextButton(
+                          onPressed: () => Navigator.pop(context),
+                          child: const Text(
+                            'Cancel',
+                            style: TextStyle(color: Colors.grey, fontSize: 18),
                           ),
                         ),
-
+                        const SizedBox(width: 16),
                         TextButton(
                           onPressed: () async {
                             shiftName = shiftNameController.text.trim();
