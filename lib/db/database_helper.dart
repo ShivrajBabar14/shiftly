@@ -284,6 +284,40 @@ class DatabaseHelper {
     return weekStart;
   }
 
+  Future<DateTime?> getLastBackupDate() async {
+    try {
+      final backupDirectory = Directory('/storage/emulated/0/Documents');
+      final backupDir = Directory(join(backupDirectory.path, 'Shiftwise'));
+
+      if (!await backupDir.exists()) {
+        print('Backup directory does not exist.');
+        return null;
+      }
+
+      final backups = backupDir
+          .listSync()
+          .whereType<File>()
+          .where((file) => file.path.endsWith('.db'))
+          .toList();
+
+      if (backups.isEmpty) {
+        print('No backup files found.');
+        return null;
+      }
+
+      backups.sort(
+        (a, b) => b.statSync().modified.compareTo(a.statSync().modified),
+      );
+
+      final latestBackup = backups.first;
+      final fileStat = await latestBackup.stat();
+      return fileStat.modified;
+    } catch (e) {
+      print('Error getting last backup date: $e');
+      return null;
+    }
+  }
+
   Future<Database> _initDatabase() async {
     final directory = await getApplicationDocumentsDirectory();
     final path = join(directory.path, 'Shiftwise', 'Shiftwise.db');

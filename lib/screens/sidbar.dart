@@ -69,7 +69,13 @@ class AppDrawer extends StatelessWidget {
                         return;
                       }
 
-                      showBackupRestoreDialog(context, '/storage/emulated/0/Documents/Shiftwise');
+                      final lastBackupDate = await dbHelper.getLastBackupDate();
+
+                      showBackupRestoreDialog(
+                        context,
+                        '/storage/emulated/0/Documents/Shiftwise',
+                        lastBackupDate: lastBackupDate,
+                      );
                     } catch (e) {
                       scaffoldMessenger.showSnackBar(
                         SnackBar(content: Text('Error checking backup: $e')),

@@ -1,10 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 
-void showBackupRestoreDialog(BuildContext context, String initialDirectory) {
+import 'package:flutter/material.dart';
+import 'package:file_picker/file_picker.dart';
+import 'package:intl/intl.dart';
+
+void showBackupRestoreDialog(BuildContext context, String initialDirectory, {DateTime? lastBackupDate}) {
   showDialog(
     context: context,
     builder: (context) {
+      final lastBackupStr = lastBackupDate != null
+          ? DateFormat('dd MMM yyyy HH:mm').format(lastBackupDate)
+          : 'No backup found';
+
       return Dialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         child: Padding(
@@ -40,7 +48,7 @@ void showBackupRestoreDialog(BuildContext context, String initialDirectory) {
               ),
               const SizedBox(height: 4),
               Text(
-                '30 Jul 2025 12:22',
+                lastBackupStr,
                 style: TextStyle(color: Colors.black87),
               ),
               const SizedBox(height: 30),
@@ -84,7 +92,7 @@ void showBackupRestoreDialog(BuildContext context, String initialDirectory) {
                   ),
                   child: const Text(
                     'Restore Data',
-                    style: TextStyle(fontSize: 16),
+                    style: TextStyle(fontSize: 16, color: Colors.white),
                   ),
                 ),
               )
