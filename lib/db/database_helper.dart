@@ -67,10 +67,11 @@ class DatabaseHelper {
 
       // Use hardcoded public Documents directory path for backup storage
       final backupDirectory = Directory('/storage/emulated/0/Documents');
-      final backupDir = Directory(join(backupDirectory.path, 'Shiftwise'));
+      final backupDir = Directory(join(backupDirectory.path, 'Shiftwise', 'Backup'));
 
       if (!await backupDir.exists()) {
         await backupDir.create(recursive: true);
+        print('📁 Created backup directory: ${backupDir.path}');
       }
 
       // Generate date string for backup filename (YYYY-MM-DD)
@@ -81,10 +82,14 @@ class DatabaseHelper {
       final backupFilePath = join(backupDir.path, 'Shiftwise_backup_$dateStr.db');
       final backupFile = File(backupFilePath);
 
-      // If backup file for today exists, delete it to replace
+      // Check if backup file for today exists before deleting
       if (await backupFile.exists()) {
-        await backupFile.delete();
-        print('🗑️ Deleted existing backup file for today: $backupFilePath');
+        try {
+          await backupFile.delete();
+          print('🗑️ Deleted existing backup file for today: $backupFilePath');
+        } catch (e) {
+          print('⚠️ Failed to delete existing backup file: $e');
+        }
       }
 
       // Copy the database to backup location
@@ -110,7 +115,7 @@ class DatabaseHelper {
     try {
       // Use hardcoded public Documents directory path for backup storage
       final backupDirectory = Directory('/storage/emulated/0/Documents');
-      final backupDir = Directory(join(backupDirectory.path, 'Shiftwise'));
+      final backupDir = Directory(join(backupDirectory.path, 'Shiftwise', 'Backup'));
 
       if (!await backupDir.exists()) {
         print('❌ Backup directory does not exist.');
@@ -295,7 +300,7 @@ class DatabaseHelper {
   Future<DateTime?> getLastBackupDate() async {
     try {
       final backupDirectory = Directory('/storage/emulated/0/Documents');
-      final backupDir = Directory(join(backupDirectory.path, 'Shiftwise'));
+      final backupDir = Directory(join(backupDirectory.path, 'Shiftwise', 'Backup'));
 
       if (!await backupDir.exists()) {
         print('Backup directory does not exist.');

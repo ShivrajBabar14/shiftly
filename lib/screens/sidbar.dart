@@ -9,9 +9,7 @@ import 'package:package_info_plus/package_info_plus.dart';
 import '../widgets/backup.dart';
 
 class AppDrawer extends StatelessWidget {
-  static const platform = MethodChannel(
-    'com.shift.schedule.app/mail',
-  );
+  static const platform = MethodChannel('com.shift.schedule.app/mail');
 
   @override
   Widget build(BuildContext context) {
@@ -57,13 +55,32 @@ class AppDrawer extends StatelessWidget {
                   onTap: () async {
                     final scaffoldMessenger = ScaffoldMessenger.of(context);
                     Navigator.of(context).pop();
+
                     final dbHelper = DatabaseHelper();
 
+                    // Use public documents directory directly
+                    final backupPath =
+                        '/storage/emulated/0/Documents/Shiftwise/Backup';
+                    final backupDir = Directory(backupPath);
+
                     try {
-                      final backupDir = Directory('/storage/emulated/0/Documents/Shiftwise');
-                      if (!await backupDir.exists() || backupDir.listSync().isEmpty) {
+                      final exists = await backupDir.exists();
+                      bool hasBackupFile = false;
+
+                      if (exists) {
+                        final files = backupDir.listSync();
+                        hasBackupFile = files.any((f) =>
+                            f is File &&
+                            f.path.toLowerCase().endsWith('.db'));
+                      }
+
+                      if (!hasBackupFile) {
                         scaffoldMessenger.showSnackBar(
-                          SnackBar(content: Text('Backup is not available')),
+                          SnackBar(
+                            content: Text(
+                              'No accessible backup file found in Shiftwise folder.',
+                            ),
+                          ),
                         );
                         return;
                       }
@@ -72,10 +89,11 @@ class AppDrawer extends StatelessWidget {
 
                       showBackupRestoreDialog(
                         context,
-                        '/storage/emulated/0/Documents/Shiftwise',
+                        backupPath,
                         lastBackupDate: lastBackupDate,
                       );
                     } catch (e) {
+                      print("Error: $e");
                       scaffoldMessenger.showSnackBar(
                         SnackBar(content: Text('Error checking backup: $e')),
                       );
@@ -92,9 +110,7 @@ class AppDrawer extends StatelessWidget {
             future: PackageInfo.fromPlatform(),
             builder: (context, snapshot) {
               if (!snapshot.hasData) return SizedBox();
-
               final version = snapshot.data!.version;
-
               return Padding(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 16.0,
@@ -125,7 +141,9 @@ class AppDrawer extends StatelessWidget {
         if (title == 'All Employees') {
           Navigator.push(
             context,
-            MaterialPageRoute(builder: (context) => AddEmployeeScreen(isFreeUser: true)),
+            MaterialPageRoute(
+              builder: (context) => AddEmployeeScreen(isFreeUser: true),
+            ),
           );
         } else if (title == 'Write Feedback') {
           _launchFeedbackMail(context);
@@ -167,9 +185,9 @@ class AppDrawer extends StatelessWidget {
       }
     } on PlatformException catch (e) {
       print("Failed to open Gmail app: $e");
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Failed to open Gmail app.')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to open Gmail app.')),
+      );
     }
   }
 
@@ -192,9 +210,9 @@ class AppDrawer extends StatelessWidget {
       }
     } catch (e) {
       print("Failed to open Play Store: $e");
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Failed to open Play Store.')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to open Play Store.')),
+      );
     }
   }
 
@@ -206,9 +224,9 @@ class AppDrawer extends StatelessWidget {
       await Share.share('Check out this app: $appLink');
     } catch (e) {
       print("Error while sharing: $e");
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Failed to share the app.')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to share the app.')),
+      );
     }
   }
 }
