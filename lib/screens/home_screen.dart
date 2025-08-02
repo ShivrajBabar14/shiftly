@@ -659,8 +659,8 @@ class _HomeScreenState extends State<HomeScreen> {
       }
     }
 
-    final shiftNameController = TextEditingController(text: shiftName);
     final textEditingController = TextEditingController(text: shiftName);
+
 
     await showDialog(
       context: context,
@@ -736,7 +736,6 @@ class _HomeScreenState extends State<HomeScreen> {
                         final match = regex.firstMatch(selection);
                         final cleanName = match?.group(1)?.trim() ?? selection;
 
-                        shiftNameController.text = cleanName;
                         textEditingController.text = cleanName;
                         textEditingController.selection =
                             TextSelection.collapsed(offset: cleanName.length);
@@ -916,7 +915,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         const SizedBox(width: 16),
                         TextButton(
                           onPressed: () async {
-                            shiftName = shiftNameController.text.trim();
+                            shiftName = textEditingController.text.trim();
                             final hasName =
                                 shiftName != null && shiftName!.isNotEmpty;
                             final hasTime =
