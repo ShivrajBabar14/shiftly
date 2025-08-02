@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "871251860358",
+    "project_id": "shiftwise-c55d9",
+    "storage_bucket": "shiftwise-c55d9.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:871251860358:android:662ed97d7ecfcf37c16a07",
+        "android_client_info": {
+          "package_name": "com.shift.schedule.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCqfd2Q0IhJnwB2AcGt3X7ZPLhAufcvz1w"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
