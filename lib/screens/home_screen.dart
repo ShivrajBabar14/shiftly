@@ -193,23 +193,21 @@ class _HomeScreenState extends State<HomeScreen> {
 
     idController.text = nextId.toString(); // Set default value
 
-    print('DEBUG: isFreeUser in _addEmployeeDialog: \$isFreeUser');
-    print(
-      'DEBUG: currentWeekEmployees.length in _addEmployeeDialog: \${employees.length}',
-    );
+    // Get existing names for duplicate checking (case insensitive)
+    final existingNames = employees
+        .map((e) => e['name'].toString().toLowerCase().trim())
+        .toSet();
 
     await showDialog(
       context: context,
       builder: (_) {
         return Dialog(
-          insetPadding: const EdgeInsets.all(16), // Padding around the dialog
+          insetPadding: const EdgeInsets.all(16),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20), // Rounded corners
+            borderRadius: BorderRadius.circular(20),
           ),
           child: Container(
-            width:
-                MediaQuery.of(context).size.width *
-                0.9, // Increased width (80% of screen width)
+            width: MediaQuery.of(context).size.width * 0.9,
             padding: const EdgeInsets.all(20),
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -268,11 +266,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       },
                       child: const Text(
                         'Cancel',
-                        style: TextStyle(
-                          color: Colors.grey,
-                          fontSize: 18,
-                          // fontWeight: FontWeight.bold,
-                        ),
+                        style: TextStyle(color: Colors.grey, fontSize: 18),
                       ),
                     ),
                     const SizedBox(width: 16),
@@ -288,34 +282,47 @@ class _HomeScreenState extends State<HomeScreen> {
                         final name = nameController.text.trim();
 
                         if (id != null && name.isNotEmpty) {
-                          final exists = await _employeeIdExists(id);
-                          if (exists) {
+                          // Check for duplicate ID
+                          final idExists = await _employeeIdExists(id);
+                          if (idExists) {
                             ScaffoldMessenger.of(context).showSnackBar(
                               const SnackBar(
                                 content: Text('Employee ID already exists'),
                                 backgroundColor: Colors.deepPurple,
                               ),
                             );
-                          } else {
-                            await _dbHelper.insertEmployeeWithId(id, name);
-                            // Add employee to current week
-                            final weekStart =
-                                _currentWeekStart.millisecondsSinceEpoch;
-                            await _dbHelper.addEmployeeToWeek(id, weekStart);
-                            Navigator.pop(context);
-                            await _loadEmployees();
-                            // Update shift table to include new employee
-                            setState(() {
-                              final currentSet = _selectedEmployeesForShift
-                                  .toSet();
-                              currentSet.add(id);
-                              _selectedEmployeesForShift = currentSet.toList();
-                            });
+                            return;
                           }
+
+                          // Check for duplicate name (case insensitive)
+                          if (existingNames.contains(name.toLowerCase())) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Employee name already exists'),
+                                backgroundColor: Colors.red,
+                              ),
+                            );
+                            return;
+                          }
+
+                          await _dbHelper.insertEmployeeWithId(id, name);
+                          // Add employee to current week
+                          final weekStart =
+                              _currentWeekStart.millisecondsSinceEpoch;
+                          await _dbHelper.addEmployeeToWeek(id, weekStart);
+                          Navigator.pop(context);
+                          await _loadEmployees();
+                          // Update shift table to include new employee
+                          setState(() {
+                            final currentSet = _selectedEmployeesForShift
+                                .toSet();
+                            currentSet.add(id);
+                            _selectedEmployeesForShift = currentSet.toList();
+                          });
                         }
                       },
                       child: const Text(
-                        'Add', // Button text
+                        'Add',
                         style: TextStyle(
                           color: Colors.deepPurple,
                           fontSize: 18,
@@ -1876,7 +1883,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             if (showOverlay)
               Positioned.fill(
-                child: Container(color: Colors.white.withOpacity(0.6)),
+                child: Container(color: Colors.white.withOpacity(0.9)),
               ),
             if (showOverlay)
               Align(

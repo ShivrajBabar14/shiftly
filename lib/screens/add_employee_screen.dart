@@ -34,6 +34,12 @@ class _AddEmployeeScreenState extends State<AddEmployeeScreen> {
     return employees.any((e) => e['employee_id'] == id);
   }
 
+  Future<bool> _employeeNameExists(String name) async {
+    final employees = await _dbHelper.getEmployees();
+    return employees.any((e) => 
+      e['name'].toString().toLowerCase() == name.toLowerCase());
+  }
+
   Future<void> _addEmployeeDialog() async {
     final TextEditingController nameController = TextEditingController();
     final TextEditingController idController = TextEditingController();
@@ -71,14 +77,12 @@ class _AddEmployeeScreenState extends State<AddEmployeeScreen> {
       context: context,
       builder: (_) {
         return Dialog(
-          insetPadding: const EdgeInsets.all(16), // Padding around the dialog
+          insetPadding: const EdgeInsets.all(16),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20), // Rounded corners
+            borderRadius: BorderRadius.circular(20),
           ),
           child: Container(
-            width:
-                MediaQuery.of(context).size.width *
-                0.9, // Increased width (80% of screen width)
+            width: MediaQuery.of(context).size.width * 0.9,
             padding: const EdgeInsets.all(20),
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -140,7 +144,6 @@ class _AddEmployeeScreenState extends State<AddEmployeeScreen> {
                         style: TextStyle(
                           color: Colors.grey,
                           fontSize: 18,
-                          // fontWeight: FontWeight.bold,
                         ),
                       ),
                     ),
@@ -157,19 +160,33 @@ class _AddEmployeeScreenState extends State<AddEmployeeScreen> {
                         final name = nameController.text.trim();
 
                         if (id != null && name.isNotEmpty) {
-                          final exists = await _employeeIdExists(id);
-                          if (exists) {
+                          // Check for duplicate ID
+                          final idExists = await _employeeIdExists(id);
+                          if (idExists) {
                             ScaffoldMessenger.of(context).showSnackBar(
                               const SnackBar(
                                 content: Text('Employee ID already exists'),
                                 backgroundColor: Colors.deepPurple,
                               ),
                             );
-                          } else {
-                            await _dbHelper.insertEmployeeWithId(id, name);
-                            Navigator.pop(context);
-                            await _loadEmployees();
+                            return;
                           }
+
+                          // Check for duplicate name
+                          final nameExists = await _employeeNameExists(name);
+                          if (nameExists) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Employee name already exists'),
+                                backgroundColor: Colors.red,
+                              ),
+                            );
+                            return;
+                          }
+
+                          await _dbHelper.insertEmployeeWithId(id, name);
+                          Navigator.pop(context);
+                          await _loadEmployees();
                         }
                       },
                       child: const Text(
@@ -202,12 +219,12 @@ class _AddEmployeeScreenState extends State<AddEmployeeScreen> {
       context: context,
       builder: (_) {
         return Dialog(
-          insetPadding: const EdgeInsets.all(16), // Provide a little padding
+          insetPadding: const EdgeInsets.all(16),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(20),
           ),
           child: Container(
-            width: MediaQuery.of(context).size.width, // Full screen width
+            width: MediaQuery.of(context).size.width,
             padding: const EdgeInsets.all(20),
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -225,7 +242,6 @@ class _AddEmployeeScreenState extends State<AddEmployeeScreen> {
                   controller: nameController,
                   inputFormatters: [
                     TextInputFormatter.withFunction((oldValue, newValue) {
-                      // Capitalize the first letter of each word
                       String newText = newValue.text
                           .split(' ')
                           .map((word) {
@@ -259,8 +275,8 @@ class _AddEmployeeScreenState extends State<AddEmployeeScreen> {
                       child: const Text(
                         'Cancel',
                         style: TextStyle(
-                          color: Colors.grey, // Text color (deep purple)
-                          fontSize: 18, // Font size
+                          color: Colors.grey,
+                          fontSize: 18,
                         ),
                       ),
                     ),
@@ -275,6 +291,20 @@ class _AddEmployeeScreenState extends State<AddEmployeeScreen> {
                       onPressed: () async {
                         final updatedName = nameController.text.trim();
                         if (updatedName.isNotEmpty) {
+                          // Check if name is being changed to an existing name
+                          if (updatedName.toLowerCase() != employee.name.toLowerCase()) {
+                            final nameExists = await _employeeNameExists(updatedName);
+                            if (nameExists) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('Employee name already exists'),
+                                  backgroundColor: Colors.red,
+                                ),
+                              );
+                              return;
+                            }
+                          }
+
                           // Show loading indicator
                           showDialog(
                             context: context,
@@ -293,22 +323,13 @@ class _AddEmployeeScreenState extends State<AddEmployeeScreen> {
                             );
 
                             // Close both dialogs
-                            Navigator.of(
-                              context,
-                              rootNavigator: true,
-                            ).pop(); // Loading dialog
-                            Navigator.of(
-                              context,
-                              rootNavigator: true,
-                            ).pop(); // Update dialog
+                            Navigator.of(context, rootNavigator: true).pop();
+                            Navigator.of(context, rootNavigator: true).pop();
 
                             // Refresh the list
                             await _loadEmployees();
                           } catch (e) {
-                            Navigator.of(
-                              context,
-                              rootNavigator: true,
-                            ).pop(); // Loading dialog
+                            Navigator.of(context, rootNavigator: true).pop();
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
                                 content: Text('Error updating employee: $e'),
@@ -318,11 +339,11 @@ class _AddEmployeeScreenState extends State<AddEmployeeScreen> {
                         }
                       },
                       child: const Text(
-                        'Update', // Button text
+                        'Update',
                         style: TextStyle(
-                          color: Colors.deepPurple, // Text color (deep purple)
-                          fontSize: 18, // Font size set to 18
-                          fontWeight: FontWeight.bold, // Bold font
+                          color: Colors.deepPurple,
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
                         ),
                       ),
                     ),
@@ -340,14 +361,12 @@ class _AddEmployeeScreenState extends State<AddEmployeeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        titleSpacing: 0, // Keeps default spacing
+        titleSpacing: 0,
         leadingWidth: 40,
         backgroundColor: Colors.white,
         iconTheme: const IconThemeData(color: Colors.deepPurple),
         title: Padding(
-          padding: const EdgeInsets.only(
-            left: 20.0,
-          ), // 👈 Add space between arrow and title
+          padding: const EdgeInsets.only(left: 20.0),
           child: Align(
             alignment: Alignment.centerLeft,
             child: const Text(
@@ -361,7 +380,6 @@ class _AddEmployeeScreenState extends State<AddEmployeeScreen> {
           ),
         ),
       ),
-
       body: ListView.builder(
         itemCount: _employees.length,
         itemBuilder: (context, index) {
@@ -373,7 +391,7 @@ class _AddEmployeeScreenState extends State<AddEmployeeScreen> {
               child: Column(
                 children: [
                   Container(
-                    width: double.infinity, // Ensures full width
+                    width: double.infinity,
                     padding: const EdgeInsets.symmetric(vertical: 12.0),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
