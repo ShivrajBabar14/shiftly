@@ -1251,9 +1251,10 @@ class _HomeScreenState extends State<HomeScreen> {
             child: _isLoading
                 ? const Center(child: CircularProgressIndicator())
                 : (_employees.isEmpty
-                      ? Stack(
-                          children: [
-                            _buildEmptyShiftTable(),
+                    ? Stack(
+                        children: [
+                          _buildEmptyShiftTable(),
+                          if (!_currentWeekStart.isBefore(_actualCurrentWeekStart))
                             Center(
                               child: Column(
                                 mainAxisAlignment: MainAxisAlignment.center,
@@ -1289,23 +1290,23 @@ class _HomeScreenState extends State<HomeScreen> {
                                 ],
                               ),
                             ),
-                          ],
-                        )
-                      : Container(
-                          decoration: BoxDecoration(
-                            border: Border(
-                              // Removed bottom border to fix colored line below horizontal scroll bar
-                              // bottom: BorderSide(color: Color(0xFF03DAC5), width: 1.0),
-                            ),
+                        ],
+                      )
+                    : Container(
+                        decoration: BoxDecoration(
+                          border: Border(
+                            // Removed bottom border to fix colored line below horizontal scroll bar
+                            // bottom: BorderSide(color: Color(0xFF03DAC5), width: 1.0),
                           ),
-                          child: _buildShiftTable(),
-                        )),
+                        ),
+                        child: _buildShiftTable(),
+                      )),
+
           ),
         ],
       ),
-      floatingActionButton: _employees.isEmpty
-          ? null // Don't show FAB when empty state is showing
-          : FloatingActionButton(
+      floatingActionButton: (_employees.isEmpty && _currentWeekStart.isBefore(_actualCurrentWeekStart))
+          ? FloatingActionButton(
               backgroundColor: Colors.deepPurple,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(30.0),
@@ -1314,7 +1315,19 @@ class _HomeScreenState extends State<HomeScreen> {
                 _handleAddEmployeePressed();
               },
               child: const Icon(Icons.add, color: Colors.white),
-            ),
+            )
+          : (_employees.isEmpty
+              ? null // No FAB when empty state with Add Employee button is showing
+              : FloatingActionButton(
+                  backgroundColor: Colors.deepPurple,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(30.0),
+                  ),
+                  onPressed: () {
+                    _handleAddEmployeePressed();
+                  },
+                  child: const Icon(Icons.add, color: Colors.white),
+                )),
     );
   }
 
