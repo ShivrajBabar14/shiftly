@@ -661,7 +661,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
     final textEditingController = TextEditingController(text: shiftName);
 
-
     await showDialog(
       context: context,
       builder: (context) {
@@ -758,6 +757,11 @@ class _HomeScreenState extends State<HomeScreen> {
                       },
                       fieldViewBuilder:
                           (context, controller, focusNode, onFieldSubmitted) {
+                            // Link external controller (textEditingController) to internal one (controller)
+                            controller.text = textEditingController.text;
+                            controller.selection =
+                                textEditingController.selection;
+
                             return TextField(
                               controller: controller,
                               focusNode: focusNode,
@@ -769,6 +773,10 @@ class _HomeScreenState extends State<HomeScreen> {
                                 border: UnderlineInputBorder(),
                               ),
                               onChanged: (value) {
+                                textEditingController.text = value;
+                                textEditingController.selection =
+                                    controller.selection;
+
                                 String cap = value
                                     .split(' ')
                                     .map(
@@ -784,10 +792,14 @@ class _HomeScreenState extends State<HomeScreen> {
                                       offset: cap.length,
                                     ),
                                   );
+                                  textEditingController.text = cap;
+                                  textEditingController.selection =
+                                      controller.selection;
                                 }
                               },
                             );
                           },
+
                       optionsViewBuilder: (context, onSelected, options) {
                         return Material(
                           elevation: 4,
