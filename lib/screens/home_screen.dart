@@ -103,7 +103,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
     // Manage auto-backup timer based on subscription status
     if (!isFreeUser) {
-      _autoBackupTimer ??= Timer.periodic(const Duration(minutes: 15), (
+      _autoBackupTimer ??= Timer.periodic(const Duration(minutes: 2), (
         timer,
       ) async {
         await DatabaseHelper().backupDatabase();
@@ -711,39 +711,31 @@ class _HomeScreenState extends State<HomeScreen> {
                     RawAutocomplete<String>(
                       textEditingController: textEditingController,
                       focusNode: FocusNode(),
-                      optionsBuilder: (TextEditingValue textEditingValue) {
+                      optionsBuilder: (TextEditingValue textEditingValue) async {
                         final input = textEditingValue.text.toLowerCase();
-                        final allShiftSuggestions = _shiftTimings
-                            .where(
-                              (st) =>
-                                  st['shift_name'] != null &&
-                                  st['shift_name'] != '',
-                            )
-                            .map((st) {
-                              final name = st['shift_name'] as String;
-                              final start = st['start_time'];
-                              final end = st['end_time'];
+                        final allShiftSuggestions = await _dbHelper.getAllShiftSuggestions();
 
-                              String format(int? millis) {
-                                if (millis == null) return '';
-                                final dt = DateTime.fromMillisecondsSinceEpoch(
-                                  millis,
-                                );
-                                return '${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
-                              }
+                        final formattedSuggestions = allShiftSuggestions.map((st) {
+                          final name = st['shift_name'] as String;
+                          final start = st['start_time'] as int?;
+                          final end = st['end_time'] as int?;
 
-                              final s = format(start);
-                              final e = format(end);
+                          String format(int? millis) {
+                            if (millis == null) return '';
+                            final dt = DateTime.fromMillisecondsSinceEpoch(millis);
+                            return '${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
+                          }
 
-                              return (s.isNotEmpty && e.isNotEmpty)
-                                  ? '$name ($s-$e)'
-                                  : name;
-                            })
-                            .toSet()
-                            .toList();
+                          final s = format(start);
+                          final e = format(end);
 
-                        if (input.isEmpty) return allShiftSuggestions;
-                        return allShiftSuggestions.where(
+                          return (s.isNotEmpty && e.isNotEmpty)
+                              ? '$name ($s-$e)'
+                              : name;
+                        }).toSet().toList();
+
+                        if (input.isEmpty) return formattedSuggestions;
+                        return formattedSuggestions.where(
                           (opt) => opt.toLowerCase().contains(input),
                         );
                       },

@@ -749,4 +749,25 @@ class DatabaseHelper {
       return [];
     }
   }
+
+  // Get all unique shift patterns from all weeks for suggestions
+  Future<List<Map<String, dynamic>>> getAllShiftSuggestions() async {
+    final db = await database;
+    try {
+      return await db.rawQuery('''
+        SELECT DISTINCT 
+          shift_name,
+          start_time,
+          end_time
+        FROM shift_timings
+        WHERE shift_name IS NOT NULL 
+          AND shift_name != ''
+          AND (start_time IS NOT NULL OR end_time IS NOT NULL)
+        ORDER BY shift_name
+      ''');
+    } catch (e) {
+      print('Error getting all shift suggestions: $e');
+      return [];
+    }
+  }
 }
