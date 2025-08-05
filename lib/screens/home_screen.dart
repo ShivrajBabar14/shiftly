@@ -1530,7 +1530,10 @@ class _HomeScreenState extends State<HomeScreen> {
                                 context,
                                 MaterialPageRoute(
                                   builder: (context) =>
-                                      EmployeeShiftScreen(employee: employee),
+                                      EmployeeShiftScreen(
+                                        employee: employee,
+                                        weekStart: _currentWeekStart,
+                                      ),
                                 ),
                               ),
                               child: Container(

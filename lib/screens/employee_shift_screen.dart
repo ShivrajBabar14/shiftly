@@ -15,8 +15,9 @@ import 'package:share_plus/share_plus.dart';
 
 class EmployeeShiftScreen extends StatefulWidget {
   final Employee employee;
+  final DateTime? weekStart;
 
-  const EmployeeShiftScreen({Key? key, required this.employee})
+  const EmployeeShiftScreen({Key? key, required this.employee, this.weekStart})
     : super(key: key);
 
   @override
@@ -36,7 +37,7 @@ class _EmployeeShiftScreenState extends State<EmployeeShiftScreen> {
   @override
   void initState() {
     super.initState();
-    _currentWeekStart = _dbHelper.getStartOfWeek(DateTime.now());
+    _currentWeekStart = widget.weekStart ?? _dbHelper.getStartOfWeek(DateTime.now());
     _currentWeekEnd = _currentWeekStart.add(const Duration(days: 6));
     _loadShiftData();
   }
