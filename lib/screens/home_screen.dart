@@ -348,7 +348,6 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> _loadData() async {
     try {
       if (_currentWeekStart == null) {
-        // Defensive: _currentWeekStart should never be null here, but if it is, log and continue
         print('Warning: _currentWeekStart is null in _loadData');
         return;
       }
@@ -356,20 +355,13 @@ class _HomeScreenState extends State<HomeScreen> {
       final weekStart = _currentWeekStart.millisecondsSinceEpoch;
       final weekData = await _dbHelper.getEmployeesWithShiftsForWeek(weekStart);
 
-      final employees = <Employee>[];
+      // Keep existing employees and just update their shifts
       final shiftTimings = <Map<String, dynamic>>[];
 
       for (final row in weekData) {
-        final employeeId = row['employee_id'] as int;
-        final employeeName = row['name'] as String;
-
-        if (!employees.any((e) => e.employeeId == employeeId)) {
-          employees.add(Employee(employeeId: employeeId, name: employeeName));
-        }
-
         if (row['day'] != null) {
           shiftTimings.add({
-            'employee_id': employeeId,
+            'employee_id': row['employee_id'],
             'day': row['day'],
             'week_start': weekStart,
             'shift_name': row['shift_name'],
@@ -380,16 +372,22 @@ class _HomeScreenState extends State<HomeScreen> {
       }
 
       setState(() {
-        _employees = employees;
         _shiftTimings = shiftTimings;
         _isLoading = false;
-        // Update _selectedEmployeesForShift to include all employees for current week
-        _selectedEmployeesForShift = employees
-            .map((e) => e.employeeId!)
-            .toList();
+        // Maintain existing _employees list unless it's empty
+        if (_employees.isEmpty) {
+          _employees = weekData
+              .map(
+                (row) => Employee(
+                  employeeId: row['employee_id'] as int,
+                  name: row['name'] as String,
+                ),
+              )
+              .toSet() // Remove duplicates
+              .toList();
+        }
       });
 
-      // Check and update overlay visibility after loading data
       _checkProOverlayVisibility();
     } catch (e, st) {
       print('Error in _loadData: $e\n$st');
@@ -412,19 +410,34 @@ class _HomeScreenState extends State<HomeScreen> {
     final currentEmployees = await _dbHelper.getEmployeesForWeek(weekStart);
 
     if (currentEmployees.isEmpty) {
-      // If no employees assigned to this week, check if we should copy from previous week
+      // Get employees from the most recent week (could be previous or next)
       final prevWeekStart = _currentWeekStart
           .subtract(const Duration(days: 7))
           .millisecondsSinceEpoch;
-      final prevWeekEmployees = await _dbHelper.getEmployeesForWeek(
+      final nextWeekStart = _currentWeekStart
+          .add(const Duration(days: 7))
+          .millisecondsSinceEpoch;
+
+      // Try to get employees from previous week first
+      var sourceWeekEmployees = await _dbHelper.getEmployeesForWeek(
         prevWeekStart,
       );
 
-      for (final employee in prevWeekEmployees) {
-        await _dbHelper.addEmployeeToWeek(
-          employee['employee_id'] as int,
-          weekStart,
+      // If previous week has no employees, try next week
+      if (sourceWeekEmployees.isEmpty) {
+        sourceWeekEmployees = await _dbHelper.getEmployeesForWeek(
+          nextWeekStart,
         );
+      }
+
+      // If we found employees in either week, copy them to current week
+      if (sourceWeekEmployees.isNotEmpty) {
+        for (final employee in sourceWeekEmployees) {
+          await _dbHelper.addEmployeeToWeek(
+            employee['employee_id'] as int,
+            weekStart,
+          );
+        }
       }
     }
   }
@@ -435,7 +448,6 @@ class _HomeScreenState extends State<HomeScreen> {
     );
 
     if (newWeekStart == _currentWeekStart) {
-      // No change in week, no action needed
       return;
     }
 
@@ -1251,61 +1263,64 @@ class _HomeScreenState extends State<HomeScreen> {
             child: _isLoading
                 ? const Center(child: CircularProgressIndicator())
                 : (_employees.isEmpty
-                    ? Stack(
-                        children: [
-                          _buildEmptyShiftTable(),
-                          if (!_currentWeekStart.isBefore(_actualCurrentWeekStart))
-                            Center(
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  const Text(
-                                    'Your shift tracking will appear here.',
-                                    style: TextStyle(fontSize: 15),
-                                  ),
-                                  const Text(
-                                    'Tap below to begin.',
-                                    style: TextStyle(fontSize: 15),
-                                  ),
-                                  const SizedBox(height: 20),
-                                  ElevatedButton(
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: Colors.deepPurple,
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 30,
-                                        vertical: 15,
+                      ? Stack(
+                          children: [
+                            _buildEmptyShiftTable(),
+                            if (!_currentWeekStart.isBefore(
+                              _actualCurrentWeekStart,
+                            ))
+                              Center(
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    const Text(
+                                      'Your shift tracking will appear here.',
+                                      style: TextStyle(fontSize: 15),
+                                    ),
+                                    const Text(
+                                      'Tap below to begin.',
+                                      style: TextStyle(fontSize: 15),
+                                    ),
+                                    const SizedBox(height: 20),
+                                    ElevatedButton(
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: Colors.deepPurple,
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 30,
+                                          vertical: 15,
+                                        ),
+                                      ),
+                                      onPressed: () {
+                                        _handleAddEmployeePressed();
+                                      },
+                                      child: const Text(
+                                        'Add Employee',
+                                        style: TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 14,
+                                        ),
                                       ),
                                     ),
-                                    onPressed: () {
-                                      _handleAddEmployeePressed();
-                                    },
-                                    child: const Text(
-                                      'Add Employee',
-                                      style: TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 14,
-                                      ),
-                                    ),
-                                  ),
-                                ],
+                                  ],
+                                ),
                               ),
+                          ],
+                        )
+                      : Container(
+                          decoration: BoxDecoration(
+                            border: Border(
+                              // Removed bottom border to fix colored line below horizontal scroll bar
+                              // bottom: BorderSide(color: Color(0xFF03DAC5), width: 1.0),
                             ),
-                        ],
-                      )
-                    : Container(
-                        decoration: BoxDecoration(
-                          border: Border(
-                            // Removed bottom border to fix colored line below horizontal scroll bar
-                            // bottom: BorderSide(color: Color(0xFF03DAC5), width: 1.0),
                           ),
-                        ),
-                        child: _buildShiftTable(),
-                      )),
-
+                          child: _buildShiftTable(),
+                        )),
           ),
         ],
       ),
-      floatingActionButton: (_employees.isEmpty && _currentWeekStart.isBefore(_actualCurrentWeekStart))
+      floatingActionButton:
+          (_employees.isEmpty &&
+              _currentWeekStart.isBefore(_actualCurrentWeekStart))
           ? FloatingActionButton(
               backgroundColor: Colors.deepPurple,
               shape: RoundedRectangleBorder(
@@ -1317,17 +1332,17 @@ class _HomeScreenState extends State<HomeScreen> {
               child: const Icon(Icons.add, color: Colors.white),
             )
           : (_employees.isEmpty
-              ? null // No FAB when empty state with Add Employee button is showing
-              : FloatingActionButton(
-                  backgroundColor: Colors.deepPurple,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(30.0),
-                  ),
-                  onPressed: () {
-                    _handleAddEmployeePressed();
-                  },
-                  child: const Icon(Icons.add, color: Colors.white),
-                )),
+                ? null // No FAB when empty state with Add Employee button is showing
+                : FloatingActionButton(
+                    backgroundColor: Colors.deepPurple,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(30.0),
+                    ),
+                    onPressed: () {
+                      _handleAddEmployeePressed();
+                    },
+                    child: const Icon(Icons.add, color: Colors.white),
+                  )),
     );
   }
 
@@ -1464,10 +1479,10 @@ class _HomeScreenState extends State<HomeScreen> {
     final todayIndex = today.difference(_currentWeekStart).inDays;
 
     final visibleEmployees = _selectedEmployeesForShift.isEmpty
-        ? _employees
-        : _employees
-              .where((e) => _selectedEmployeesForShift.contains(e.employeeId))
-              .toList();
+      ? _employees
+      : _employees
+          .where((e) => _selectedEmployeesForShift.contains(e.employeeId))
+          .toList();
 
     final bool isViewingNextWeek = _currentWeekStart.isAfter(DateTime.now());
     final bool showOverlay = isFreeUser && isViewingNextWeek;
