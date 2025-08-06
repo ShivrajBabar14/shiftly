@@ -123,19 +123,8 @@ class _ShiftlyProScreenState extends State<ShiftlyProScreen> {
     });
 
     if (activeSubscriptionFound && mounted) {
-      // Close subscription screen first
-      Navigator.pop(context);
-      // Then show success dialog on previous screen
-      Future.delayed(Duration.zero, () {
-        showSuccessDialog(
-          context: context,
-          onContinue: () {
-            Navigator.pop(context); // Close the success dialog
-            Navigator.pop(context); // Close the subscription screen
-          },
-          logoImage: AssetImage('assets/app_logo.png'),
-        );
-      });
+      // Close subscription screen and return to home
+      Navigator.pop(context, true); // Return true to indicate subscription success
     }
   }
 

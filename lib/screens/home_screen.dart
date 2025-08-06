@@ -1172,25 +1172,20 @@ class _HomeScreenState extends State<HomeScreen> {
             Container(
               margin: const EdgeInsets.only(right: 16),
               child: ElevatedButton(
-                onPressed: () async {
-                  final selectedEmployees = await Navigator.push<List<int>>(
-                    context,
-                    MaterialPageRoute(builder: (context) => ShiftlyProScreen()),
-                  );
+                              onPressed: () async {
+                                final subscriptionSuccess = await Navigator.push<bool>(
+                                  context,
+                                  MaterialPageRoute(builder: (context) => ShiftlyProScreen()),
+                                );
 
-                  await _loadSubscriptionStatus();
-
-                  if (selectedEmployees != null) {
-                    await _loadData();
-                    setState(() {
-                      final currentSet = _selectedEmployeesForShift.toSet();
-                      for (var empId in selectedEmployees) {
-                        currentSet.add(empId);
-                      }
-                      _selectedEmployeesForShift = currentSet.toList();
-                    });
-                  }
-                },
+                                if (subscriptionSuccess == true) {
+                                  await _loadSubscriptionStatus();
+                                  await _loadData();
+                                  setState(() {
+                                    _showProOverlay = false;
+                                  });
+                                }
+                              },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.deepPurple,
                   foregroundColor: Colors.white,
