@@ -20,7 +20,7 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   final DatabaseHelper _dbHelper = DatabaseHelper();
   late DateTime _focusedDay;
   late DateTime _selectedDay;
@@ -48,6 +48,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
   bool get isLoadingSubscription => !_subscriptionStatusLoaded;
 
+  Timer? _subscriptionRefreshTimer;
+
   DateTime get _actualCurrentWeekStart {
     final now = DateTime.now();
     final monday = DateTime(
@@ -74,10 +76,13 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Timer? _autoBackupTimer;
+  // Removed duplicate _subscriptionRefreshTimer declaration
 
   @override
   void initState() {
     super.initState();
+
+    WidgetsBinding.instance.addObserver(this);
 
     // Calendar-related initializations
     _selectedDay = DateTime.now();
@@ -90,6 +95,20 @@ class _HomeScreenState extends State<HomeScreen> {
 
     // Load initial subscription status and data
     _loadSubscriptionStatus();
+
+    // Start periodic subscription status refresh every 5 minutes
+    _subscriptionRefreshTimer = Timer.periodic(const Duration(minutes: 5), (timer) {
+      SubscriptionService().refreshSubscriptionStatus();
+    });
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+    if (state == AppLifecycleState.resumed) {
+      // Refresh subscription status when app resumes
+      _refreshSubscriptionStatus();
+    }
   }
 
   Future<void> _loadSubscriptionStatus() async {

@@ -63,14 +63,11 @@ class _ShiftlyProScreenState extends State<ShiftlyProScreen> {
       await InAppPurchase.instance.restorePurchases();
       
       // Wait for the purchase stream to process
-      await Future.delayed(const Duration(seconds: 2));
+      await Future.delayed(const Duration(seconds: 1));
       
       // Close loading indicator
       if (mounted) {
         Navigator.pop(context);
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Subscription status refreshed')),
-        );
       }
     } catch (e) {
       if (mounted) {
@@ -94,18 +91,28 @@ class _ShiftlyProScreenState extends State<ShiftlyProScreen> {
 
     for (var purchaseDetails in purchaseDetailsList) {
       print('DEBUG: PurchaseDetails status: ${purchaseDetails.status}, productID: ${purchaseDetails.productID}');
-      if (purchaseDetails.status == PurchaseStatus.purchased || purchaseDetails.status == PurchaseStatus.restored) {
+      
+      // Check for active subscriptions (purchased/restored)
+      if (purchaseDetails.status == PurchaseStatus.purchased || 
+          purchaseDetails.status == PurchaseStatus.restored) {
         if (purchaseDetails.productID == 'shiftwise_monthly' ||
             purchaseDetails.productID == 'shiftwise_yearly') {
+          
+          // Check if this is a valid, active subscription
           activeSubscriptionFound = true;
           subscriptionType = purchaseDetails.productID == 'shiftwise_monthly' ? 'Monthly' : 'Yearly';
           orderId = purchaseDetails.purchaseID ?? '';
           purchaseToken = purchaseDetails.verificationData.serverVerificationData ?? '';
           purchaseDate = purchaseDetails.transactionDate?.toString() ?? '';
+          
           if (purchaseDetails.pendingCompletePurchase) {
             await _inAppPurchase.completePurchase(purchaseDetails);
           }
         }
+      } else if (purchaseDetails.status == PurchaseStatus.error || 
+                 purchaseDetails.status == PurchaseStatus.canceled) {
+        // Handle subscription cancellations or errors
+        print('DEBUG: Subscription cancelled or error: ${purchaseDetails.status}');
       }
     }
 
@@ -123,8 +130,15 @@ class _ShiftlyProScreenState extends State<ShiftlyProScreen> {
     });
 
     if (activeSubscriptionFound && mounted) {
-      // Close subscription screen and return to home
-      Navigator.pop(context, true); // Return true to indicate subscription success
+      // Show success dialog before closing
+      showSuccessDialog(
+        context: context,
+        onContinue: () {
+          // Close subscription screen and return to home after dialog
+          Navigator.pop(context, true); // Return true to indicate subscription success
+        },
+        logoImage: const AssetImage('assets/app_logo.png'),
+      );
     }
   }
 
@@ -214,17 +228,6 @@ class _ShiftlyProScreenState extends State<ShiftlyProScreen> {
                   ),
                 ),
               ),
-              if (isSubscribed)
-                Center(
-                  child: TextButton.icon(
-                    onPressed: _refreshSubscriptionStatus,
-                    icon: const Icon(Icons.refresh, size: 16),
-                    label: const Text('Refresh Status'),
-                    style: TextButton.styleFrom(
-                      foregroundColor: Colors.deepPurple,
-                    ),
-                  ),
-                ),
               const SizedBox(height: 40),
               buildFeature(
                 assetPath: 'assets/users.png',
