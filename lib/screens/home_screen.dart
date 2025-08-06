@@ -121,6 +121,19 @@ class _HomeScreenState extends State<HomeScreen> {
     _checkProOverlayVisibility();
   }
 
+  // Add this method to refresh subscription status when returning from subscription screen
+  Future<void> _refreshSubscriptionStatus() async {
+    await SubscriptionService().loadSubscriptionStatus();
+    final subscribed = SubscriptionService().isSubscribed;
+    print('DEBUG: Subscription status refreshed: $subscribed');
+    setState(() {
+      isFreeUser = !subscribed;
+    });
+
+    // Update UI based on new subscription status
+    _checkProOverlayVisibility();
+  }
+
   @override
   void dispose() {
     _autoBackupTimer?.cancel();
@@ -713,26 +726,32 @@ class _HomeScreenState extends State<HomeScreen> {
                       focusNode: FocusNode(),
                       optionsBuilder: (TextEditingValue textEditingValue) async {
                         final input = textEditingValue.text.toLowerCase();
-                        final allShiftSuggestions = await _dbHelper.getAllShiftSuggestions();
+                        final allShiftSuggestions = await _dbHelper
+                            .getAllShiftSuggestions();
 
-                        final formattedSuggestions = allShiftSuggestions.map((st) {
-                          final name = st['shift_name'] as String;
-                          final start = st['start_time'] as int?;
-                          final end = st['end_time'] as int?;
+                        final formattedSuggestions = allShiftSuggestions
+                            .map((st) {
+                              final name = st['shift_name'] as String;
+                              final start = st['start_time'] as int?;
+                              final end = st['end_time'] as int?;
 
-                          String format(int? millis) {
-                            if (millis == null) return '';
-                            final dt = DateTime.fromMillisecondsSinceEpoch(millis);
-                            return '${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
-                          }
+                              String format(int? millis) {
+                                if (millis == null) return '';
+                                final dt = DateTime.fromMillisecondsSinceEpoch(
+                                  millis,
+                                );
+                                return '${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
+                              }
 
-                          final s = format(start);
-                          final e = format(end);
+                              final s = format(start);
+                              final e = format(end);
 
-                          return (s.isNotEmpty && e.isNotEmpty)
-                              ? '$name ($s-$e)'
-                              : name;
-                        }).toSet().toList();
+                              return (s.isNotEmpty && e.isNotEmpty)
+                                  ? '$name ($s-$e)'
+                                  : name;
+                            })
+                            .toSet()
+                            .toList();
 
                         if (input.isEmpty) return formattedSuggestions;
                         return formattedSuggestions.where(
@@ -1094,6 +1113,17 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Week check logic
+    bool isCurrentWeek() {
+      final now = DateTime.now();
+      final nowWeekStart = now.subtract(Duration(days: now.weekday - 1));
+      return _currentWeekStart.year == nowWeekStart.year &&
+          _currentWeekStart.month == nowWeekStart.month &&
+          _currentWeekStart.day == nowWeekStart.day;
+    }
+
+    final bool showOverlay = isFreeUser && !isCurrentWeek();
+
     return Scaffold(
       key: _scaffoldKey,
       drawer: AppDrawer(),
@@ -1120,7 +1150,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
             if (!isFreeUser) ...[
-              const SizedBox(width: 8), // spacing between title and crown
+              const SizedBox(width: 8),
               Container(
                 padding: const EdgeInsets.all(6),
                 decoration: const BoxDecoration(
@@ -1131,7 +1161,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   'assets/crown.svg',
                   width: 15,
                   height: 15,
-                  color: Color.fromARGB(255, 255, 183, 0), // Gold yellow
+                  color: Color.fromARGB(255, 255, 183, 0),
                 ),
               ),
             ],
@@ -1188,20 +1218,15 @@ class _HomeScreenState extends State<HomeScreen> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 IconButton(
-                  icon: const Icon(
-                    Icons.chevron_left,
-                    size: 30,
-                  ), // Increased size
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                  ), // Added padding
+                  icon: const Icon(Icons.chevron_left, size: 30),
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
                   onPressed: () {
                     _onWeekChanged(
                       _currentWeekStart.subtract(const Duration(days: 7)),
                     );
                   },
                 ),
-                const SizedBox(width: 8), // Added spacing
+                const SizedBox(width: 8),
                 GestureDetector(
                   onTap: () {
                     setState(() {
@@ -1216,15 +1241,10 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   ),
                 ),
-                const SizedBox(width: 8), // Added spacing
+                const SizedBox(width: 8),
                 IconButton(
-                  icon: const Icon(
-                    Icons.chevron_right,
-                    size: 30,
-                  ), // Increased size
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                  ), // Added padding
+                  icon: const Icon(Icons.chevron_right, size: 30),
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
                   onPressed: () {
                     _onWeekChanged(
                       _currentWeekStart.add(const Duration(days: 7)),
@@ -1234,7 +1254,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ],
             ),
           ),
-          // Calendar
+
           if (_showCalendar)
             TableCalendar(
               firstDay: _firstDay,
@@ -1250,7 +1270,7 @@ class _HomeScreenState extends State<HomeScreen> {
               availableCalendarFormats: const {CalendarFormat.week: 'Week'},
               startingDayOfWeek: StartingDayOfWeek.monday,
             ),
-          // Shift Table or Empty State
+
           Expanded(
             child: _isLoading
                 ? const Center(child: CircularProgressIndicator())
@@ -1259,8 +1279,9 @@ class _HomeScreenState extends State<HomeScreen> {
                           children: [
                             _buildEmptyShiftTable(),
                             if (!_currentWeekStart.isBefore(
-                              _actualCurrentWeekStart,
-                            ))
+                                  _actualCurrentWeekStart,
+                                ) &&
+                                !showOverlay)
                               Center(
                                 child: Column(
                                   mainAxisAlignment: MainAxisAlignment.center,
@@ -1299,42 +1320,25 @@ class _HomeScreenState extends State<HomeScreen> {
                           ],
                         )
                       : Container(
-                          decoration: BoxDecoration(
-                            border: Border(
-                              // Removed bottom border to fix colored line below horizontal scroll bar
-                              // bottom: BorderSide(color: Color(0xFF03DAC5), width: 1.0),
-                            ),
-                          ),
+                          decoration: const BoxDecoration(),
                           child: _buildShiftTable(),
                         )),
           ),
         ],
       ),
-      floatingActionButton:
-          (_employees.isEmpty &&
-              _currentWeekStart.isBefore(_actualCurrentWeekStart))
-          ? FloatingActionButton(
+      floatingActionButton: showOverlay
+          ? null
+          : (_employees.isEmpty &&
+                !_currentWeekStart.isBefore(_actualCurrentWeekStart))
+          ? null
+          : FloatingActionButton(
               backgroundColor: Colors.deepPurple,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(30.0),
               ),
-              onPressed: () {
-                _handleAddEmployeePressed();
-              },
+              onPressed: _handleAddEmployeePressed,
               child: const Icon(Icons.add, color: Colors.white),
-            )
-          : (_employees.isEmpty
-                ? null // No FAB when empty state with Add Employee button is showing
-                : FloatingActionButton(
-                    backgroundColor: Colors.deepPurple,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(30.0),
-                    ),
-                    onPressed: () {
-                      _handleAddEmployeePressed();
-                    },
-                    child: const Icon(Icons.add, color: Colors.white),
-                  )),
+            ),
     );
   }
 
@@ -1345,119 +1349,191 @@ class _HomeScreenState extends State<HomeScreen> {
     const double rowHeight = 40.0;
     final double tableWidth = cellWidth * days.length;
 
-    return Opacity(
-      opacity: 0.5,
-      child: Row(
-        children: [
-          // Fixed Employee Column
-          SizedBox(
-            width: 100.0,
-            child: Column(
-              children: [
-                // Employee Header
-                Container(
-                  height: rowHeight,
-                  alignment: Alignment.centerLeft,
-                  padding: const EdgeInsets.symmetric(horizontal: 6.0),
-                  decoration: BoxDecoration(
-                    color: Colors.deepPurple[300],
-                    border: Border(
-                      bottom: BorderSide(color: Colors.grey.shade300),
-                      right: BorderSide(
-                        color: Colors.grey.shade300,
-                        width: 1.0,
-                      ),
-                    ),
-                  ),
-                  child: const Text(
-                    'Employee',
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
-                  ),
-                ),
-                // Empty Employee Names (No vertical divider anymore)
-                Expanded(
-                  child: Container(), // ← no border
-                ),
-              ],
-            ),
-          ),
+    // Week check logic
+    bool isCurrentWeek() {
+      final now = DateTime.now();
+      final nowWeekStart = now.subtract(Duration(days: now.weekday - 1));
+      return _currentWeekStart.year == nowWeekStart.year &&
+          _currentWeekStart.month == nowWeekStart.month &&
+          _currentWeekStart.day == nowWeekStart.day;
+    }
 
-          // Scrollable Shift Table
-          Expanded(
-            child: Scrollbar(
-              thumbVisibility: true,
-              controller: _horizontalController,
-              child: SingleChildScrollView(
-                controller: _horizontalController,
-                scrollDirection: Axis.horizontal,
-                child: SizedBox(
-                  width: tableWidth,
-                  child: Column(
-                    children: [
-                      // Days Header
-                      SizedBox(
-                        height: rowHeight,
-                        child: Row(
-                          children: List.generate(days.length, (index) {
-                            final dayDate = _currentWeekStart.add(
-                              Duration(days: index),
-                            );
-                            return Container(
-                              width: cellWidth,
-                              decoration: BoxDecoration(
-                                color: Colors.deepPurple[300],
-                                border: Border(
-                                  bottom: BorderSide(
-                                    color: Colors.grey.shade300,
-                                  ),
-                                  right: BorderSide(
-                                    color: Colors.grey.shade300,
-                                    width: 1.0,
-                                  ),
-                                ),
-                              ),
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Text(
-                                    days[index],
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                  Text(
-                                    dateFormat.format(dayDate),
-                                    style: const TextStyle(color: Colors.white),
-                                  ),
-                                ],
-                              ),
-                            );
-                          }),
-                        ),
-                      ),
-                      // Empty Shift Cells
-                      Expanded(
-                        child: Container(
-                          decoration: BoxDecoration(
-                            border: Border(
-                              // Removed bottom border to fix colored line below horizontal scroll bar
-                              // bottom: BorderSide(color: Colors.grey.shade300),
-                            ),
+    final bool showOverlay = isFreeUser && !isCurrentWeek();
+
+    return Stack(
+      children: [
+        Opacity(
+          opacity: 0.5,
+          child: Row(
+            children: [
+              // Fixed Employee Column
+              SizedBox(
+                width: 100.0,
+                child: Column(
+                  children: [
+                    // Employee Header
+                    Container(
+                      height: rowHeight,
+                      alignment: Alignment.centerLeft,
+                      padding: const EdgeInsets.symmetric(horizontal: 6.0),
+                      decoration: BoxDecoration(
+                        color: Colors.deepPurple[300],
+                        border: Border(
+                          bottom: BorderSide(color: Colors.grey.shade300),
+                          right: BorderSide(
+                            color: Colors.grey.shade300,
+                            width: 1.0,
                           ),
                         ),
                       ),
-                    ],
+                      child: const Text(
+                        'Employee',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                    // Empty Employee Names
+                    Expanded(child: Container()),
+                  ],
+                ),
+              ),
+
+              // Scrollable Shift Table
+              Expanded(
+                child: Scrollbar(
+                  thumbVisibility: true,
+                  controller: _horizontalController,
+                  child: SingleChildScrollView(
+                    controller: _horizontalController,
+                    scrollDirection: Axis.horizontal,
+                    child: SizedBox(
+                      width: tableWidth,
+                      child: Column(
+                        children: [
+                          // Days Header
+                          SizedBox(
+                            height: rowHeight,
+                            child: Row(
+                              children: List.generate(days.length, (index) {
+                                final dayDate = _currentWeekStart.add(
+                                  Duration(days: index),
+                                );
+                                return Container(
+                                  width: cellWidth,
+                                  decoration: BoxDecoration(
+                                    color: Colors.deepPurple[300],
+                                    border: Border(
+                                      bottom: BorderSide(
+                                        color: Colors.grey.shade300,
+                                      ),
+                                      right: BorderSide(
+                                        color: Colors.grey.shade300,
+                                        width: 1.0,
+                                      ),
+                                    ),
+                                  ),
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Text(
+                                        days[index],
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                      Text(
+                                        dateFormat.format(dayDate),
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              }),
+                            ),
+                          ),
+                          // Empty Shift Cells
+                          Expanded(
+                            child: Container(decoration: const BoxDecoration()),
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
                 ),
               ),
+            ],
+          ),
+        ),
+        if (showOverlay)
+          Positioned.fill(
+            child: Container(color: Colors.white.withOpacity(0.9)),
+          ),
+        if (showOverlay)
+          Align(
+            alignment: Alignment.topCenter,
+            child: Padding(
+              padding: const EdgeInsets.only(top: 80),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 20),
+                    child: Text(
+                      "Unlock Advanced Shift Scheduling",
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black87,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 20),
+                    child: Text(
+                      "You can create shifts for the upcoming or previous weeks with the Pro version.",
+                      textAlign: TextAlign.center,
+                      style: TextStyle(fontSize: 14.5, color: Colors.black),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  ElevatedButton(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => ShiftlyProScreen()),
+                      );
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.deepPurple,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 32,
+                        vertical: 10,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                    child: const Text(
+                      "Go Pro",
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
-        ],
-      ),
+      ],
     );
   }
 
@@ -1471,13 +1547,20 @@ class _HomeScreenState extends State<HomeScreen> {
     final todayIndex = today.difference(_currentWeekStart).inDays;
 
     final visibleEmployees = _selectedEmployeesForShift.isEmpty
-      ? _employees
-      : _employees
-          .where((e) => _selectedEmployeesForShift.contains(e.employeeId))
-          .toList();
+        ? _employees
+        : _employees
+              .where((e) => _selectedEmployeesForShift.contains(e.employeeId))
+              .toList();
 
-    final bool isViewingNextWeek = _currentWeekStart.isAfter(DateTime.now());
-    final bool showOverlay = isFreeUser && isViewingNextWeek;
+    bool isCurrentWeek() {
+      final now = DateTime.now();
+      final nowWeekStart = now.subtract(Duration(days: now.weekday - 1));
+      return _currentWeekStart.year == nowWeekStart.year &&
+          _currentWeekStart.month == nowWeekStart.month &&
+          _currentWeekStart.day == nowWeekStart.day;
+    }
+
+    final bool showOverlay = isFreeUser && !isCurrentWeek();
 
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -1529,11 +1612,10 @@ class _HomeScreenState extends State<HomeScreen> {
                               onTap: () => Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                  builder: (context) =>
-                                      EmployeeShiftScreen(
-                                        employee: employee,
-                                        weekStart: _currentWeekStart,
-                                      ),
+                                  builder: (context) => EmployeeShiftScreen(
+                                    employee: employee,
+                                    weekStart: _currentWeekStart,
+                                  ),
                                 ),
                               ),
                               child: Container(

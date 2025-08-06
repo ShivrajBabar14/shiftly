@@ -26,6 +26,7 @@ class _ShiftlyProScreenState extends State<ShiftlyProScreen> {
     _initializePurchaseStream();
     _loadProducts();
     _restoreSubscriptionStatus();
+    _refreshSubscriptionStatus();
   }
 
   Future<void> _restoreSubscriptionStatus() async {
@@ -37,6 +38,48 @@ class _ShiftlyProScreenState extends State<ShiftlyProScreen> {
     setState(() {
       isSubscribed = storedStatus ?? false;
     });
+  }
+
+  Future<void> _refreshSubscriptionStatus() async {
+    final bool available = await InAppPurchase.instance.isAvailable();
+    if (!available) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Google Play services not available')),
+      );
+      return;
+    }
+
+    try {
+      // Show loading indicator
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => const Center(
+          child: CircularProgressIndicator(),
+        ),
+      );
+
+      // Restore purchases to get latest subscription status
+      await InAppPurchase.instance.restorePurchases();
+      
+      // Wait for the purchase stream to process
+      await Future.delayed(const Duration(seconds: 2));
+      
+      // Close loading indicator
+      if (mounted) {
+        Navigator.pop(context);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Subscription status refreshed')),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        Navigator.pop(context);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error refreshing: ${e.toString()}')),
+        );
+      }
+    }
   }
 
   void _listenToPurchaseUpdated(List<PurchaseDetails> purchaseDetailsList) async {
@@ -182,6 +225,17 @@ class _ShiftlyProScreenState extends State<ShiftlyProScreen> {
                   ),
                 ),
               ),
+              if (isSubscribed)
+                Center(
+                  child: TextButton.icon(
+                    onPressed: _refreshSubscriptionStatus,
+                    icon: const Icon(Icons.refresh, size: 16),
+                    label: const Text('Refresh Status'),
+                    style: TextButton.styleFrom(
+                      foregroundColor: Colors.deepPurple,
+                    ),
+                  ),
+                ),
               const SizedBox(height: 40),
               buildFeature(
                 assetPath: 'assets/users.png',
