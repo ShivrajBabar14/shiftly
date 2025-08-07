@@ -3,6 +3,7 @@ import 'package:Shiftwise/models/employee.dart';
 import 'package:Shiftwise/db/database_helper.dart';
 import 'package:flutter/services.dart';
 import 'package:Shiftwise/widgets/limits_dialog.dart';
+import 'package:Shiftwise/screens/subscription.dart';
 
 class AddEmployeeScreen extends StatefulWidget {
   final bool isFreeUser;
@@ -53,7 +54,13 @@ class _AddEmployeeScreenState extends State<AddEmployeeScreen> {
           return LimitsDialog(
             onGoPro: () {
               Navigator.of(context).pop();
-              // Navigate to pro screen or handle accordingly
+              // Navigate to pro screen
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => ShiftlyProScreen(),
+                ),
+              );
             },
             onContinueFree: () {
               Navigator.of(context).pop();

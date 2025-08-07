@@ -58,9 +58,9 @@ class AppDrawer extends StatelessWidget {
 
                     final dbHelper = DatabaseHelper();
 
-                    // Use public documents directory directly
+                    // Check the shiftwise/backup folder specifically
                     final backupPath =
-                        '/storage/emulated/0/Documents/Shiftwise/Backup';
+                        '/storage/emulated/0/Documents/shiftwise/backup';
                     final backupDir = Directory(backupPath);
 
                     try {
@@ -68,17 +68,16 @@ class AppDrawer extends StatelessWidget {
                       bool hasBackupFile = false;
 
                       if (exists) {
+                        // Check for any files in the backup folder
                         final files = backupDir.listSync();
-                        hasBackupFile = files.any((f) =>
-                            f is File &&
-                            f.path.toLowerCase().endsWith('.db'));
+                        hasBackupFile = files.any((f) => f is File);
                       }
 
                       if (!hasBackupFile) {
                         scaffoldMessenger.showSnackBar(
                           SnackBar(
                             content: Text(
-                              'No accessible backup file found in Shiftwise folder.',
+                              'No backup files found in shiftwise/backup folder.',
                             ),
                           ),
                         );

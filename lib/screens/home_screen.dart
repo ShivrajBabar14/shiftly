@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:intl/intl.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:Shiftwise/db/database_helper.dart';
@@ -20,7 +21,7 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
+class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver, RouteAware {
   final DatabaseHelper _dbHelper = DatabaseHelper();
   late DateTime _focusedDay;
   late DateTime _selectedDay;
@@ -78,6 +79,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   Timer? _autoBackupTimer;
   // Removed duplicate _subscriptionRefreshTimer declaration
 
+  static final RouteObserver<PageRoute> routeObserver = RouteObserver<PageRoute>();
+
   @override
   void initState() {
     super.initState();
@@ -105,6 +108,34 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   }
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    print('DEBUG: didChangeDependencies called');
+    final modalRoute = ModalRoute.of(context);
+    if (modalRoute is PageRoute) {
+      routeObserver.subscribe(this, modalRoute);
+      print('DEBUG: Subscribed to routeObserver');
+    }
+  }
+
+  @override
+  void dispose() {
+    routeObserver.unsubscribe(this);
+    _autoBackupTimer?.cancel();
+    _subscriptionRefreshTimer?.cancel();
+    _horizontalController.dispose();
+    _verticalController.dispose();
+    super.dispose();
+  }
+
+  @override
+  void didPopNext() {
+    print('DEBUG: didPopNext called');
+    // Called when the current route is shown again after popping a next route.
+    _refreshSubscriptionStatus();
+  }
+
+  @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     super.didChangeAppLifecycleState(state);
     if (state == AppLifecycleState.resumed) {
@@ -114,9 +145,12 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   }
 
   Future<void> _loadSubscriptionStatus() async {
+    print('DEBUG: Starting to load subscription status...');
     await SubscriptionService().loadSubscriptionStatus();
     final subscribed = SubscriptionService().isSubscribed;
     print('DEBUG: Subscription status loaded: $subscribed');
+    print('DEBUG: isFreeUser set to: ${!subscribed}');
+    print('DEBUG: _subscriptionStatusLoaded set to: true');
     setState(() {
       isFreeUser = !subscribed;
       _subscriptionStatusLoaded = true;
@@ -153,14 +187,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 
     // Update UI based on new subscription status
     _checkProOverlayVisibility();
-  }
-
-  @override
-  void dispose() {
-    _autoBackupTimer?.cancel();
-    _horizontalController.dispose();
-    _verticalController.dispose();
-    super.dispose();
   }
 
   Future<void> _loadEmployees() async {
@@ -215,8 +241,30 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     final TextEditingController nameController = TextEditingController();
     final TextEditingController idController = TextEditingController();
 
-    // Get all employees
+    // Check employee count and limit for free users
     final employees = await _dbHelper.getEmployees();
+    if (isFreeUser && employees.length >= 5) {
+      // Changed from widget.isFreeUser to isFreeUser
+      await showDialog(
+        context: context,
+        builder: (context) {
+          return LimitsDialog(
+            onGoPro: () {
+              Navigator.of(context).pop();
+              // Navigate to pro screen
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => ShiftlyProScreen()),
+              );
+            },
+            onContinueFree: () {
+              Navigator.of(context).pop();
+            },
+          );
+        },
+      );
+      return;
+    }
 
     // Find the highest current ID
     int nextId = 1; // Default start
@@ -388,6 +436,9 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       }
 
       final weekStart = _currentWeekStart.millisecondsSinceEpoch;
+
+      // Get employees specifically assigned to this week
+      final weekEmployees = await _dbHelper.getEmployeesForWeek(weekStart);
       final weekData = await _dbHelper.getEmployeesWithShiftsForWeek(weekStart);
 
       // Keep existing employees and just update their shifts
@@ -409,18 +460,24 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       setState(() {
         _shiftTimings = shiftTimings;
         _isLoading = false;
-        // Maintain existing _employees list unless it's empty
-        if (_employees.isEmpty) {
-          _employees = weekData
-              .map(
-                (row) => Employee(
-                  employeeId: row['employee_id'] as int,
-                  name: row['name'] as String,
-                ),
-              )
-              .toSet() // Remove duplicates
-              .toList();
+
+        // Only include employees that are actually assigned to this week
+        final employeeMap = <int, Employee>{};
+        for (final employee in weekEmployees) {
+          final id = employee['employee_id'] as int;
+          if (!employeeMap.containsKey(id)) {
+            employeeMap[id] = Employee(
+              employeeId: id,
+              name: employee['name'] as String,
+            );
+          }
         }
+        _employees = employeeMap.values.toList();
+
+        // Clear selection to prevent showing removed employees
+        _selectedEmployeesForShift = _selectedEmployeesForShift
+            .where((id) => employeeMap.containsKey(id))
+            .toList();
       });
 
       _checkProOverlayVisibility();
@@ -518,8 +575,9 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       orElse: () => Employee(employeeId: employeeId, name: 'Unknown'),
     );
 
-    // Use exact week start (Monday) from helper
-    final weekStart = _dbHelper.getStartOfWeek(_currentWeekStart);
+    // Use exact week start (Monday) from helper to ensure consistency
+    final weekStartDate = _dbHelper.getStartOfWeek(_currentWeekStart);
+    final weekStart = weekStartDate.millisecondsSinceEpoch;
     print('🗓️ Calculated week start timestamp (Monday): $weekStart');
 
     return showDialog<void>(
@@ -584,18 +642,34 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                       onPressed: () async {
                         Navigator.of(dialogContext).pop();
 
-                        final weekStart =
-                            _currentWeekStart.millisecondsSinceEpoch;
-                        await _dbHelper.removeEmployeeFromWeek(
-                          employeeId,
-                          weekStart,
+                        // Remove employee from week assignments
+                        final deletedCount = await _dbHelper
+                            .removeEmployeeFromWeek(employeeId, weekStart);
+
+                        // Also remove any shift data for this employee in this week
+                        final db = await _dbHelper.database;
+                        final deletedShifts = await db.delete(
+                          'shift_timings',
+                          where: 'employee_id = ? AND week_start = ?',
+                          whereArgs: [employeeId, weekStart],
                         );
 
                         print(
-                          "🗑️ Removed employee $employeeId from week $weekStart",
+                          "🗑️ Removed employee $employeeId from week $weekStart: $deletedCount assignments, $deletedShifts shifts",
                         );
 
+                        // Force reload the data to reflect changes
                         await _loadData();
+
+                        // Also reload employees to ensure consistency
+                        await _loadEmployees();
+
+                        // Remove employee from local list immediately for UI update
+                        setState(() {
+                          _employees.removeWhere(
+                            (e) => e.employeeId == employeeId,
+                          );
+                        });
                       },
                       child: const Text(
                         'Remove',

@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'home_screen.dart';
 import 'dart:async';
-import 'package:Shiftwise/db/database_helper.dart';
-import 'dart:io';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -12,62 +10,31 @@ class SplashScreen extends StatefulWidget {
 }
 
 class _SplashScreenState extends State<SplashScreen> {
-  Timer? _backupTimer;
-
   @override
   void initState() {
     super.initState();
-    _createBackupDirectory();
-    Future.delayed(const Duration(seconds: 2), () {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => const HomeScreen()),
-      );
-      // Start periodic backup timer after navigation
-      _startBackupTimer();
+    // Use post-frame callback to ensure navigation happens safely
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _navigateToHome();
     });
   }
 
-  void _createBackupDirectory() async {
-    final backupDir = Directory('/storage/emulated/0/Documents/Shiftwise');
-    if (!await backupDir.exists()) {
-      await backupDir.create(recursive: true);
-      print('Backup directory created at ${backupDir.path}');
-    } else {
-      print('Backup directory already exists at ${backupDir.path}');
-    }
-  }
-
-  void _startBackupTimer() {
-    final dbHelper = DatabaseHelper();
-    print('Starting backup timer...');
-    // Backup every 2 hours (7200 seconds)
-    _backupTimer = Timer.periodic(Duration(hours: 10), (timer) async {
-      print('Backup timer tick...');
-      try {
-        bool success = await dbHelper.backupDatabase();
-        if (success) {
-          print('Automatic database backup completed.');
-          print('Backup stored at /storage/emulated/0/Documents/Shiftwise');
-        } else {
-          print('Automatic database backup failed.');
-        }
-      } catch (e) {
-        print('Error during automatic backup: $e');
+  void _navigateToHome() {
+    // Use a short delay to ensure splash screen is visible
+    Future.delayed(const Duration(milliseconds: 500), () {
+      if (mounted) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const HomeScreen()),
+        );
       }
     });
   }
 
   @override
-  void dispose() {
-    _backupTimer?.cancel();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white, // White background
+      backgroundColor: Colors.white,
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -81,15 +48,6 @@ class _SplashScreenState extends State<SplashScreen> {
                 fit: BoxFit.contain,
               ),
             ),
-            const SizedBox(height: 20),
-            // const Text(
-            //   'Shiftly',
-            //   style: TextStyle(
-            //     fontSize: 32,
-            //     fontWeight: FontWeight.bold,
-            //     color: Colors.black, // Black text for contrast
-            //   ),
-            // ),
           ],
         ),
       ),
