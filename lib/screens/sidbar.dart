@@ -119,20 +119,26 @@ class AppDrawer extends StatelessWidget {
                       showDialog(
                         context: context,
                         barrierDismissible: false,
-                        builder: (_) => LimitsDialog(
-                          onGoPro: () {
-                            Navigator.of(context).pop();
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) => ShiftlyProScreen(),
-                              ),
-                            );
-                          },
-                          onContinueFree: () {
-                            Navigator.of(context).pop();
-                          },
-                        ),
+                        builder: (context) {
+                          return LimitsDialog(
+                            onGoPro: () {
+                              Navigator.of(
+                                context,
+                              ).pop(); // Close limits dialog
+                              Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (context) =>
+                                       ShiftlyProScreen(),
+                                ),
+                              );
+                            },
+                            onContinueFree: () {
+                              Navigator.of(
+                                context,
+                              ).pop(); // Close limits dialog
+                            },
+                          );
+                        },
                       );
                       return;
                     }
