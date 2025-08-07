@@ -110,38 +110,29 @@ class AppDrawer extends StatelessWidget {
                   onTap: () async {
                     Navigator.of(context).pop();
 
-                    final subscribed = await isUserSubscribed();
+                    // Check subscription status using the subscription service
+                    final subscriptionService = SubscriptionService();
+                    final isSubscribed = await subscriptionService.isSubscribed;
 
-                    if (!subscribed) {
-                      // Use a new context reference for the dialog
-                      final dialogContext = context;
-                      
-                      // Show the dialog with proper context handling
+                    if (!isSubscribed) {
+                      // Show limits dialog for non-subscribed users
                       showDialog(
-                        context: dialogContext,
+                        context: context,
                         barrierDismissible: false,
-                        builder: (BuildContext dialogContext) {
-                          return LimitsDialog(
-                            onGoPro: () {
-                              // Close the dialog first
-                              Navigator.of(dialogContext).pop();
-                              
-                              // Then navigate to subscription screen
-                              Future.microtask(() {
-                                Navigator.push(
-                                  dialogContext,
-                                  MaterialPageRoute(
-                                    builder: (_) => ShiftlyProScreen(),
-                                  ),
-                                );
-                              });
-                            },
-                            onContinueFree: () {
-                              // Close the dialog
-                              Navigator.of(dialogContext).pop();
-                            },
-                          );
-                        },
+                        builder: (_) => LimitsDialog(
+                          onGoPro: () {
+                            Navigator.of(context).pop();
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => ShiftlyProScreen(),
+                              ),
+                            );
+                          },
+                          onContinueFree: () {
+                            Navigator.of(context).pop();
+                          },
+                        ),
                       );
                       return;
                     }
