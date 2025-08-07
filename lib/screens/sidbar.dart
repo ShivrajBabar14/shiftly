@@ -113,26 +113,35 @@ class AppDrawer extends StatelessWidget {
                     final subscribed = await isUserSubscribed();
 
                     if (!subscribed) {
-                      final parentContext = context; // Capture the main context
-
+                      // Use a new context reference for the dialog
+                      final dialogContext = context;
+                      
+                      // Show the dialog with proper context handling
                       showDialog(
-                        context: parentContext,
-                        builder: (_) => LimitsDialog(
-                          onGoPro: () {
-                            Navigator.of(parentContext).pop(); // Close dialog
-                            Navigator.push(
-                              parentContext,
-                              MaterialPageRoute(
-                                builder: (_) => ShiftlyProScreen(),
-                              ),
-                            );
-                          },
-                          onContinueFree: () {
-                            Navigator.of(
-                              parentContext,
-                            ).pop(); // Just close dialog
-                          },
-                        ),
+                        context: dialogContext,
+                        barrierDismissible: false,
+                        builder: (BuildContext dialogContext) {
+                          return LimitsDialog(
+                            onGoPro: () {
+                              // Close the dialog first
+                              Navigator.of(dialogContext).pop();
+                              
+                              // Then navigate to subscription screen
+                              Future.microtask(() {
+                                Navigator.push(
+                                  dialogContext,
+                                  MaterialPageRoute(
+                                    builder: (_) => ShiftlyProScreen(),
+                                  ),
+                                );
+                              });
+                            },
+                            onContinueFree: () {
+                              // Close the dialog
+                              Navigator.of(dialogContext).pop();
+                            },
+                          );
+                        },
                       );
                       return;
                     }
