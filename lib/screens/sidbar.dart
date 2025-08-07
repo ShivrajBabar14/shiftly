@@ -158,7 +158,7 @@ class AppDrawer extends StatelessWidget {
                         // Trigger data refresh after successful restore
                         Navigator.of(context).pushAndRemoveUntil(
                           MaterialPageRoute(
-                            builder: (context) => const HomeScreen(),
+                            builder: (context) => HomeScreen(),
                           ),
                           (route) => false,
                         );

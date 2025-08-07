@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:Shiftwise/db/database_helper.dart';
+import 'package:Shiftwise/services/backup_refresh_service.dart';
+import 'package:Shiftwise/screens/home_screen.dart';
 
 void showBackupRestoreDialog(
   BuildContext context,
@@ -82,11 +84,13 @@ void showBackupRestoreDialog(
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
                               content: Text(
-                                'Backup restored successfully. Data refreshed automatically.',
+                                'Backup restored successfully.',
                               ),
                             ),
                           );
                           // Trigger automatic refresh
+                          await BackupRefreshService().refreshAfterRestore();
+                          // Also force refresh current week in home screen
                           if (onRestoreSuccess != null) {
                             onRestoreSuccess();
                           }

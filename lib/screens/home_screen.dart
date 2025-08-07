@@ -12,10 +12,15 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'sidbar.dart';
 import 'employee_shift_screen.dart'; // Add import for new screen
 import 'package:Shiftwise/services/subscription_service.dart';
+import 'package:Shiftwise/services/backup_refresh_service.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
+import 'package:flutter/material.dart';
+
+final GlobalKey<_HomeScreenState> homeScreenKey = GlobalKey<_HomeScreenState>();
+
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+  HomeScreen({Key? key}) : super(key: homeScreenKey);
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -486,6 +491,27 @@ class _HomeScreenState extends State<HomeScreen>
     } catch (e, st) {
       print('Error in _loadData: $e\n$st');
       setState(() => _isLoading = false);
+    }
+  }
+
+  /// Force refresh current week data without changing week
+  Future<void> forceRefreshCurrentWeek() async {
+    try {
+      setState(() => _isLoading = true);
+      
+      // Reload data for current week
+      await _loadData();
+      
+      // Also reload employees to ensure consistency
+      await _loadEmployees();
+      
+      print('✅ Current week data refreshed automatically');
+    } catch (e) {
+      print('❌ Error refreshing current week: $e');
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
     }
   }
 
