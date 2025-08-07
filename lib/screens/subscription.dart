@@ -54,17 +54,15 @@ class _ShiftlyProScreenState extends State<ShiftlyProScreen> {
       showDialog(
         context: context,
         barrierDismissible: false,
-        builder: (context) => const Center(
-          child: CircularProgressIndicator(),
-        ),
+        builder: (context) => const Center(child: CircularProgressIndicator()),
       );
 
       // Restore purchases to get latest subscription status
       await InAppPurchase.instance.restorePurchases();
-      
+
       // Wait for the purchase stream to process
       await Future.delayed(const Duration(seconds: 1));
-      
+
       // Close loading indicator
       if (mounted) {
         Navigator.pop(context);
@@ -79,7 +77,9 @@ class _ShiftlyProScreenState extends State<ShiftlyProScreen> {
     }
   }
 
-  void _listenToPurchaseUpdated(List<PurchaseDetails> purchaseDetailsList) async {
+  void _listenToPurchaseUpdated(
+    List<PurchaseDetails> purchaseDetailsList,
+  ) async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     bool activeSubscriptionFound = false;
     String subscriptionType = '';
@@ -90,29 +90,35 @@ class _ShiftlyProScreenState extends State<ShiftlyProScreen> {
     print('DEBUG: Purchase details list received: $purchaseDetailsList');
 
     for (var purchaseDetails in purchaseDetailsList) {
-      print('DEBUG: PurchaseDetails status: ${purchaseDetails.status}, productID: ${purchaseDetails.productID}');
-      
+      print(
+        'DEBUG: PurchaseDetails status: ${purchaseDetails.status}, productID: ${purchaseDetails.productID}',
+      );
+
       // Check for active subscriptions (purchased/restored)
-      if (purchaseDetails.status == PurchaseStatus.purchased || 
+      if (purchaseDetails.status == PurchaseStatus.purchased ||
           purchaseDetails.status == PurchaseStatus.restored) {
         if (purchaseDetails.productID == 'shiftwise_monthly' ||
             purchaseDetails.productID == 'shiftwise_yearly') {
-          
           // Check if this is a valid, active subscription
           activeSubscriptionFound = true;
-          subscriptionType = purchaseDetails.productID == 'shiftwise_monthly' ? 'Monthly' : 'Yearly';
+          subscriptionType = purchaseDetails.productID == 'shiftwise_monthly'
+              ? 'Monthly'
+              : 'Yearly';
           orderId = purchaseDetails.purchaseID ?? '';
-          purchaseToken = purchaseDetails.verificationData.serverVerificationData ?? '';
+          purchaseToken =
+              purchaseDetails.verificationData.serverVerificationData ?? '';
           purchaseDate = purchaseDetails.transactionDate?.toString() ?? '';
-          
+
           if (purchaseDetails.pendingCompletePurchase) {
             await _inAppPurchase.completePurchase(purchaseDetails);
           }
         }
-      } else if (purchaseDetails.status == PurchaseStatus.error || 
-                 purchaseDetails.status == PurchaseStatus.canceled) {
+      } else if (purchaseDetails.status == PurchaseStatus.error ||
+          purchaseDetails.status == PurchaseStatus.canceled) {
         // Handle subscription cancellations or errors
-        print('DEBUG: Subscription cancelled or error: ${purchaseDetails.status}');
+        print(
+          'DEBUG: Subscription cancelled or error: ${purchaseDetails.status}',
+        );
       }
     }
 
@@ -130,15 +136,22 @@ class _ShiftlyProScreenState extends State<ShiftlyProScreen> {
     });
 
     if (activeSubscriptionFound && mounted) {
-      // Show success dialog before closing
-      showSuccessDialog(
-        context: context,
-        onContinue: () {
-          // Close subscription screen and return to home after dialog
-          Navigator.pop(context, true); // Return true to indicate subscription success
-        },
-        logoImage: const AssetImage('assets/app_logo.png'),
-      );
+      // First close the subscription screen
+      Navigator.pop(context, true);
+
+      // Then show the success dialog after a short delay
+      Future.delayed(Duration(milliseconds: 300), () {
+        showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (_) => SuccessDialog(
+            onContinue: () {
+              Navigator.pop(context); // Close the dialog
+            },
+            logoImage: const AssetImage('assets/app_logo.png'),
+          ),
+        );
+      });
     }
   }
 
@@ -151,7 +164,9 @@ class _ShiftlyProScreenState extends State<ShiftlyProScreen> {
 
   Future<void> _loadProducts() async {
     const Set<String> _kIds = {'shiftwise_monthly', 'shiftwise_yearly'};
-    ProductDetailsResponse response = await _inAppPurchase.queryProductDetails(_kIds);
+    ProductDetailsResponse response = await _inAppPurchase.queryProductDetails(
+      _kIds,
+    );
     setState(() {
       _products = response.productDetails
           .whereType<GooglePlayProductDetails>()
@@ -232,7 +247,8 @@ class _ShiftlyProScreenState extends State<ShiftlyProScreen> {
               buildFeature(
                 assetPath: 'assets/users.png',
                 title: 'Unlimited Employee Access',
-                subtitle: 'Add more than 5 employees to your team with a paid plan',
+                subtitle:
+                    'Add more than 5 employees to your team with a paid plan',
               ),
               const SizedBox(height: 35),
               buildFeature(
@@ -263,7 +279,10 @@ class _ShiftlyProScreenState extends State<ShiftlyProScreen> {
                     onTap: () => setState(() => selectedPlan = 'Annually'),
                     badge: discount != null
                         ? Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 4,
+                            ),
                             decoration: BoxDecoration(
                               color: Colors.deepPurple,
                               borderRadius: BorderRadius.circular(8),
