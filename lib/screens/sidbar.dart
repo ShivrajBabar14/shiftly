@@ -6,10 +6,19 @@ import 'package:share_plus/share_plus.dart';
 import 'add_employee_screen.dart';
 import 'package:Shiftwise/db/database_helper.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../widgets/backup.dart';
+import 'package:Shiftwise/services/subscription_service.dart';
+import '../widgets/limits_dialog.dart';
+import 'subscription.dart';
 
 class AppDrawer extends StatelessWidget {
   static const platform = MethodChannel('com.shift.schedule.app/mail');
+
+  Future<bool> isUserSubscribed() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getBool('is_subscribed') ?? false;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -52,51 +61,93 @@ class AppDrawer extends StatelessWidget {
                     'Backup & Restore',
                     style: TextStyle(color: Colors.black87),
                   ),
+                  // onTap: () async {
+                  //   final scaffoldMessenger = ScaffoldMessenger.of(context);
+                  //   Navigator.of(context).pop();
+
+                  //   final dbHelper = DatabaseHelper();
+
+                  //   // Check the shiftwise/backup folder specifically
+                  //   final backupPath =
+                  //       '/storage/emulated/0/Documents/shiftwise/backup';
+                  //   final backupDir = Directory(backupPath);
+
+                  //   try {
+                  //     final exists = await backupDir.exists();
+                  //     bool hasBackupFile = false;
+
+                  //     if (exists) {
+                  //       // Check for any files in the backup folder
+                  //       final files = backupDir.listSync();
+                  //       hasBackupFile = files.any((f) => f is File);
+                  //     }
+
+                  //     if (!hasBackupFile) {
+                  //       scaffoldMessenger.showSnackBar(
+                  //         SnackBar(
+                  //           content: Text(
+                  //             'No backup files found in shiftwise/backup folder.',
+                  //           ),
+                  //         ),
+                  //       );
+                  //       return;
+                  //     }
+
+                  //     final lastBackupDate = await dbHelper.getLastBackupDate();
+
+                  //     showBackupRestoreDialog(
+                  //       context,
+                  //       backupPath,
+                  //       lastBackupDate: lastBackupDate,
+                  //     );
+                  //   } catch (e) {
+                  //     print("Error: $e");
+                  //     scaffoldMessenger.showSnackBar(
+                  //       SnackBar(content: Text('Error checking backup: $e')),
+                  //     );
+                  //   }
+                  // },
                   onTap: () async {
-                    final scaffoldMessenger = ScaffoldMessenger.of(context);
                     Navigator.of(context).pop();
 
-                    final dbHelper = DatabaseHelper();
+                    final subscribed = await isUserSubscribed();
 
-                    // Check the shiftwise/backup folder specifically
+                    if (!subscribed) {
+                      final parentContext = context; // Capture the main context
+
+                      showDialog(
+                        context: parentContext,
+                        builder: (_) => LimitsDialog(
+                          onGoPro: () {
+                            Navigator.of(parentContext).pop(); // Close dialog
+                            Navigator.push(
+                              parentContext,
+                              MaterialPageRoute(
+                                builder: (_) => ShiftlyProScreen(),
+                              ),
+                            );
+                          },
+                          onContinueFree: () {
+                            Navigator.of(
+                              parentContext,
+                            ).pop(); // Just close dialog
+                          },
+                        ),
+                      );
+                      return;
+                    }
+
+                    // Subscribed user - show backup dialog
+                    final dbHelper = DatabaseHelper();
                     final backupPath =
                         '/storage/emulated/0/Documents/shiftwise/backup';
-                    final backupDir = Directory(backupPath);
+                    final lastBackupDate = await dbHelper.getLastBackupDate();
 
-                    try {
-                      final exists = await backupDir.exists();
-                      bool hasBackupFile = false;
-
-                      if (exists) {
-                        // Check for any files in the backup folder
-                        final files = backupDir.listSync();
-                        hasBackupFile = files.any((f) => f is File);
-                      }
-
-                      if (!hasBackupFile) {
-                        scaffoldMessenger.showSnackBar(
-                          SnackBar(
-                            content: Text(
-                              'No backup files found in shiftwise/backup folder.',
-                            ),
-                          ),
-                        );
-                        return;
-                      }
-
-                      final lastBackupDate = await dbHelper.getLastBackupDate();
-
-                      showBackupRestoreDialog(
-                        context,
-                        backupPath,
-                        lastBackupDate: lastBackupDate,
-                      );
-                    } catch (e) {
-                      print("Error: $e");
-                      scaffoldMessenger.showSnackBar(
-                        SnackBar(content: Text('Error checking backup: $e')),
-                      );
-                    }
+                    showBackupRestoreDialog(
+                      context,
+                      backupPath,
+                      lastBackupDate: lastBackupDate,
+                    );
                   },
                 ),
                 _buildDrawerItem(Icons.share, 'Share App', context),
@@ -184,9 +235,9 @@ class AppDrawer extends StatelessWidget {
       }
     } on PlatformException catch (e) {
       print("Failed to open Gmail app: $e");
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to open Gmail app.')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Failed to open Gmail app.')));
     }
   }
 
@@ -209,9 +260,9 @@ class AppDrawer extends StatelessWidget {
       }
     } catch (e) {
       print("Failed to open Play Store: $e");
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to open Play Store.')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Failed to open Play Store.')));
     }
   }
 
@@ -223,9 +274,9 @@ class AppDrawer extends StatelessWidget {
       await Share.share('Check out this app: $appLink');
     } catch (e) {
       print("Error while sharing: $e");
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to share the app.')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Failed to share the app.')));
     }
   }
 }
