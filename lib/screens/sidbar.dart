@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:share_plus/share_plus.dart';
 import 'add_employee_screen.dart';
+import 'home_screen.dart';
 import 'package:Shiftwise/db/database_helper.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -153,6 +154,15 @@ class AppDrawer extends StatelessWidget {
                       context,
                       backupPath,
                       lastBackupDate: lastBackupDate,
+                      onRestoreSuccess: () {
+                        // Trigger data refresh after successful restore
+                        Navigator.of(context).pushAndRemoveUntil(
+                          MaterialPageRoute(
+                            builder: (context) => const HomeScreen(),
+                          ),
+                          (route) => false,
+                        );
+                      },
                     );
                   },
                 ),

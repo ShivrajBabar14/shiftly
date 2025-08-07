@@ -6,12 +6,15 @@ import 'package:Shiftwise/models/employee.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:Shiftwise/services/data_refresh_service.dart';
 
 
 class DatabaseHelper {
   static final DatabaseHelper _instance = DatabaseHelper._internal();
   static Database? _database;
   static const int _databaseVersion = 4;
+
+  final DataRefreshService _dataRefreshService = DataRefreshService();
 
   DateTime getStartOfWeek(DateTime date) {
     final monday = date.subtract(Duration(days: date.weekday - 1));
@@ -157,6 +160,9 @@ class DatabaseHelper {
       // Reinitialize the database connection
       _database = await _initDatabase();
 
+      // Notify listeners to refresh data
+      _dataRefreshService.refreshAll();
+
       return true;
     } catch (e) {
       print('❌ Error during database restore: $e');
@@ -207,18 +213,18 @@ class DatabaseHelper {
         // Query all rows from source table
         final rows = await sourceDb.query(tableName);
 
-      // Insert or replace rows into target table
-      for (final row in rows) {
-        // Remove any keys that are not columns in the target table to avoid errors
-        final filteredRow = Map<String, dynamic>.from(row);
-        // Remove 'rowid' or other special keys if present
-        filteredRow.remove('rowid');
-        await targetDb.insert(
-          tableName,
-          filteredRow,
-          conflictAlgorithm: ConflictAlgorithm.replace,
-        );
-      }
+        // Insert or replace rows into target table
+        for (final row in rows) {
+          // Remove any keys that are not columns in the target table to avoid errors
+          final filteredRow = Map<String, dynamic>.from(row);
+          // Remove 'rowid' or other special keys if present
+          filteredRow.remove('rowid');
+          await targetDb.insert(
+            tableName,
+            filteredRow,
+            conflictAlgorithm: ConflictAlgorithm.replace,
+          );
+        }
       }
 
       print('✅ Database restored from $filePath by importing data.');
@@ -226,6 +232,9 @@ class DatabaseHelper {
       // Close and reopen the target database to refresh connection
       await targetDb.close();
       _database = await _initDatabase();
+
+      // Notify listeners to refresh data
+      _dataRefreshService.refreshAll();
 
       return true;
     } catch (e) {
@@ -236,6 +245,16 @@ class DatabaseHelper {
         await sourceDb.close();
       }
     }
+  }
+
+  // New method for automatic data refresh after restore
+  Future<void> refreshDataAfterRestore() async {
+    // Force close and reopen database connection
+    if (_database != null) {
+      await _database!.close();
+      _database = null;
+    }
+    _database = await _initDatabase();
   }
 
 

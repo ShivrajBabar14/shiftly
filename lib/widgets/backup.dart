@@ -3,7 +3,12 @@ import 'package:file_picker/file_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:Shiftwise/db/database_helper.dart';
 
-void showBackupRestoreDialog(BuildContext context, String initialDirectory, {DateTime? lastBackupDate}) {
+void showBackupRestoreDialog(
+  BuildContext context,
+  String initialDirectory, {
+  DateTime? lastBackupDate,
+  VoidCallback? onRestoreSuccess,
+}) {
   showDialog(
     context: context,
     builder: (context) {
@@ -35,20 +40,14 @@ void showBackupRestoreDialog(BuildContext context, String initialDirectory, {Dat
                 style: TextStyle(fontWeight: FontWeight.w600),
               ),
               const SizedBox(height: 4),
-              Text(
-                initialDirectory,
-                style: TextStyle(color: Colors.grey[700]),
-              ),
+              Text(initialDirectory, style: TextStyle(color: Colors.grey[700])),
               const SizedBox(height: 20),
               Text(
                 'Last Backup',
                 style: TextStyle(fontWeight: FontWeight.w600),
               ),
               const SizedBox(height: 4),
-              Text(
-                lastBackupStr,
-                style: TextStyle(color: Colors.black87),
-              ),
+              Text(lastBackupStr, style: TextStyle(color: Colors.black87)),
               const SizedBox(height: 30),
               SizedBox(
                 width: double.infinity,
@@ -79,26 +78,36 @@ void showBackupRestoreDialog(BuildContext context, String initialDirectory, {Dat
                       }
                       final success = await dbHelper.restoreFromFile(filePath);
                       if (context.mounted) {
-                      if (success) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('Backup restored successfully. Please restart the app to apply changes.')),
-                        );
-                        // Removed app restart navigation to avoid widget build errors
-                        // User should manually restart the app to apply changes
-                      } else {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('Failed to restore backup.')),
-                        );
-                      }
+                        if (success) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                'Backup restored successfully. Data refreshed automatically.',
+                              ),
+                            ),
+                          );
+                          // Trigger automatic refresh
+                          if (onRestoreSuccess != null) {
+                            onRestoreSuccess();
+                          }
+                        } else {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('Failed to restore backup.'),
+                            ),
+                          );
+                        }
                       }
                     } catch (e) {
-                      if (context.mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('Error selecting file: $e')),
-                        );
-                      }
+                      // if (context.mounted) {
+                      //   ScaffoldMessenger.of(context).showSnackBar(
+                      //     SnackBar(content: Text('Error selecting file: $e')),
+                      //   );
+                      // }
                     }
-                    Navigator.pop(context); // Close dialog after showing SnackBar
+                    Navigator.pop(
+                      context,
+                    ); // Close dialog after showing SnackBar
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.deepPurple,
@@ -112,7 +121,7 @@ void showBackupRestoreDialog(BuildContext context, String initialDirectory, {Dat
                     style: TextStyle(fontSize: 16, color: Colors.white),
                   ),
                 ),
-              )
+              ),
             ],
           ),
         ),
