@@ -21,7 +21,8 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver, RouteAware {
+class _HomeScreenState extends State<HomeScreen>
+    with WidgetsBindingObserver, RouteAware {
   final DatabaseHelper _dbHelper = DatabaseHelper();
   late DateTime _focusedDay;
   late DateTime _selectedDay;
@@ -79,7 +80,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver, Ro
   Timer? _autoBackupTimer;
   // Removed duplicate _subscriptionRefreshTimer declaration
 
-  static final RouteObserver<PageRoute> routeObserver = RouteObserver<PageRoute>();
+  static final RouteObserver<PageRoute> routeObserver =
+      RouteObserver<PageRoute>();
 
   @override
   void initState() {
@@ -575,34 +577,27 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver, Ro
       orElse: () => Employee(employeeId: employeeId, name: 'Unknown'),
     );
 
-    // Use exact week start (Monday) from helper to ensure consistency
     final weekStartDate = _dbHelper.getStartOfWeek(_currentWeekStart);
     final weekStart = weekStartDate.millisecondsSinceEpoch;
-    print('🗓️ Calculated week start timestamp (Monday): $weekStart');
 
-    return showDialog<void>(
+    final shouldRefresh = await showDialog<bool>(
       context: context,
       barrierDismissible: false,
       builder: (BuildContext dialogContext) {
         return Dialog(
           insetPadding: const EdgeInsets.all(16),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(
-              30,
-            ), // Border radius remains unchanged
+            borderRadius: BorderRadius.circular(30),
           ),
           child: Container(
-            width: 400, // Set the dialog width as needed
-            padding: const EdgeInsets.symmetric(
-              horizontal: 16,
-              vertical: 20,
-            ), // Reduced horizontal margin
+            width: 400,
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
             child: Column(
-              mainAxisSize: MainAxisSize.min, // Prevent overflow
+              mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
-                Center(
-                  child: const Text(
+                const Center(
+                  child: Text(
                     'Remove Employee',
                     style: TextStyle(
                       fontSize: 18,
@@ -611,11 +606,10 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver, Ro
                     ),
                   ),
                 ),
-
                 const SizedBox(height: 16),
                 Text(
                   'Are you sure you want to remove ${employee.name} from this week\'s shift table?',
-                  style: TextStyle(fontSize: 16),
+                  style: const TextStyle(fontSize: 16),
                 ),
                 const SizedBox(height: 8),
                 const Text(
@@ -626,10 +620,9 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver, Ro
                 Row(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
-                    // Cancel Button
                     TextButton(
                       onPressed: () {
-                        Navigator.of(dialogContext).pop();
+                        Navigator.of(dialogContext).pop(false); // No refresh
                       },
                       child: const Text(
                         'Cancel',
@@ -637,16 +630,11 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver, Ro
                       ),
                     ),
                     const SizedBox(width: 8),
-                    // Remove Button (Now TextButton)
                     TextButton(
                       onPressed: () async {
-                        Navigator.of(dialogContext).pop();
-
-                        // Remove employee from week assignments
                         final deletedCount = await _dbHelper
                             .removeEmployeeFromWeek(employeeId, weekStart);
 
-                        // Also remove any shift data for this employee in this week
                         final db = await _dbHelper.database;
                         final deletedShifts = await db.delete(
                           'shift_timings',
@@ -658,25 +646,14 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver, Ro
                           "🗑️ Removed employee $employeeId from week $weekStart: $deletedCount assignments, $deletedShifts shifts",
                         );
 
-                        // Force reload the data to reflect changes
-                        await _loadData();
-
-                        // Also reload employees to ensure consistency
-                        await _loadEmployees();
-
-                        // Remove employee from local list immediately for UI update
-                        setState(() {
-                          _employees.removeWhere(
-                            (e) => e.employeeId == employeeId,
-                          );
-                        });
+                        Navigator.of(dialogContext).pop(true); // <-- Important
                       },
                       child: const Text(
                         'Remove',
                         style: TextStyle(
                           color: Colors.deepPurple,
                           fontSize: 18,
-                        ), // Text color
+                        ),
                       ),
                     ),
                   ],
@@ -687,6 +664,12 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver, Ro
         );
       },
     );
+
+    if (shouldRefresh == true) {
+      await _loadEmployees();
+      await _loadData();
+      setState(() {}); // Trigger UI rebuild with latest DB state
+    }
   }
 
   void _showShiftDialog(int employeeId, String day) async {
