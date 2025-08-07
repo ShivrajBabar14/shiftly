@@ -83,7 +83,7 @@ class SuccessDialog extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             const Text(
-              'Get access to all premium features\nwith Shiftwise Pro.',
+              'You have now successfully subscribed to Shiftwise Pro.',
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 16,

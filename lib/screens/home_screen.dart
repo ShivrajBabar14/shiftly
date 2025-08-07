@@ -97,7 +97,9 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     _loadSubscriptionStatus();
 
     // Start periodic subscription status refresh every 5 minutes
-    _subscriptionRefreshTimer = Timer.periodic(const Duration(minutes: 5), (timer) {
+    _subscriptionRefreshTimer = Timer.periodic(const Duration(minutes: 1), (
+      timer,
+    ) {
       SubscriptionService().refreshSubscriptionStatus();
     });
   }
@@ -261,6 +263,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                     labelText: 'Employee Name',
                     labelStyle: TextStyle(color: Color(0xFF9E9E9E)),
                   ),
+                  textCapitalization: TextCapitalization.sentences,
                   onChanged: (value) {
                     String capitalizeWords(String str) {
                       return str
@@ -821,6 +824,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                 ),
                                 border: UnderlineInputBorder(),
                               ),
+                              textCapitalization: TextCapitalization.sentences,
                               onChanged: (value) {
                                 textEditingController.text = value;
                                 textEditingController.selection =
@@ -1191,20 +1195,20 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
             Container(
               margin: const EdgeInsets.only(right: 16),
               child: ElevatedButton(
-                              onPressed: () async {
-                                final subscriptionSuccess = await Navigator.push<bool>(
-                                  context,
-                                  MaterialPageRoute(builder: (context) => ShiftlyProScreen()),
-                                );
+                onPressed: () async {
+                  final subscriptionSuccess = await Navigator.push<bool>(
+                    context,
+                    MaterialPageRoute(builder: (context) => ShiftlyProScreen()),
+                  );
 
-                                if (subscriptionSuccess == true) {
-                                  await _loadSubscriptionStatus();
-                                  await _loadData();
-                                  setState(() {
-                                    _showProOverlay = false;
-                                  });
-                                }
-                              },
+                  if (subscriptionSuccess == true) {
+                    await _loadSubscriptionStatus();
+                    await _loadData();
+                    setState(() {
+                      _showProOverlay = false;
+                    });
+                  }
+                },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.deepPurple,
                   foregroundColor: Colors.white,

@@ -104,6 +104,7 @@ class _AddEmployeeScreenState extends State<AddEmployeeScreen> {
                     labelText: 'Employee Name',
                     labelStyle: TextStyle(color: Color(0xFF9E9E9E)),
                   ),
+                  textCapitalization: TextCapitalization.sentences,
                   onChanged: (value) {
                     String capitalizeWords(String str) {
                       return str
@@ -240,6 +241,7 @@ class _AddEmployeeScreenState extends State<AddEmployeeScreen> {
                 // Employee Name (Editable)
                 TextField(
                   controller: nameController,
+                  textCapitalization: TextCapitalization.sentences,
                   inputFormatters: [
                     TextInputFormatter.withFunction((oldValue, newValue) {
                       String newText = newValue.text
@@ -370,7 +372,7 @@ class _AddEmployeeScreenState extends State<AddEmployeeScreen> {
           child: Align(
             alignment: Alignment.centerLeft,
             child: const Text(
-              'Add Employees',
+              'All Employees',
               style: TextStyle(
                 color: Colors.deepPurple,
                 fontWeight: FontWeight.bold,
