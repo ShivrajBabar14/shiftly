@@ -203,6 +203,7 @@ class _HomeScreenState extends State<HomeScreen>
     await SubscriptionService().refreshSubscriptionStatus();
     final subscribed = SubscriptionService().isSubscribed;
     print('DEBUG: Subscription status refreshed: $subscribed');
+    if (!mounted) return;
     setState(() {
       isFreeUser = !subscribed;
     });
@@ -848,45 +849,47 @@ class _HomeScreenState extends State<HomeScreen>
                       textEditingController: textEditingController,
                       focusNode: FocusNode(),
                       optionsBuilder: (TextEditingValue textEditingValue) async {
-  final input = textEditingValue.text.toLowerCase();
-  final allShiftSuggestions = await _dbHelper.getAllShiftSuggestions();
+                        final input = textEditingValue.text.toLowerCase();
+                        final allShiftSuggestions = await _dbHelper
+                            .getAllShiftSuggestions();
 
-  final plainNames = <String>{};
-  final timedNames = <String>{};
+                        final suggestionSet = <String>{};
 
-  String format(int? millis) {
-    if (millis == null) return '';
-    final dt = DateTime.fromMillisecondsSinceEpoch(millis);
-    return '${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
-  }
+                        String format(int? millis) {
+                          if (millis == null) return '';
+                          final dt = DateTime.fromMillisecondsSinceEpoch(
+                            millis,
+                          );
+                          return '${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
+                        }
 
-  for (var st in allShiftSuggestions) {
-    final rawName = (st['shift_name'] as String?)?.trim() ?? '';
-    if (rawName.isEmpty) continue;
+                        for (var st in allShiftSuggestions) {
+                          final rawName =
+                              (st['shift_name'] as String?)?.trim() ?? '';
+                          if (rawName.isEmpty) continue;
 
-    // Always add plain shift name, even if times exist
-    plainNames.add(rawName);
+                          final s = format(st['start_time'] as int?);
+                          final e = format(st['end_time'] as int?);
 
-    final s = format(st['start_time'] as int?);
-    final e = format(st['end_time'] as int?);
+                          if (s.isNotEmpty && e.isNotEmpty) {
+                            // Shift has time → only show time version
+                            suggestionSet.add('$rawName ($s-$e)');
+                          } else {
+                            // Shift has no time → show plain version
+                            suggestionSet.add(rawName);
+                          }
+                        }
 
-    if (s.isNotEmpty && e.isNotEmpty) {
-      timedNames.add('$rawName ($s-$e)');
-    }
-  }
+                        final suggestionList = suggestionSet.toList();
 
-  // Merge plain + timed names
-  final suggestionList = [
-    ...plainNames,
-    ...timedNames,
-  ];
-
-  if (input.isEmpty) {
-    return suggestionList;
-  } else {
-    return suggestionList.where((opt) => opt.toLowerCase().contains(input));
-  }
-},
+                        if (input.isEmpty) {
+                          return suggestionList;
+                        } else {
+                          return suggestionList.where(
+                            (opt) => opt.toLowerCase().contains(input),
+                          );
+                        }
+                      },
 
                       onSelected: (String selection) {
                         final regex = RegExp(
@@ -1257,9 +1260,7 @@ class _HomeScreenState extends State<HomeScreen>
 
     return Scaffold(
       key: _scaffoldKey,
-      drawer: AppDrawer(
-        onBackupRestore: _fullRefreshHome,
-      ),
+      drawer: AppDrawer(onBackupRestore: _fullRefreshHome),
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
