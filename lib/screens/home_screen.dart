@@ -421,10 +421,12 @@ class _HomeScreenState extends State<HomeScreen>
                           await _loadData();
                           // Update shift table to include new employee
                           setState(() {
-                            final currentSet = _selectedEmployeesForShift
-                                .toSet();
-                            currentSet.add(id);
-                            _selectedEmployeesForShift = currentSet.toList();
+                            // Remove adding new employee id to _selectedEmployeesForShift to avoid hiding other employees
+                            // final currentSet = _selectedEmployeesForShift
+                            //     .toSet();
+                            // currentSet.add(id);
+                            // _selectedEmployeesForShift = currentSet.toList();
+                            _selectedEmployeesForShift = [];
                           });
                         }
                       },
