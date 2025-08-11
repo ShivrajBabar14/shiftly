@@ -180,7 +180,7 @@ class _HomeScreenState extends State<HomeScreen>
 
     // Manage auto-backup timer based on subscription status
     if (!isFreeUser) {
-      _autoBackupTimer ??= Timer.periodic(const Duration(hours: 8), (
+      _autoBackupTimer ??= Timer.periodic(const Duration(minutes: 2), (
         timer,
       ) async {
         await DatabaseHelper().backupDatabase();

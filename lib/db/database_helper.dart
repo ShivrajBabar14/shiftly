@@ -8,7 +8,6 @@ import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:Shiftwise/services/data_refresh_service.dart';
 
-
 class DatabaseHelper {
   static final DatabaseHelper _instance = DatabaseHelper._internal();
   static Database? _database;
@@ -70,7 +69,9 @@ class DatabaseHelper {
 
       // Use hardcoded public Documents directory path for backup storage
       final backupDirectory = Directory('/storage/emulated/0/Documents');
-      final backupDir = Directory(join(backupDirectory.path, 'Shiftwise', 'Backup'));
+      final backupDir = Directory(
+        join(backupDirectory.path, 'Shiftwise', 'Backup'),
+      );
 
       if (!await backupDir.exists()) {
         await backupDir.create(recursive: true);
@@ -79,10 +80,14 @@ class DatabaseHelper {
 
       // Generate date string for backup filename (YYYY-MM-DD)
       final now = DateTime.now();
-      final dateStr = '${now.year.toString().padLeft(4, '0')}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
+      final dateStr =
+          '${now.year.toString().padLeft(4, '0')}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
 
       // Construct backup file path for today's backup
-      final backupFilePath = join(backupDir.path, 'Shiftwise_backup_$dateStr.db');
+      final backupFilePath = join(
+        backupDir.path,
+        'Shiftwise_backup_$dateStr.db',
+      );
       final backupFile = File(backupFilePath);
 
       // Check if backup file for today exists before deleting
@@ -118,7 +123,9 @@ class DatabaseHelper {
     try {
       // Use hardcoded public Documents directory path for backup storage
       final backupDirectory = Directory('/storage/emulated/0/Documents');
-      final backupDir = Directory(join(backupDirectory.path, 'Shiftwise', 'Backup'));
+      final backupDir = Directory(
+        join(backupDirectory.path, 'Shiftwise', 'Backup'),
+      );
 
       if (!await backupDir.exists()) {
         print('❌ Backup directory does not exist.');
@@ -198,7 +205,7 @@ class DatabaseHelper {
 
       // Get list of tables in source database
       final tables = await sourceDb.rawQuery(
-        "SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%';"
+        "SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%';",
       );
 
       // For each table, copy data to target database
@@ -256,7 +263,6 @@ class DatabaseHelper {
     }
     _database = await _initDatabase();
   }
-
 
   Future<bool> checkStoragePermissions() async {
     if (Platform.isAndroid) {
@@ -319,7 +325,9 @@ class DatabaseHelper {
   Future<DateTime?> getLastBackupDate() async {
     try {
       final backupDirectory = Directory('/storage/emulated/0/Documents');
-      final backupDir = Directory(join(backupDirectory.path, 'Shiftwise', 'Backup'));
+      final backupDir = Directory(
+        join(backupDirectory.path, 'Shiftwise', 'Backup'),
+      );
 
       if (!await backupDir.exists()) {
         print('Backup directory does not exist.');
@@ -413,6 +421,7 @@ class DatabaseHelper {
         'shift_name': null,
         'start_time': null,
         'end_time': null,
+        'status': null,
       }, conflictAlgorithm: ConflictAlgorithm.replace);
     }
     print('✅ Added employee $employeeId to week $weekStart');
@@ -488,6 +497,7 @@ class DatabaseHelper {
         shift_name TEXT,
         start_time INTEGER,
         end_time INTEGER,
+        status TEXT,
         FOREIGN KEY (employee_id) REFERENCES employees (employee_id) ON DELETE CASCADE,
         UNIQUE(employee_id, day, week_start) ON CONFLICT REPLACE
       )
@@ -558,6 +568,7 @@ class DatabaseHelper {
     shift_name TEXT,
     start_time INTEGER,
     end_time INTEGER,
+    status TEXT,
     FOREIGN KEY (employee_id) REFERENCES employees (employee_id) ON DELETE CASCADE,
     UNIQUE(employee_id, day, week_start) ON CONFLICT REPLACE
   )
@@ -575,6 +586,7 @@ class DatabaseHelper {
     shift_name TEXT,
     start_time INTEGER,
     end_time INTEGER,
+    status TEXT,
     FOREIGN KEY (employee_id) REFERENCES employees (employee_id) ON DELETE CASCADE,
     UNIQUE(employee_id, day, week_start) ON CONFLICT REPLACE
   )
@@ -627,6 +639,7 @@ class DatabaseHelper {
     String? shiftName,
     int? startTime,
     int? endTime,
+    String? status,
   }) async {
     final db = await database;
 
@@ -637,6 +650,7 @@ class DatabaseHelper {
       'shift_name': shiftName,
       'start_time': startTime,
       'end_time': endTime,
+      'status': status,
     }, conflictAlgorithm: ConflictAlgorithm.replace);
   }
 
@@ -644,8 +658,9 @@ class DatabaseHelper {
     int employeeId,
     String day,
     int weekStart,
-    String shiftValue,
-  ) async {
+    String shiftValue, {
+    String status = 'active', // <-- New optional param
+  }) async {
     final parts = shiftValue.split('|');
     final shiftName = parts[0];
     int startTimeMillis = 0;
@@ -683,6 +698,7 @@ class DatabaseHelper {
       shiftName: shiftName,
       startTime: startTimeMillis,
       endTime: endTimeMillis,
+      status: status,
     );
   }
 
@@ -771,9 +787,9 @@ class DatabaseHelper {
 
   // Get all unique shift patterns from all weeks for suggestions
   Future<List<Map<String, dynamic>>> getAllShiftSuggestions() async {
-  final db = await database;
-  try {
-    return await db.rawQuery('''
+    final db = await database;
+    try {
+      return await db.rawQuery('''
       SELECT DISTINCT 
         shift_name,
         start_time,
@@ -783,10 +799,9 @@ class DatabaseHelper {
         AND shift_name != ''
       ORDER BY shift_name
     ''');
-  } catch (e) {
-    print('Error getting all shift suggestions: $e');
-    return [];
+    } catch (e) {
+      print('Error getting all shift suggestions: $e');
+      return [];
+    }
   }
-}
-
 }
