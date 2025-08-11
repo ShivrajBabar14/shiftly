@@ -6,6 +6,7 @@ import 'package:in_app_purchase_android/in_app_purchase_android.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../widgets/success.dart';
 import 'package:Shiftwise/services/subscription_service.dart';
+import 'home_screen.dart';
 
 class ShiftlyProScreen extends StatefulWidget {
   @override
@@ -138,11 +139,10 @@ class _ShiftlyProScreenState extends State<ShiftlyProScreen> {
     });
 
     if (activeSubscriptionFound && mounted) {
-      // Close the subscription screen
-      Navigator.pop(context, true);
-
-      // Then show the success dialog after a short delay on the current context
-      Future.delayed(Duration(milliseconds: 300), () {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => HomeScreen()),
+      ).then((_) {
         if (!mounted) return;
         showDialog(
           context: context,
@@ -150,7 +150,7 @@ class _ShiftlyProScreenState extends State<ShiftlyProScreen> {
           builder: (_) => SuccessDialog(
             onContinue: () {
               if (!mounted) return;
-              Navigator.pop(context); // Close the dialog
+              Navigator.pop(context);
             },
             logoImage: const AssetImage('assets/app_logo.png'),
           ),

@@ -46,13 +46,13 @@ void showBackupRestoreDialog(
               const SizedBox(height: 4),
               Text(initialDirectory, style: TextStyle(color: Colors.grey[700])),
               const SizedBox(height: 20),
-              Text(
-                'Last Backup',
-                style: TextStyle(fontWeight: FontWeight.w600),
-              ),
-              const SizedBox(height: 4),
-              Text(lastBackupStr, style: TextStyle(color: Colors.black87)),
-              const SizedBox(height: 30),
+              // Text(
+              //   'Last Backup',
+              //   style: TextStyle(fontWeight: FontWeight.w600),
+              // ),
+              // const SizedBox(height: 4),
+              // Text(lastBackupStr, style: TextStyle(color: Colors.black87)),
+              // const SizedBox(height: 30),
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
