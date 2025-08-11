@@ -105,6 +105,9 @@ class _HomeScreenState extends State<HomeScreen>
     // Load initial subscription status and data
     _loadSubscriptionStatus();
 
+    // Immediately refresh subscription status to update UI on app start
+    _refreshSubscriptionStatus();
+
     // Start periodic subscription status refresh every 5 minutes
     _subscriptionRefreshTimer = Timer.periodic(const Duration(minutes: 1), (
       timer,
@@ -178,7 +181,7 @@ class _HomeScreenState extends State<HomeScreen>
 
     // Manage auto-backup timer based on subscription status
     if (!isFreeUser) {
-      _autoBackupTimer ??= Timer.periodic(const Duration(minutes: 2), (
+      _autoBackupTimer ??= Timer.periodic(const Duration(hours: 8), (
         timer,
       ) async {
         await DatabaseHelper().backupDatabase();
@@ -198,7 +201,7 @@ class _HomeScreenState extends State<HomeScreen>
 
   // Add this method to refresh subscription status when returning from subscription screen
   Future<void> _refreshSubscriptionStatus() async {
-    await SubscriptionService().loadSubscriptionStatus();
+    await SubscriptionService().refreshSubscriptionStatus();
     final subscribed = SubscriptionService().isSubscribed;
     print('DEBUG: Subscription status refreshed: $subscribed');
     setState(() {
@@ -415,6 +418,7 @@ class _HomeScreenState extends State<HomeScreen>
                           await _dbHelper.addEmployeeToWeek(id, weekStart);
                           Navigator.pop(context);
                           await _loadEmployees();
+                          await _loadData();
                           // Update shift table to include new employee
                           setState(() {
                             final currentSet = _selectedEmployeesForShift
