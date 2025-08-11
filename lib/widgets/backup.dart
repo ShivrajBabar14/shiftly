@@ -10,6 +10,8 @@ void showBackupRestoreDialog(
   String initialDirectory, {
   DateTime? lastBackupDate,
   VoidCallback? onRestoreSuccess,
+
+
 }) {
   showDialog(
     context: context,
@@ -83,16 +85,16 @@ void showBackupRestoreDialog(
                         if (success) {
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
-                              content: Text(
-                                'Backup restored successfully.',
-                              ),
+                              content: Text('Backup restored successfully.'),
                             ),
                           );
-                          // Trigger automatic refresh
+
+                          // Trigger automatic refresh logic if needed
                           await BackupRefreshService().refreshAfterRestore();
-                          // Also force refresh current week in home screen
+
+                          // Call HomeScreen's refresh if provided
                           if (onRestoreSuccess != null) {
-                            onRestoreSuccess();
+                            onRestoreSuccess!();
                           }
                         } else {
                           ScaffoldMessenger.of(context).showSnackBar(

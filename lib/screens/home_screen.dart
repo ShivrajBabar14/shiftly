@@ -1,5 +1,4 @@
 import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:intl/intl.dart';
@@ -140,6 +139,20 @@ class _HomeScreenState extends State<HomeScreen>
     print('DEBUG: didPopNext called');
     // Called when the current route is shown again after popping a next route.
     _refreshSubscriptionStatus();
+  }
+
+  void _fullRefreshHome() async {
+    await _loadEmployees();
+    await _loadShifts();
+    setState(() {}); // Refresh UI
+  }
+
+  Future<void> _loadShifts() async {
+    final weekStart = _currentWeekStart.millisecondsSinceEpoch;
+    final shifts = await _dbHelper.getEmployeesWithShiftsForWeek(weekStart);
+    setState(() {
+      _shiftTimings = shifts;
+    });
   }
 
   @override
@@ -498,13 +511,13 @@ class _HomeScreenState extends State<HomeScreen>
   Future<void> forceRefreshCurrentWeek() async {
     try {
       setState(() => _isLoading = true);
-      
+
       // Reload data for current week
       await _loadData();
-      
+
       // Also reload employees to ensure consistency
       await _loadEmployees();
-      
+
       print('✅ Current week data refreshed automatically');
     } catch (e) {
       print('❌ Error refreshing current week: $e');
@@ -1232,7 +1245,9 @@ class _HomeScreenState extends State<HomeScreen>
 
     return Scaffold(
       key: _scaffoldKey,
-      drawer: AppDrawer(),
+      drawer: AppDrawer(
+        onBackupRestore: _fullRefreshHome,
+      ),
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
@@ -1283,7 +1298,6 @@ class _HomeScreenState extends State<HomeScreen>
                     context,
                     MaterialPageRoute(builder: (context) => ShiftlyProScreen()),
                   );
-
                   if (subscriptionSuccess == true) {
                     await _loadSubscriptionStatus();
                     await _loadData();
@@ -1355,7 +1369,6 @@ class _HomeScreenState extends State<HomeScreen>
               ],
             ),
           ),
-
           if (_showCalendar)
             TableCalendar(
               firstDay: _firstDay,
@@ -1371,7 +1384,6 @@ class _HomeScreenState extends State<HomeScreen>
               availableCalendarFormats: const {CalendarFormat.week: 'Week'},
               startingDayOfWeek: StartingDayOfWeek.monday,
             ),
-
           Expanded(
             child: _isLoading
                 ? const Center(child: CircularProgressIndicator())

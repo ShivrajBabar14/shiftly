@@ -16,6 +16,11 @@ import 'subscription.dart';
 class AppDrawer extends StatelessWidget {
   static const platform = MethodChannel('com.shift.schedule.app/mail');
 
+  /// Callback that will be provided by HomeScreen to refresh the data after restore
+  final VoidCallback? onBackupRestore;
+
+  AppDrawer({Key? key, this.onBackupRestore}) : super(key: key);
+
   Future<bool> isUserSubscribed() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getBool('is_subscribed') ?? false;
@@ -62,56 +67,10 @@ class AppDrawer extends StatelessWidget {
                     'Backup & Restore',
                     style: TextStyle(color: Colors.black87),
                   ),
-                  // onTap: () async {
-                  //   final scaffoldMessenger = ScaffoldMessenger.of(context);
-                  //   Navigator.of(context).pop();
-
-                  //   final dbHelper = DatabaseHelper();
-
-                  //   // Check the shiftwise/backup folder specifically
-                  //   final backupPath =
-                  //       '/storage/emulated/0/Documents/shiftwise/backup';
-                  //   final backupDir = Directory(backupPath);
-
-                  //   try {
-                  //     final exists = await backupDir.exists();
-                  //     bool hasBackupFile = false;
-
-                  //     if (exists) {
-                  //       // Check for any files in the backup folder
-                  //       final files = backupDir.listSync();
-                  //       hasBackupFile = files.any((f) => f is File);
-                  //     }
-
-                  //     if (!hasBackupFile) {
-                  //       scaffoldMessenger.showSnackBar(
-                  //         SnackBar(
-                  //           content: Text(
-                  //             'No backup files found in shiftwise/backup folder.',
-                  //           ),
-                  //         ),
-                  //       );
-                  //       return;
-                  //     }
-
-                  //     final lastBackupDate = await dbHelper.getLastBackupDate();
-
-                  //     showBackupRestoreDialog(
-                  //       context,
-                  //       backupPath,
-                  //       lastBackupDate: lastBackupDate,
-                  //     );
-                  //   } catch (e) {
-                  //     print("Error: $e");
-                  //     scaffoldMessenger.showSnackBar(
-                  //       SnackBar(content: Text('Error checking backup: $e')),
-                  //     );
-                  //   }
-                  // },
                   onTap: () async {
                     Navigator.of(context).pop();
 
-                    // Check subscription status using the subscription service
+                    // Check subscription status
                     final subscriptionService = SubscriptionService();
                     final isSubscribed = await subscriptionService.isSubscribed;
 
@@ -123,20 +82,15 @@ class AppDrawer extends StatelessWidget {
                         builder: (context) {
                           return LimitsDialog(
                             onGoPro: () {
-                              Navigator.of(
-                                context,
-                              ).pop(); // Close limits dialog
+                              Navigator.of(context).pop(); // Close dialog
                               Navigator.of(context).push(
                                 MaterialPageRoute(
-                                  builder: (context) =>
-                                       ShiftlyProScreen(),
+                                  builder: (context) => ShiftlyProScreen(),
                                 ),
                               );
                             },
                             onContinueFree: () {
-                              Navigator.of(
-                                context,
-                              ).pop(); // Close limits dialog
+                              Navigator.of(context).pop(); // Close dialog
                             },
                           );
                         },
@@ -155,13 +109,10 @@ class AppDrawer extends StatelessWidget {
                       backupPath,
                       lastBackupDate: lastBackupDate,
                       onRestoreSuccess: () {
-                        // Trigger data refresh after successful restore
-                        Navigator.of(context).pushAndRemoveUntil(
-                          MaterialPageRoute(
-                            builder: (context) => HomeScreen(),
-                          ),
-                          (route) => false,
-                        );
+                        // Call the refresh callback from HomeScreen if provided
+                        if (onBackupRestore != null) {
+                          onBackupRestore!();
+                        }
                       },
                     );
                   },
@@ -251,9 +202,9 @@ class AppDrawer extends StatelessWidget {
       }
     } on PlatformException catch (e) {
       print("Failed to open Gmail app: $e");
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Failed to open Gmail app.')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to open Gmail app.')),
+      );
     }
   }
 
@@ -276,9 +227,9 @@ class AppDrawer extends StatelessWidget {
       }
     } catch (e) {
       print("Failed to open Play Store: $e");
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Failed to open Play Store.')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to open Play Store.')),
+      );
     }
   }
 
@@ -290,9 +241,9 @@ class AppDrawer extends StatelessWidget {
       await Share.share('Check out this app: $appLink');
     } catch (e) {
       print("Error while sharing: $e");
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Failed to share the app.')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to share the app.')),
+      );
     }
   }
 }
