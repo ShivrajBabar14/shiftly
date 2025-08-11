@@ -112,25 +112,25 @@ class _AddEmployeeScreenState extends State<AddEmployeeScreen> {
                     labelStyle: TextStyle(color: Color(0xFF9E9E9E)),
                   ),
                   textCapitalization: TextCapitalization.sentences,
-                  onChanged: (value) {
-                    String capitalizeWords(String str) {
-                      return str
-                          .split(' ')
-                          .map((word) {
-                            if (word.isEmpty) return word;
-                            return word[0].toUpperCase() + word.substring(1);
-                          })
-                          .join(' ');
-                    }
+                  // onChanged: (value) {
+                  //   String capitalizeWords(String str) {
+                  //     return str
+                  //         .split(' ')
+                  //         .map((word) {
+                  //           if (word.isEmpty) return word;
+                  //           return word[0].toUpperCase() + word.substring(1);
+                  //         })
+                  //         .join(' ');
+                  //   }
 
-                    final capitalized = capitalizeWords(value);
-                    nameController.value = nameController.value.copyWith(
-                      text: capitalized,
-                      selection: TextSelection.collapsed(
-                        offset: capitalized.length,
-                      ),
-                    );
-                  },
+                  //   final capitalized = capitalizeWords(value);
+                  //   nameController.value = nameController.value.copyWith(
+                  //     text: capitalized,
+                  //     selection: TextSelection.collapsed(
+                  //       offset: capitalized.length,
+                  //     ),
+                  //   );
+                  // },
                 ),
                 const SizedBox(height: 20),
                 // Action Buttons

@@ -155,14 +155,18 @@ class AppDrawer extends StatelessWidget {
       onTap: () {
         Navigator.of(context).pop();
 
-        if (title == 'All Employees') {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => AddEmployeeScreen(isFreeUser: true),
-            ),
-          );
-        } else if (title == 'Write Feedback') {
+                if (title == 'All Employees') {
+                  () async {
+                    final subscriptionService = SubscriptionService();
+                    final isSubscribed = await subscriptionService.isSubscribed;
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => AddEmployeeScreen(isFreeUser: !isSubscribed),
+                      ),
+                    );
+                  }();
+                } else if (title == 'Write Feedback') {
           _launchFeedbackMail(context);
         } else if (title == 'Rate Us') {
           _launchRateUs(context);

@@ -13,6 +13,7 @@ import 'employee_shift_screen.dart'; // Add import for new screen
 import 'package:Shiftwise/services/subscription_service.dart';
 import 'package:Shiftwise/services/backup_refresh_service.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:Shiftwise/services/smart_backup_service.dart';
 
 import 'package:flutter/material.dart';
 
@@ -178,16 +179,13 @@ class _HomeScreenState extends State<HomeScreen>
       _subscriptionStatusLoaded = true;
     });
 
-    // Manage auto-backup timer based on subscription status
+    // Initialize smart backup service based on subscription status
     if (!isFreeUser) {
-      _autoBackupTimer ??= Timer.periodic(const Duration(minutes: 2), (
-        timer,
-      ) async {
-        await DatabaseHelper().backupDatabase();
-      });
+      // Initialize smart backup service for subscribed users
+      await SmartBackupService().initialize();
     } else {
-      _autoBackupTimer?.cancel();
-      _autoBackupTimer = null;
+      // Stop backup service for free users
+      SmartBackupService().dispose();
     }
 
     // Then load data
@@ -936,31 +934,31 @@ class _HomeScreenState extends State<HomeScreen>
                                 border: UnderlineInputBorder(),
                               ),
                               textCapitalization: TextCapitalization.sentences,
-                              onChanged: (value) {
-                                textEditingController.text = value;
-                                textEditingController.selection =
-                                    controller.selection;
+                              // onChanged: (value) {
+                              //   textEditingController.text = value;
+                              //   textEditingController.selection =
+                              //       controller.selection;
 
-                                String cap = value
-                                    .split(' ')
-                                    .map(
-                                      (word) => word.isEmpty
-                                          ? word
-                                          : '${word[0].toUpperCase()}${word.substring(1)}',
-                                    )
-                                    .join(' ');
-                                if (cap != value) {
-                                  controller.value = TextEditingValue(
-                                    text: cap,
-                                    selection: TextSelection.collapsed(
-                                      offset: cap.length,
-                                    ),
-                                  );
-                                  textEditingController.text = cap;
-                                  textEditingController.selection =
-                                      controller.selection;
-                                }
-                              },
+                              //   String cap = value
+                              //       .split(' ')
+                              //       .map(
+                              //         (word) => word.isEmpty
+                              //             ? word
+                              //             : '${word[0].toUpperCase()}${word.substring(1)}',
+                              //       )
+                              //       .join(' ');
+                              //   if (cap != value) {
+                              //     controller.value = TextEditingValue(
+                              //       text: cap,
+                              //       selection: TextSelection.collapsed(
+                              //         offset: cap.length,
+                              //       ),
+                              //     );
+                              //     textEditingController.text = cap;
+                              //     textEditingController.selection =
+                              //         controller.selection;
+                              //   }
+                              // },
                             );
                           },
 
