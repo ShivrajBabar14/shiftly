@@ -848,39 +848,46 @@ class _HomeScreenState extends State<HomeScreen>
                       textEditingController: textEditingController,
                       focusNode: FocusNode(),
                       optionsBuilder: (TextEditingValue textEditingValue) async {
-                        final input = textEditingValue.text.toLowerCase();
-                        final allShiftSuggestions = await _dbHelper
-                            .getAllShiftSuggestions();
+  final input = textEditingValue.text.toLowerCase();
+  final allShiftSuggestions = await _dbHelper.getAllShiftSuggestions();
 
-                        final formattedSuggestions = allShiftSuggestions
-                            .map((st) {
-                              final name = st['shift_name'] as String;
-                              final start = st['start_time'] as int?;
-                              final end = st['end_time'] as int?;
+  final plainNames = <String>{};
+  final timedNames = <String>{};
 
-                              String format(int? millis) {
-                                if (millis == null) return '';
-                                final dt = DateTime.fromMillisecondsSinceEpoch(
-                                  millis,
-                                );
-                                return '${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
-                              }
+  String format(int? millis) {
+    if (millis == null) return '';
+    final dt = DateTime.fromMillisecondsSinceEpoch(millis);
+    return '${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
+  }
 
-                              final s = format(start);
-                              final e = format(end);
+  for (var st in allShiftSuggestions) {
+    final rawName = (st['shift_name'] as String?)?.trim() ?? '';
+    if (rawName.isEmpty) continue;
 
-                              return (s.isNotEmpty && e.isNotEmpty)
-                                  ? '$name ($s-$e)'
-                                  : name;
-                            })
-                            .toSet()
-                            .toList();
+    // Always add plain shift name, even if times exist
+    plainNames.add(rawName);
 
-                        if (input.isEmpty) return formattedSuggestions;
-                        return formattedSuggestions.where(
-                          (opt) => opt.toLowerCase().contains(input),
-                        );
-                      },
+    final s = format(st['start_time'] as int?);
+    final e = format(st['end_time'] as int?);
+
+    if (s.isNotEmpty && e.isNotEmpty) {
+      timedNames.add('$rawName ($s-$e)');
+    }
+  }
+
+  // Merge plain + timed names
+  final suggestionList = [
+    ...plainNames,
+    ...timedNames,
+  ];
+
+  if (input.isEmpty) {
+    return suggestionList;
+  } else {
+    return suggestionList.where((opt) => opt.toLowerCase().contains(input));
+  }
+},
+
                       onSelected: (String selection) {
                         final regex = RegExp(
                           r'^(.*?)\s*\((\d{2}):(\d{2})-(\d{2}):(\d{2})\)?$',

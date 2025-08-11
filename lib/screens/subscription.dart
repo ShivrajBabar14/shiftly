@@ -131,21 +131,25 @@ class _ShiftlyProScreenState extends State<ShiftlyProScreen> {
     // Update subscription service status
     await SubscriptionService().setSubscriptionStatus(activeSubscriptionFound);
 
+    if (!mounted) return;
+
     setState(() {
       isSubscribed = activeSubscriptionFound;
     });
 
     if (activeSubscriptionFound && mounted) {
-      // First close the subscription screen
+      // Close the subscription screen
       Navigator.pop(context, true);
 
-      // Then show the success dialog after a short delay
+      // Then show the success dialog after a short delay on the current context
       Future.delayed(Duration(milliseconds: 300), () {
+        if (!mounted) return;
         showDialog(
           context: context,
           barrierDismissible: false,
           builder: (_) => SuccessDialog(
             onContinue: () {
+              if (!mounted) return;
               Navigator.pop(context); // Close the dialog
             },
             logoImage: const AssetImage('assets/app_logo.png'),
