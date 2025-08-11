@@ -145,8 +145,7 @@ class _HomeScreenState extends State<HomeScreen>
   }
 
   void _fullRefreshHome() async {
-    await _loadEmployees();
-    await _loadShifts();
+    await _loadData();
     setState(() {}); // Refresh UI
   }
 
