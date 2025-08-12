@@ -15,6 +15,8 @@ import 'package:Shiftwise/services/subscription_service.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:Shiftwise/services/smart_backup_service.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
+import 'package:in_app_review/in_app_review.dart';
+import 'package:in_app_update/in_app_update.dart';
 
 final GlobalKey<_HomeScreenState> homeScreenKey = GlobalKey<_HomeScreenState>();
 
@@ -45,6 +47,7 @@ class _HomeScreenState extends State<HomeScreen>
   final dbHelper = DatabaseHelper();
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   final FirebaseAnalytics analytics = FirebaseAnalytics.instance;
+  final InAppReview _inAppReview = InAppReview.instance;
 
   // Add isFreeUser flag to indicate free user status
   bool isFreeUser = true;
@@ -100,6 +103,11 @@ class _HomeScreenState extends State<HomeScreen>
     _firstDay = DateTime.now().subtract(const Duration(days: 365));
     _lastDay = DateTime.now().add(const Duration(days: 365));
 
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      await _checkForAppUpdate(); // First check update
+      await _checkVisitsForReview(); // Then maybe show review
+    });
+
     // Initialize week range first
     _calculateWeekRange(_selectedDay);
 
@@ -148,6 +156,45 @@ class _HomeScreenState extends State<HomeScreen>
   void _fullRefreshHome() async {
     await _loadData();
     setState(() {}); // Refresh UI
+  }
+
+  /// ---------------- In-App Update Logic ----------------
+  Future<void> _checkForAppUpdate() async {
+    try {
+      final AppUpdateInfo info = await InAppUpdate.checkForUpdate();
+
+      if (info.updateAvailability == UpdateAvailability.updateAvailable) {
+        if (info.immediateUpdateAllowed) {
+          await InAppUpdate.performImmediateUpdate();
+        } else if (info.flexibleUpdateAllowed) {
+          await InAppUpdate.startFlexibleUpdate();
+          await InAppUpdate.completeFlexibleUpdate();
+        }
+      }
+    } catch (e) {
+      debugPrint("In-app update check failed: $e");
+    }
+  }
+
+  /// ---------------- In-App Review Logic ----------------
+  Future<void> _checkVisitsForReview() async {
+    final prefs = await SharedPreferences.getInstance();
+    int visits = prefs.getInt('visits') ?? 0;
+    bool reviewShown = prefs.getBool('review_shown') ?? false;
+
+    visits++;
+    await prefs.setInt('visits', visits);
+
+    if (visits == 2 && !reviewShown) {
+      await _showReviewDialog();
+      await prefs.setBool('review_shown', true);
+    }
+  }
+
+  Future<void> _showReviewDialog() async {
+    if (await _inAppReview.isAvailable()) {
+      await _inAppReview.requestReview();
+    }
   }
 
   Future<void> _loadShifts() async {
@@ -1100,6 +1147,7 @@ class _HomeScreenState extends State<HomeScreen>
                             shiftName = textEditingController.text.trim();
                             final hasName =
                                 shiftName != null && shiftName!.isNotEmpty;
+
                             final hasTime =
                                 startTime != null && endTime != null;
 
@@ -1138,16 +1186,21 @@ class _HomeScreenState extends State<HomeScreen>
                                 endTime: endTimeMillis,
                               );
 
+                              // ✅ Build parameters without null values
+                              final params = {
+                                'employee_id': employeeId,
+                                'day': day,
+                                'week_start': weekStart,
+                              };
+                              if (hasName) params['shift_name'] = shiftName!;
+                              if (startTimeMillis != null)
+                                params['start_time'] = startTimeMillis;
+                              if (endTimeMillis != null)
+                                params['end_time'] = endTimeMillis;
+
                               await analytics.logEvent(
                                 name: 'shift_saved',
-                                parameters: {
-                                  'employee_id': employeeId,
-                                  'day': day,
-                                  'week_start': weekStart,
-                                  'shift_name': hasName ? shiftName : null,
-                                  'start_time': startTimeMillis,
-                                  'end_time': endTimeMillis,
-                                },
+                                parameters: params,
                               );
 
                               await _loadData();
@@ -1164,6 +1217,7 @@ class _HomeScreenState extends State<HomeScreen>
                               );
                             }
                           },
+
                           child: const Text(
                             'Save',
                             style: TextStyle(
