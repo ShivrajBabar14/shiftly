@@ -6,6 +6,7 @@ import 'package:in_app_purchase_android/in_app_purchase_android.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../widgets/success.dart';
 import 'package:Shiftwise/services/subscription_service.dart';
+import 'package:Shiftwise/services/go_pro_display_service.dart';  // Added import for GoProDisplayService
 import 'home_screen.dart';
 
 class ShiftlyProScreen extends StatefulWidget {
@@ -28,6 +29,19 @@ class _ShiftlyProScreenState extends State<ShiftlyProScreen> {
     _loadProducts();
     _restoreSubscriptionStatus();
     _refreshSubscriptionStatus();
+  }
+
+  @override
+  void dispose() {
+    _purchaseSubscription.cancel();
+    super.dispose();
+  }
+
+  @override
+  void deactivate() {
+    super.deactivate();
+    // When the Go Pro page is closed (popped), record the close timestamp
+    GoProDisplayService.recordGoProClosed();
   }
 
   Future<void> _restoreSubscriptionStatus() async {
@@ -187,11 +201,6 @@ class _ShiftlyProScreenState extends State<ShiftlyProScreen> {
     _inAppPurchase.buyNonConsumable(purchaseParam: purchaseParam);
   }
 
-  @override
-  void dispose() {
-    _purchaseSubscription.cancel();
-    super.dispose();
-  }
 
   String _getPriceForProduct(String productId) {
     try {
@@ -233,7 +242,14 @@ class _ShiftlyProScreenState extends State<ShiftlyProScreen> {
               Align(
                 alignment: Alignment.topLeft,
                 child: GestureDetector(
-                  onTap: () => Navigator.pop(context),
+                  onTap: () {
+                    // Record close timestamp
+                    GoProDisplayService.recordGoProClosed();
+                    // Navigate to home screen
+                    Navigator.of(context).pushReplacement(
+                      MaterialPageRoute(builder: (context) => HomeScreen()),
+                    );
+                  },
                   child: const Icon(Icons.close, size: 28),
                 ),
               ),

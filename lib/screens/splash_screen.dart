@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'home_screen.dart';
+import 'subscription.dart';
 import 'dart:async';
+import '../services/go_pro_display_service.dart';
+import 'package:Shiftwise/services/subscription_service.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -19,14 +22,44 @@ class _SplashScreenState extends State<SplashScreen> {
     });
   }
 
-  void _navigateToHome() {
+  void _navigateToHome() async {
+    // First, refresh subscription status to ensure we have the latest data
+    await SubscriptionService().refreshSubscriptionStatus();
+    await SubscriptionService().loadSubscriptionStatus();
+    
+    // Check if user is subscribed
+    final isSubscribed = SubscriptionService().isSubscribed;
+    
     // Use a short delay to ensure splash screen is visible
     Future.delayed(const Duration(milliseconds: 500), () {
       if (mounted) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => HomeScreen()),
-        );
+        if (!isSubscribed) {
+          // Check if Go Pro page should be shown for free users
+          GoProDisplayService.shouldShowGoProPage().then((shouldShowGoPro) {
+            if (shouldShowGoPro) {
+              // Record that Go Pro page is being shown
+              GoProDisplayService.recordGoProShown();
+              
+              // Navigate to Go Pro page for free users
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (context) => ShiftlyProScreen()),
+              );
+            } else {
+              // Navigate to Home for free users (not time to show Go Pro)
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (context) => HomeScreen()),
+              );
+            }
+          });
+        } else {
+          // Subscribed users go directly to Home
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => HomeScreen()),
+          );
+        }
       }
     });
   }
