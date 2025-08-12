@@ -3,15 +3,16 @@ import 'package:file_picker/file_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:Shiftwise/db/database_helper.dart';
 import 'package:Shiftwise/services/backup_refresh_service.dart';
-import 'package:Shiftwise/screens/home_screen.dart';
+import 'package:firebase_analytics/firebase_analytics.dart';
+// import 'package:Shiftwise/screens/home_screen.dart';
+
+final FirebaseAnalytics analytics = FirebaseAnalytics.instance;
 
 void showBackupRestoreDialog(
   BuildContext context,
   String initialDirectory, {
   DateTime? lastBackupDate,
   VoidCallback? onRestoreSuccess,
-
-
 }) {
   showDialog(
     context: context,
@@ -69,6 +70,12 @@ void showBackupRestoreDialog(
                             SnackBar(content: Text('No file selected.')),
                           );
                         }
+
+                        // 📊 Log event for no file selection
+                        await analytics.logEvent(
+                          name: 'restore_data_attempt',
+                          parameters: {'status': 'no_file_selected'},
+                        );
                         return;
                       }
                       final filePath = result.files.single.path;
@@ -78,6 +85,13 @@ void showBackupRestoreDialog(
                             SnackBar(content: Text('Invalid file path.')),
                           );
                         }
+
+                        // 📊 Log event for invalid file path
+                        await analytics.logEvent(
+                          name: 'restore_data_attempt',
+                          parameters: {'status': 'invalid_file_path'},
+                        );
+
                         return;
                       }
                       final success = await dbHelper.restoreFromFile(filePath);
@@ -96,11 +110,27 @@ void showBackupRestoreDialog(
                           if (onRestoreSuccess != null) {
                             onRestoreSuccess!();
                           }
+                          // 📊 Log successful restore
+                          await analytics.logEvent(
+                            name: 'restore_data_attempt',
+                            parameters: {
+                              'status': 'success',
+                              'file_path': filePath,
+                            },
+                          );
                         } else {
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
                               content: Text('Failed to restore backup.'),
                             ),
+                          );
+                          // 📊 Log failed restore
+                          await analytics.logEvent(
+                            name: 'restore_data_attempt',
+                            parameters: {
+                              'status': 'failed',
+                              'file_path': filePath,
+                            },
                           );
                         }
                       }

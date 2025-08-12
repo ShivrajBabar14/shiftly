@@ -82,6 +82,8 @@ dependencies {
     implementation("com.razorpay:checkout:1.6.33")
     implementation("com.google.android.gms:play-services-wallet:19.1.0")
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.9.22")
+    implementation(platform("com.google.firebase:firebase-bom:33.1.2"))
+    implementation("com.google.firebase:firebase-analytics")
 
     // Alternative Google Pay implementation that doesn't require inapp-client-api
     implementation("com.google.android.gms:play-services-pay:16.3.0")

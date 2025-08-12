@@ -4,6 +4,7 @@ import 'package:Shiftwise/db/database_helper.dart';
 import 'package:flutter/services.dart';
 import 'package:Shiftwise/widgets/limits_dialog.dart';
 import 'package:Shiftwise/screens/subscription.dart';
+import 'package:firebase_analytics/firebase_analytics.dart';
 
 class AddEmployeeScreen extends StatefulWidget {
   final bool isFreeUser;
@@ -16,6 +17,7 @@ class AddEmployeeScreen extends StatefulWidget {
 class _AddEmployeeScreenState extends State<AddEmployeeScreen> {
   final DatabaseHelper _dbHelper = DatabaseHelper();
   List<Employee> _employees = [];
+  final FirebaseAnalytics analytics = FirebaseAnalytics.instance;
 
   @override
   void initState() {
@@ -37,8 +39,9 @@ class _AddEmployeeScreenState extends State<AddEmployeeScreen> {
 
   Future<bool> _employeeNameExists(String name) async {
     final employees = await _dbHelper.getEmployees();
-    return employees.any((e) => 
-      e['name'].toString().toLowerCase() == name.toLowerCase());
+    return employees.any(
+      (e) => e['name'].toString().toLowerCase() == name.toLowerCase(),
+    );
   }
 
   Future<void> _addEmployeeDialog() async {
@@ -57,9 +60,7 @@ class _AddEmployeeScreenState extends State<AddEmployeeScreen> {
               // Navigate to pro screen
               Navigator.push(
                 context,
-                MaterialPageRoute(
-                  builder: (context) => ShiftlyProScreen(),
-                ),
+                MaterialPageRoute(builder: (context) => ShiftlyProScreen()),
               );
             },
             onContinueFree: () {
@@ -149,10 +150,7 @@ class _AddEmployeeScreenState extends State<AddEmployeeScreen> {
                       },
                       child: const Text(
                         'Cancel',
-                        style: TextStyle(
-                          color: Colors.grey,
-                          fontSize: 18,
-                        ),
+                        style: TextStyle(color: Colors.grey, fontSize: 18),
                       ),
                     ),
                     const SizedBox(width: 16),
@@ -193,6 +191,15 @@ class _AddEmployeeScreenState extends State<AddEmployeeScreen> {
                           }
 
                           await _dbHelper.insertEmployeeWithId(id, name);
+
+                          // ✅ Log analytics event
+                          await analytics.logEvent(
+                            name: 'employee_added',
+                            parameters: {
+                              'employee_id': id,
+                              'employee_name': name,
+                            },
+                          );
                           Navigator.pop(context);
                           await _loadEmployees();
                         }
@@ -283,10 +290,7 @@ class _AddEmployeeScreenState extends State<AddEmployeeScreen> {
                       ),
                       child: const Text(
                         'Cancel',
-                        style: TextStyle(
-                          color: Colors.grey,
-                          fontSize: 18,
-                        ),
+                        style: TextStyle(color: Colors.grey, fontSize: 18),
                       ),
                     ),
                     const SizedBox(width: 16),
@@ -301,8 +305,11 @@ class _AddEmployeeScreenState extends State<AddEmployeeScreen> {
                         final updatedName = nameController.text.trim();
                         if (updatedName.isNotEmpty) {
                           // Check if name is being changed to an existing name
-                          if (updatedName.toLowerCase() != employee.name.toLowerCase()) {
-                            final nameExists = await _employeeNameExists(updatedName);
+                          if (updatedName.toLowerCase() !=
+                              employee.name.toLowerCase()) {
+                            final nameExists = await _employeeNameExists(
+                              updatedName,
+                            );
                             if (nameExists) {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 const SnackBar(

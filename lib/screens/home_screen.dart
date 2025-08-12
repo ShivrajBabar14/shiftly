@@ -11,11 +11,10 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'sidbar.dart';
 import 'employee_shift_screen.dart'; // Add import for new screen
 import 'package:Shiftwise/services/subscription_service.dart';
-import 'package:Shiftwise/services/backup_refresh_service.dart';
+// import 'package:Shiftwise/services/backup_refresh_service.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:Shiftwise/services/smart_backup_service.dart';
-
-import 'package:flutter/material.dart';
+import 'package:firebase_analytics/firebase_analytics.dart';
 
 final GlobalKey<_HomeScreenState> homeScreenKey = GlobalKey<_HomeScreenState>();
 
@@ -45,6 +44,7 @@ class _HomeScreenState extends State<HomeScreen>
   int? _currentWeekId;
   final dbHelper = DatabaseHelper();
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+  final FirebaseAnalytics analytics = FirebaseAnalytics.instance;
 
   // Add isFreeUser flag to indicate free user status
   bool isFreeUser = true;
@@ -410,6 +410,14 @@ class _HomeScreenState extends State<HomeScreen>
                           }
 
                           await _dbHelper.insertEmployeeWithId(id, name);
+
+                          await analytics.logEvent(
+                            name: 'employee_added',
+                            parameters: {
+                              'employee_id': id,
+                              'employee_name': name,
+                            },
+                          );
                           // Add employee to current week
                           final weekStart =
                               _currentWeekStart.millisecondsSinceEpoch;
@@ -1128,6 +1136,18 @@ class _HomeScreenState extends State<HomeScreen>
                                 shiftName: hasName ? shiftName : null,
                                 startTime: startTimeMillis,
                                 endTime: endTimeMillis,
+                              );
+
+                              await analytics.logEvent(
+                                name: 'shift_saved',
+                                parameters: {
+                                  'employee_id': employeeId,
+                                  'day': day,
+                                  'week_start': weekStart,
+                                  'shift_name': hasName ? shiftName : null,
+                                  'start_time': startTimeMillis,
+                                  'end_time': endTimeMillis,
+                                },
                               );
 
                               await _loadData();
