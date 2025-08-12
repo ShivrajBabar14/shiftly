@@ -213,7 +213,7 @@ class AppDrawer extends StatelessWidget {
   }
 
   Future<void> _launchRateUs(BuildContext context) async {
-    final String packageName = 'com.example.employeeshifttracker';
+    final String packageName = 'com.shift.schedule.app';
     final Uri playStoreUri = Uri.parse('market://details?id=$packageName');
     final Uri playStoreWebUri = Uri.parse(
       'https://play.google.com/store/apps/details?id=$packageName',
@@ -239,7 +239,7 @@ class AppDrawer extends StatelessWidget {
 
   Future<void> _shareApp(BuildContext context) async {
     final String appLink =
-        'https://play.google.com/store/apps/details?id=com.example.employeeshifttracker';
+        'https://play.google.com/store/apps/details?id=com.shift.schedule.app';
 
     try {
       await Share.share('Check out this app: $appLink');
