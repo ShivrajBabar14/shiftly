@@ -14,9 +14,10 @@ import 'package:google_mobile_ads/google_mobile_ads.dart';
 class EmployeeShiftScreen extends StatefulWidget {
   final Employee employee;
   final DateTime? weekStart;
+  final bool isFreeUser; 
   final FirebaseAnalytics _analytics = FirebaseAnalytics.instance;
 
-  EmployeeShiftScreen({Key? key, required this.employee, this.weekStart})
+  EmployeeShiftScreen({Key? key, required this.employee, required this.isFreeUser, this.weekStart})
       : super(key: key);
 
   @override
@@ -444,7 +445,7 @@ class _EmployeeShiftScreenState extends State<EmployeeShiftScreen> {
             ),
           ),
           // Google Ad Banner at the bottom
-          if (_isBannerAdLoaded)
+          if (widget.isFreeUser && _isBannerAdLoaded)
             Container(
               width: _bannerAd.size.width.toDouble(),
               height: _bannerAd.size.height.toDouble(),

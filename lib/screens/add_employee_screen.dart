@@ -146,7 +146,10 @@ class _AddEmployeeScreenState extends State<AddEmployeeScreen> {
                   children: [
                     TextButton(
                       style: TextButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 24,
+                          vertical: 12,
+                        ),
                       ),
                       onPressed: () => Navigator.of(context).pop(),
                       child: const Text(
@@ -157,7 +160,10 @@ class _AddEmployeeScreenState extends State<AddEmployeeScreen> {
                     const SizedBox(width: 16),
                     TextButton(
                       style: TextButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 24,
+                          vertical: 12,
+                        ),
                       ),
                       onPressed: () async {
                         final id = int.tryParse(idController.text);
@@ -189,7 +195,10 @@ class _AddEmployeeScreenState extends State<AddEmployeeScreen> {
                           await _dbHelper.insertEmployeeWithId(id, name);
                           await analytics.logEvent(
                             name: 'employee_added',
-                            parameters: {'employee_id': id, 'employee_name': name},
+                            parameters: {
+                              'employee_id': id,
+                              'employee_name': name,
+                            },
                           );
                           Navigator.pop(context);
                           await _loadEmployees();
@@ -197,7 +206,10 @@ class _AddEmployeeScreenState extends State<AddEmployeeScreen> {
                       },
                       child: const Text(
                         'Add',
-                        style: TextStyle(color: Colors.deepPurple, fontSize: 18),
+                        style: TextStyle(
+                          color: Colors.deepPurple,
+                          fontSize: 18,
+                        ),
                       ),
                     ),
                   ],
@@ -211,15 +223,21 @@ class _AddEmployeeScreenState extends State<AddEmployeeScreen> {
   }
 
   Future<void> _updateEmployeeDialog(Employee employee) async {
-    final TextEditingController nameController = TextEditingController(text: employee.name);
-    final TextEditingController idController = TextEditingController(text: employee.employeeId.toString());
+    final TextEditingController nameController = TextEditingController(
+      text: employee.name,
+    );
+    final TextEditingController idController = TextEditingController(
+      text: employee.employeeId.toString(),
+    );
 
     await showDialog(
       context: context,
       builder: (_) {
         return Dialog(
           insetPadding: const EdgeInsets.all(16),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
           child: Container(
             width: MediaQuery.of(context).size.width,
             padding: const EdgeInsets.all(20),
@@ -241,7 +259,9 @@ class _AddEmployeeScreenState extends State<AddEmployeeScreen> {
                       String newText = newValue.text
                           .split(' ')
                           .map((word) {
-                            if (word.isNotEmpty) return word[0].toUpperCase() + word.substring(1).toLowerCase();
+                            if (word.isNotEmpty)
+                              return word[0].toUpperCase() +
+                                  word.substring(1).toLowerCase();
                             return word;
                           })
                           .join(' ');
@@ -257,7 +277,10 @@ class _AddEmployeeScreenState extends State<AddEmployeeScreen> {
                     TextButton(
                       onPressed: () => Navigator.of(context).pop(),
                       style: TextButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 24,
+                          vertical: 12,
+                        ),
                       ),
                       child: const Text(
                         'Cancel',
@@ -267,13 +290,19 @@ class _AddEmployeeScreenState extends State<AddEmployeeScreen> {
                     const SizedBox(width: 16),
                     TextButton(
                       style: TextButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 24,
+                          vertical: 12,
+                        ),
                       ),
                       onPressed: () async {
                         final updatedName = nameController.text.trim();
                         if (updatedName.isNotEmpty) {
-                          if (updatedName.toLowerCase() != employee.name.toLowerCase()) {
-                            final nameExists = await _employeeNameExists(updatedName);
+                          if (updatedName.toLowerCase() !=
+                              employee.name.toLowerCase()) {
+                            final nameExists = await _employeeNameExists(
+                              updatedName,
+                            );
                             if (nameExists) {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 const SnackBar(
@@ -288,28 +317,38 @@ class _AddEmployeeScreenState extends State<AddEmployeeScreen> {
                           showDialog(
                             context: context,
                             barrierDismissible: false,
-                            builder: (context) => const Center(child: CircularProgressIndicator()),
+                            builder: (context) => const Center(
+                              child: CircularProgressIndicator(),
+                            ),
                           );
 
                           try {
-                            await _dbHelper.updateEmployee(Employee(
-                              employeeId: employee.employeeId,
-                              name: updatedName,
-                            ));
+                            await _dbHelper.updateEmployee(
+                              Employee(
+                                employeeId: employee.employeeId,
+                                name: updatedName,
+                              ),
+                            );
                             Navigator.of(context, rootNavigator: true).pop();
                             Navigator.of(context, rootNavigator: true).pop();
                             await _loadEmployees();
                           } catch (e) {
                             Navigator.of(context, rootNavigator: true).pop();
                             ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text('Error updating employee: $e')),
+                              SnackBar(
+                                content: Text('Error updating employee: $e'),
+                              ),
                             );
                           }
                         }
                       },
                       child: const Text(
                         'Update',
-                        style: TextStyle(color: Colors.deepPurple, fontSize: 18, fontWeight: FontWeight.bold),
+                        style: TextStyle(
+                          color: Colors.deepPurple,
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ),
                   ],
@@ -330,13 +369,17 @@ class _AddEmployeeScreenState extends State<AddEmployeeScreen> {
         leadingWidth: 40,
         backgroundColor: Colors.white,
         iconTheme: const IconThemeData(color: Colors.deepPurple),
-        title: Padding(
-          padding: const EdgeInsets.only(left: 20.0),
+        title: const Padding(
+          padding: EdgeInsets.only(left: 20.0),
           child: Align(
             alignment: Alignment.centerLeft,
-            child: const Text(
+            child: Text(
               'All Employees',
-              style: TextStyle(color: Colors.deepPurple, fontWeight: FontWeight.bold, fontSize: 20),
+              style: TextStyle(
+                color: Colors.deepPurple,
+                fontWeight: FontWeight.bold,
+                fontSize: 20,
+              ),
             ),
           ),
         ),
@@ -360,10 +403,20 @@ class _AddEmployeeScreenState extends State<AddEmployeeScreen> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(employee.name,
-                                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
-                              Text('${employee.employeeId}',
-                                  style: const TextStyle(fontSize: 12, color: Colors.grey)),
+                              Text(
+                                employee.name,
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                              Text(
+                                '${employee.employeeId}',
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.grey,
+                                ),
+                              ),
                             ],
                           ),
                         ),
@@ -375,7 +428,8 @@ class _AddEmployeeScreenState extends State<AddEmployeeScreen> {
               },
             ),
           ),
-          if (_isBannerAdLoaded)
+          // Banner Ad at the bottom
+          if (widget.isFreeUser && _isBannerAdLoaded)
             Container(
               width: _bannerAd.size.width.toDouble(),
               height: _bannerAd.size.height.toDouble(),
@@ -384,7 +438,12 @@ class _AddEmployeeScreenState extends State<AddEmployeeScreen> {
         ],
       ),
       floatingActionButton: Container(
-        margin: const EdgeInsets.only(bottom: 20),
+        margin: EdgeInsets.only(
+          bottom: (widget.isFreeUser && _isBannerAdLoaded)
+              ? _bannerAd.size.height.toDouble() +
+                    10 // Add extra space for banner
+              : 10,
+        ),
         child: ClipRRect(
           borderRadius: BorderRadius.circular(30),
           child: FloatingActionButton(

@@ -1551,7 +1551,7 @@ Widget build(BuildContext context) {
           ],
         ),
         floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
-        floatingActionButton: (_employees.isNotEmpty && !showOverlay)
+        floatingActionButton: (_employees.isNotEmpty && isFreeUser && !showOverlay)
             ? Padding(
                 padding: EdgeInsets.only(
                   bottom: _isBannerAdLoaded ? _bannerAd.size.height.toDouble() + 8 : 16,
@@ -1569,7 +1569,7 @@ Widget build(BuildContext context) {
       ),
 
       // Banner Ad at the bottom
-      if (_isBannerAdLoaded)
+      if (_isBannerAdLoaded && isFreeUser)
         Positioned(
           bottom: 0,
           left: 0,
@@ -1855,6 +1855,7 @@ Widget build(BuildContext context) {
                                   builder: (context) => EmployeeShiftScreen(
                                     employee: employee,
                                     weekStart: _currentWeekStart,
+                                    isFreeUser: isFreeUser,
                                   ),
                                 ),
                               ),
