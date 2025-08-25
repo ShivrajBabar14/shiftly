@@ -11,13 +11,15 @@ import 'package:screenshot/screenshot.dart';
 import 'dart:io';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:firebase_analytics/firebase_analytics.dart';
 // import 'package:image/image.dart' as img;
 
 class EmployeeShiftScreen extends StatefulWidget {
   final Employee employee;
   final DateTime? weekStart;
+  final FirebaseAnalytics _analytics = FirebaseAnalytics.instance;
 
-  const EmployeeShiftScreen({Key? key, required this.employee, this.weekStart})
+  EmployeeShiftScreen({Key? key, required this.employee, this.weekStart})
     : super(key: key);
 
   @override
@@ -37,9 +39,21 @@ class _EmployeeShiftScreenState extends State<EmployeeShiftScreen> {
   @override
   void initState() {
     super.initState();
-    _currentWeekStart = widget.weekStart ?? _dbHelper.getStartOfWeek(DateTime.now());
+    _currentWeekStart =
+        widget.weekStart ?? _dbHelper.getStartOfWeek(DateTime.now());
     _currentWeekEnd = _currentWeekStart.add(const Duration(days: 6));
+    _logScreenShownEvent();
     _loadShiftData();
+  }
+
+  void _logScreenShownEvent() {
+    widget._analytics.logEvent(
+      name: 'employee_shift_screen_shown',
+      parameters: {
+        'employee_id': widget.employee.employeeId,
+        'employee_name': widget.employee.name,
+      },
+    );
   }
 
   void _loadShiftData() async {
@@ -194,6 +208,17 @@ class _EmployeeShiftScreenState extends State<EmployeeShiftScreen> {
               color: Colors.white,
               icon: const Icon(Icons.share, color: Colors.deepPurple),
               onSelected: (value) async {
+                // Log the analytics event for sharing
+                await widget._analytics.logEvent(
+                  name: 'employee_shift_shared',
+                  parameters: {
+                    'employee_id': widget.employee.employeeId,
+                    'employee_name': widget.employee.name,
+                    'share_type': value, // 'image' or 'pdf'
+                  },
+                );
+
+                // Call the corresponding share function
                 if (value == 'image') {
                   await _shareImage();
                 } else if (value == 'pdf') {

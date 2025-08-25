@@ -1,14 +1,32 @@
 import 'package:flutter/material.dart';
 
-class LimitsDialog extends StatelessWidget {
+class LimitsDialog extends StatefulWidget {
   final VoidCallback onGoPro;
   final VoidCallback onContinueFree;
+  final void Function()? onDialogShown; // <-- Add this optional callback
 
   const LimitsDialog({
     Key? key,
     required this.onGoPro,
     required this.onContinueFree,
+    this.onDialogShown,
   }) : super(key: key);
+
+  @override
+  _LimitsDialogState createState() => _LimitsDialogState();
+}
+
+class _LimitsDialogState extends State<LimitsDialog> {
+  @override
+  void initState() {
+    super.initState();
+
+    // Fire analytics event when dialog is shown
+    widget.onDialogShown?.call();
+
+    // OR directly call your analytics service here:
+    // AnalyticsService.logEvent("limit_dialog_shown");
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -28,7 +46,7 @@ class LimitsDialog extends StatelessWidget {
                 fontSize: 18,
                 fontWeight: FontWeight.w600,
                 height: 1.3,
-                color: Colors.deepPurple, // Deep purple heading
+                color: Colors.deepPurple,
               ),
             ),
             const SizedBox(height: 20),
@@ -40,7 +58,7 @@ class LimitsDialog extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 TextButton(
-                  onPressed: onContinueFree,
+                  onPressed: widget.onContinueFree,
                   style: TextButton.styleFrom(
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                   ),
@@ -48,15 +66,15 @@ class LimitsDialog extends StatelessWidget {
                     'Continue Free',
                     style: TextStyle(
                       fontSize: 16,
-                      fontWeight: FontWeight.bold, // Bold text
-                      color: Colors.black, // Black color
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black,
                     ),
                   ),
                 ),
                 ElevatedButton(
-                  onPressed: onGoPro,
+                  onPressed: widget.onGoPro,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.deepPurple, // Deep purple button
+                    backgroundColor: Colors.deepPurple,
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8),
@@ -71,6 +89,7 @@ class LimitsDialog extends StatelessWidget {
                     ),
                   ),
                 ),
+                
               ],
             ),
           ],

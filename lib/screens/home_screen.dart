@@ -1318,218 +1318,227 @@ class _HomeScreenState extends State<HomeScreen>
   }
 
   @override
-Widget build(BuildContext context) {
-  // Week check logic
-  bool isFutureWeek() {
-    final now = DateTime.now();
-    final nowWeekStart = now.subtract(Duration(days: now.weekday - 1));
-    return _currentWeekStart.isAfter(nowWeekStart);
-  }
+  Widget build(BuildContext context) {
+    // Week check logic
+    bool isFutureWeek() {
+      final now = DateTime.now();
+      final nowWeekStart = now.subtract(Duration(days: now.weekday - 1));
+      return _currentWeekStart.isAfter(nowWeekStart);
+    }
 
-  final bool showOverlay = isFreeUser && isFutureWeek();
+    final bool showOverlay = isFreeUser && isFutureWeek();
 
-  return Scaffold(
-    key: _scaffoldKey,
-    drawer: AppDrawer(onBackupRestore: _fullRefreshHome),
-    appBar: AppBar(
-      backgroundColor: Colors.white,
-      elevation: 0,
-      leading: Builder(
-        builder: (context) => IconButton(
-          icon: const Icon(Icons.menu, color: Colors.deepPurple),
-          onPressed: () {
-            Scaffold.of(context).openDrawer();
-          },
+    return Scaffold(
+      key: _scaffoldKey,
+      drawer: AppDrawer(onBackupRestore: _fullRefreshHome),
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        leading: Builder(
+          builder: (context) => IconButton(
+            icon: const Icon(Icons.menu, color: Colors.deepPurple),
+            onPressed: () {
+              Scaffold.of(context).openDrawer();
+            },
+          ),
         ),
-      ),
-      title: Row(
-        mainAxisAlignment: MainAxisAlignment.start,
-        children: [
-          const Text(
-            'Shiftwise',
-            style: TextStyle(
-              color: Colors.deepPurple,
-              fontWeight: FontWeight.bold,
-              fontSize: 20,
-            ),
-          ),
-          if (!isFreeUser) ...[
-            const SizedBox(width: 8),
-            Container(
-              padding: const EdgeInsets.all(6),
-              decoration: const BoxDecoration(
+        title: Row(
+          mainAxisAlignment: MainAxisAlignment.start,
+          children: [
+            const Text(
+              'Shiftwise',
+              style: TextStyle(
                 color: Colors.deepPurple,
-                shape: BoxShape.circle,
-              ),
-              child: SvgPicture.asset(
-                'assets/crown.svg',
-                width: 15,
-                height: 15,
-                color: Color.fromARGB(255, 255, 183, 0),
+                fontWeight: FontWeight.bold,
+                fontSize: 20,
               ),
             ),
-          ],
-        ],
-      ),
-      actions: [
-        if (isFreeUser)
-          Container(
-            margin: const EdgeInsets.only(right: 16),
-            child: ElevatedButton(
-              onPressed: () async {
-                final subscriptionSuccess = await Navigator.push<bool>(
-                  context,
-                  MaterialPageRoute(builder: (context) => ShiftlyProScreen()),
-                );
-                if (subscriptionSuccess == true) {
-                  await _loadSubscriptionStatus();
-                  await _loadData();
-                  setState(() {
-                    _showProOverlay = false;
-                  });
-                }
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.deepPurple,
-                foregroundColor: Colors.white,
-                elevation: 1,
-                padding: const EdgeInsets.symmetric(horizontal: 5),
-                textStyle: const TextStyle(fontSize: 16),
-                minimumSize: const Size(80, 30),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(6),
-                ),
-              ),
-              child: const Text('Go Pro'),
-            ),
-          ),
-      ],
-    ),
-    body: Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        // Week Navigation
-        Container(
-          color: Colors.white,
-          padding: const EdgeInsets.symmetric(vertical: 8),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              IconButton(
-                icon: const Icon(Icons.chevron_left, size: 30),
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                onPressed: () {
-                  _onWeekChanged(
-                    _currentWeekStart.subtract(const Duration(days: 7)),
-                  );
-                },
-              ),
+            if (!isFreeUser) ...[
               const SizedBox(width: 8),
-              GestureDetector(
-                onTap: () {
-                  setState(() {
-                    _showCalendar = !_showCalendar;
-                  });
-                },
-                child: Text(
-                  '${DateFormat('MMM d').format(_currentWeekStart)} - ${DateFormat('MMM d').format(_currentWeekEnd)}',
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
+              Container(
+                padding: const EdgeInsets.all(6),
+                decoration: const BoxDecoration(
+                  color: Colors.deepPurple,
+                  shape: BoxShape.circle,
                 ),
-              ),
-              const SizedBox(width: 8),
-              IconButton(
-                icon: const Icon(Icons.chevron_right, size: 30),
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                onPressed: () {
-                  _onWeekChanged(
-                    _currentWeekStart.add(const Duration(days: 7)),
-                  );
-                },
+                child: SvgPicture.asset(
+                  'assets/crown.svg',
+                  width: 15,
+                  height: 15,
+                  color: Color.fromARGB(255, 255, 183, 0),
+                ),
               ),
             ],
-          ),
+          ],
         ),
-        if (_showCalendar)
-          TableCalendar(
-            firstDay: _firstDay,
-            lastDay: _lastDay,
-            focusedDay: _focusedDay,
-            selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
-            onDaySelected: _onDaySelected,
-            onPageChanged: (focusedDay) {
-              _focusedDay = focusedDay;
-            },
-            calendarFormat: CalendarFormat.week,
-            headerVisible: false,
-            availableCalendarFormats: const {CalendarFormat.week: 'Week'},
-            startingDayOfWeek: StartingDayOfWeek.monday,
-          ),
-        Expanded(
-          child: _isLoading
-              ? const Center(child: CircularProgressIndicator())
-              : (_employees.isEmpty
-                  ? Stack(
-                      children: [
-                        _buildEmptyShiftTable(),
-                        Center(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              const Text(
-                                'Your shift tracking will appear here.',
-                                style: TextStyle(fontSize: 15),
-                              ),
-                              const Text(
-                                'Tap below to begin.',
-                                style: TextStyle(fontSize: 15),
-                              ),
-                              const SizedBox(height: 20),
-                              ElevatedButton(
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: Colors.deepPurple,
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 30,
-                                    vertical: 15,
-                                  ),
-                                ),
-                                onPressed: _handleAddEmployeePressed,
-                                child: const Text(
-                                  'Add Employee',
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 14,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    )
-                  : Container(
-                      decoration: const BoxDecoration(),
-                      child: _buildShiftTable(),
-                    )),
-        ),
-      ],
-    ),
-    floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
-    floatingActionButton: (_employees.isNotEmpty && !showOverlay)
-        ? FloatingActionButton(
-            backgroundColor: Colors.deepPurple,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(30.0),
-            ),
-            onPressed: _handleAddEmployeePressed,
-            child: const Icon(Icons.add, color: Colors.white),
-          )
-        : null,
-  );
-}
+        actions: [
+          if (isFreeUser)
+            Container(
+              margin: const EdgeInsets.only(right: 16),
+              child: ElevatedButton(
+                onPressed: () async {
+                  // Log analytics event when the button is clicked
+                  await analytics.logEvent(
+                    name: 'go_pro_clicked',
+                    parameters: {
+                      'user_type': isFreeUser ? 'free' : 'pro',
+                      'timestamp': DateTime.now().millisecondsSinceEpoch,
+                    },
+                  );
 
+                  final subscriptionSuccess = await Navigator.push<bool>(
+                    context,
+                    MaterialPageRoute(builder: (context) => ShiftlyProScreen()),
+                  );
+
+                  if (subscriptionSuccess == true) {
+                    await _loadSubscriptionStatus();
+                    await _loadData();
+                    setState(() {
+                      _showProOverlay = false;
+                    });
+                  }
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.deepPurple,
+                  foregroundColor: Colors.white,
+                  elevation: 1,
+                  padding: const EdgeInsets.symmetric(horizontal: 5),
+                  textStyle: const TextStyle(fontSize: 16),
+                  minimumSize: const Size(80, 30),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                ),
+                child: const Text('Go Pro'),
+              ),
+            ),
+        ],
+      ),
+      body: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Week Navigation
+          Container(
+            color: Colors.white,
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.chevron_left, size: 30),
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  onPressed: () {
+                    _onWeekChanged(
+                      _currentWeekStart.subtract(const Duration(days: 7)),
+                    );
+                  },
+                ),
+                const SizedBox(width: 8),
+                GestureDetector(
+                  onTap: () {
+                    setState(() {
+                      _showCalendar = !_showCalendar;
+                    });
+                  },
+                  child: Text(
+                    '${DateFormat('MMM d').format(_currentWeekStart)} - ${DateFormat('MMM d').format(_currentWeekEnd)}',
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                IconButton(
+                  icon: const Icon(Icons.chevron_right, size: 30),
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  onPressed: () {
+                    _onWeekChanged(
+                      _currentWeekStart.add(const Duration(days: 7)),
+                    );
+                  },
+                ),
+              ],
+            ),
+          ),
+          if (_showCalendar)
+            TableCalendar(
+              firstDay: _firstDay,
+              lastDay: _lastDay,
+              focusedDay: _focusedDay,
+              selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
+              onDaySelected: _onDaySelected,
+              onPageChanged: (focusedDay) {
+                _focusedDay = focusedDay;
+              },
+              calendarFormat: CalendarFormat.week,
+              headerVisible: false,
+              availableCalendarFormats: const {CalendarFormat.week: 'Week'},
+              startingDayOfWeek: StartingDayOfWeek.monday,
+            ),
+          Expanded(
+            child: _isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : (_employees.isEmpty
+                      ? Stack(
+                          children: [
+                            _buildEmptyShiftTable(),
+                            Center(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  const Text(
+                                    'Your shift tracking will appear here.',
+                                    style: TextStyle(fontSize: 15),
+                                  ),
+                                  const Text(
+                                    'Tap below to begin.',
+                                    style: TextStyle(fontSize: 15),
+                                  ),
+                                  const SizedBox(height: 20),
+                                  ElevatedButton(
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: Colors.deepPurple,
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 30,
+                                        vertical: 15,
+                                      ),
+                                    ),
+                                    onPressed: _handleAddEmployeePressed,
+                                    child: const Text(
+                                      'Add Employee',
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 14,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        )
+                      : Container(
+                          decoration: const BoxDecoration(),
+                          child: _buildShiftTable(),
+                        )),
+          ),
+        ],
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
+      floatingActionButton: (_employees.isNotEmpty && !showOverlay)
+          ? FloatingActionButton(
+              backgroundColor: Colors.deepPurple,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(30.0),
+              ),
+              onPressed: _handleAddEmployeePressed,
+              child: const Icon(Icons.add, color: Colors.white),
+            )
+          : null,
+    );
+  }
 
   Widget _buildEmptyShiftTable() {
     const List<String> days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
