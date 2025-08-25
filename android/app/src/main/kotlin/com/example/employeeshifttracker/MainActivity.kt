@@ -4,6 +4,7 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import io.flutter.embedding.android.FlutterActivity
+import com.google.android.gms.ads.MobileAds
 import io.flutter.plugin.common.MethodChannel
 
 class MainActivity: FlutterActivity() {
@@ -11,6 +12,12 @@ class MainActivity: FlutterActivity() {
 
     override fun configureFlutterEngine(flutterEngine: io.flutter.embedding.engine.FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
+        
+        // Register all plugins including Google Mobile Ads
+        io.flutter.plugins.GeneratedPluginRegistrant.registerWith(flutterEngine)
+        
+        // Initialize Google Mobile Ads SDK
+        MobileAds.initialize(this) {}
 
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger, CHANNEL).setMethodCallHandler { call, result ->
             if (call.method == "openGmail") {

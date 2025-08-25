@@ -63,6 +63,7 @@ dependencies:
   firebase_analytics: ^10.1.0 
   in_app_review: ^2.0.8
   in_app_update: ^4.2.3 
+  google_mobile_ads: ^6.0.0
 
 
 

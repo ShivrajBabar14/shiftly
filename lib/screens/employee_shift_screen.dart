@@ -1,10 +1,7 @@
-// import 'dart:typed_data';
-// import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:Shiftwise/db/database_helper.dart';
 import 'package:Shiftwise/models/employee.dart';
-// import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
 import 'package:screenshot/screenshot.dart';
@@ -12,7 +9,7 @@ import 'dart:io';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
-// import 'package:image/image.dart' as img;
+import 'package:google_mobile_ads/google_mobile_ads.dart';
 
 class EmployeeShiftScreen extends StatefulWidget {
   final Employee employee;
@@ -20,7 +17,7 @@ class EmployeeShiftScreen extends StatefulWidget {
   final FirebaseAnalytics _analytics = FirebaseAnalytics.instance;
 
   EmployeeShiftScreen({Key? key, required this.employee, this.weekStart})
-    : super(key: key);
+      : super(key: key);
 
   @override
   State<EmployeeShiftScreen> createState() => _EmployeeShiftScreenState();
@@ -36,14 +33,41 @@ class _EmployeeShiftScreenState extends State<EmployeeShiftScreen> {
 
   final ScreenshotController _screenshotController = ScreenshotController();
 
+  late BannerAd _bannerAd;
+  bool _isBannerAdLoaded = false;
+
   @override
   void initState() {
     super.initState();
+
     _currentWeekStart =
         widget.weekStart ?? _dbHelper.getStartOfWeek(DateTime.now());
     _currentWeekEnd = _currentWeekStart.add(const Duration(days: 6));
+
     _logScreenShownEvent();
     _loadShiftData();
+    _loadBannerAd();
+  }
+
+  void _loadBannerAd() {
+    _bannerAd = BannerAd(
+      adUnitId: 'ca-app-pub-3940256099942544/6300978111', // Test Ad Unit
+      size: AdSize.banner,
+      request: AdRequest(),
+      listener: BannerAdListener(
+        onAdLoaded: (ad) {
+          setState(() {
+            _isBannerAdLoaded = true;
+          });
+        },
+        onAdFailedToLoad: (ad, error) {
+          ad.dispose();
+          debugPrint('BannerAd failed to load: $error');
+        },
+      ),
+    );
+
+    _bannerAd.load();
   }
 
   void _logScreenShownEvent() {
@@ -61,10 +85,8 @@ class _EmployeeShiftScreenState extends State<EmployeeShiftScreen> {
       _isLoading = true;
     });
     final weekStartMillis = _currentWeekStart.millisecondsSinceEpoch;
-    final data = await _dbHelper.getShiftsForEmployeeWeek(
-      widget.employee.employeeId!,
-      weekStartMillis,
-    );
+    final data =
+        await _dbHelper.getShiftsForEmployeeWeek(widget.employee.employeeId!, weekStartMillis);
     setState(() {
       _shiftData = data;
       _isLoading = false;
@@ -85,31 +107,6 @@ class _EmployeeShiftScreenState extends State<EmployeeShiftScreen> {
     return '$start - $end';
   }
 
-  String _formatShiftTime(Map<String, dynamic> shift) {
-    final shiftName = shift['shift_name'] ?? '';
-    final startTimeMillis = shift['start_time'];
-    final endTimeMillis = shift['end_time'];
-
-    String formatTime(int? millis) {
-      if (millis == null) return '';
-      final dt = DateTime.fromMillisecondsSinceEpoch(millis);
-      return '${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
-    }
-
-    final startTime = formatTime(startTimeMillis);
-    final endTime = formatTime(endTimeMillis);
-
-    if (shiftName.isNotEmpty && startTime.isNotEmpty && endTime.isNotEmpty) {
-      return '$shiftName ($startTime to $endTime)';
-    } else if (shiftName.isNotEmpty) {
-      return shiftName;
-    } else if (startTime.isNotEmpty && endTime.isNotEmpty) {
-      return '$startTime to $endTime';
-    } else {
-      return '';
-    }
-  }
-
   String _dayLabel(int index) {
     final date = _currentWeekStart.add(Duration(days: index));
     return DateFormat('EEEE').format(date);
@@ -121,7 +118,6 @@ class _EmployeeShiftScreenState extends State<EmployeeShiftScreen> {
   }
 
   Map<String, dynamic>? _getShiftForDay(String day) {
-    // Map full day name to database day key
     final dayMap = {
       'Monday': 'mon',
       'Tuesday': 'tue',
@@ -149,9 +145,7 @@ class _EmployeeShiftScreenState extends State<EmployeeShiftScreen> {
 
     final dateRange = _formatDateRange();
 
-    await Share.shareXFiles([
-      XFile(file.path),
-    ], text: 'Employee Shift for $dateRange');
+    await Share.shareXFiles([XFile(file.path)], text: 'Employee Shift for $dateRange');
   }
 
   Future<void> _sharePDF() async {
@@ -167,13 +161,6 @@ class _EmployeeShiftScreenState extends State<EmployeeShiftScreen> {
         build: (context) {
           return pw.Column(
             children: [
-              // pw.Text(
-              //   widget.employee.name,
-              //   style: pw.TextStyle(
-              //     fontSize: 24,
-              //     fontWeight: pw.FontWeight.bold,
-              //   ),
-              // ),
               pw.SizedBox(height: 10),
               pw.Expanded(child: pw.Center(child: pw.Image(pdfImage))),
             ],
@@ -186,39 +173,32 @@ class _EmployeeShiftScreenState extends State<EmployeeShiftScreen> {
   }
 
   @override
+  void dispose() {
+    _bannerAd.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         leading: BackButton(color: Colors.deepPurple),
         title: Row(
-          mainAxisAlignment:
-              MainAxisAlignment.end, // Aligns the content to the right
+          mainAxisAlignment: MainAxisAlignment.end,
           children: [
-            //  Expanded(
-            //   child: Text(
-            //     widget.employee.name,
-            //     style: const TextStyle(
-            //       color: Colors.deepPurple,
-            //       fontWeight: FontWeight.bold,
-            //     ),
-            //   ),
-            // ),
-            // Right-aligned share icon
             PopupMenuButton<String>(
               color: Colors.white,
               icon: const Icon(Icons.share, color: Colors.deepPurple),
               onSelected: (value) async {
-                // Log the analytics event for sharing
                 await widget._analytics.logEvent(
                   name: 'employee_shift_shared',
                   parameters: {
                     'employee_id': widget.employee.employeeId,
                     'employee_name': widget.employee.name,
-                    'share_type': value, // 'image' or 'pdf'
+                    'share_type': value,
                   },
                 );
 
-                // Call the corresponding share function
                 if (value == 'image') {
                   await _shareImage();
                 } else if (value == 'pdf') {
@@ -249,7 +229,7 @@ class _EmployeeShiftScreenState extends State<EmployeeShiftScreen> {
                   ),
                 ];
               },
-              offset: const Offset(0, 40), // Adjust the pop-up position
+              offset: const Offset(0, 40),
               elevation: 4,
             ),
           ],
@@ -257,261 +237,220 @@ class _EmployeeShiftScreenState extends State<EmployeeShiftScreen> {
         backgroundColor: Colors.white,
         elevation: 0,
       ),
-
-      body: Container(
-        color: Colors.white,
-        child: Column(
-          children: [
-            Expanded(
-              child: SingleChildScrollView(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 0),
-                  child: Screenshot(
-                    controller: _screenshotController,
-                    child: Container(
-                      color: Colors.white,
-                      child: Column(
-                        children: [
-                          // Employee name inside Screenshot widget
-                          Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 8.0),
-                            child: Text(
-                              widget.employee.name,
-                              style: TextStyle(
-                                fontSize: 24,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.deepPurple,
-                              ),
+      body: Column(
+        children: [
+          Expanded(
+            child: SingleChildScrollView(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 0),
+                child: Screenshot(
+                  controller: _screenshotController,
+                  child: Container(
+                    color: Colors.white,
+                    child: Column(
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 8.0),
+                          child: Text(
+                            widget.employee.name,
+                            style: TextStyle(
+                              fontSize: 24,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.deepPurple,
                             ),
                           ),
-                          Padding(
-                            padding: const EdgeInsets.only(bottom: 12),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 12),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              IconButton(
+                                icon: const Icon(
+                                  Icons.chevron_left,
+                                  color: Colors.black,
+                                  size: 30,
+                                ),
+                                padding: const EdgeInsets.symmetric(horizontal: 32),
+                                onPressed: () => _changeWeek(-7),
+                              ),
+                              Text(
+                                _formatDateRange(),
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 20,
+                                  color: Colors.black,
+                                ),
+                              ),
+                              IconButton(
+                                icon: const Icon(
+                                  Icons.chevron_right,
+                                  color: Colors.black,
+                                  size: 30,
+                                ),
+                                padding: const EdgeInsets.symmetric(horizontal: 32),
+                                onPressed: () => _changeWeek(7),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Table(
+                          border: TableBorder.all(color: Colors.grey.shade300, width: 1.0),
+                          columnWidths: const {
+                            0: FlexColumnWidth(1),
+                            1: FlexColumnWidth(1.5),
+                          },
+                          children: [
+                            TableRow(
+                              decoration: BoxDecoration(color: Colors.deepPurple),
                               children: [
-                                IconButton(
-                                  icon: const Icon(
-                                    Icons.chevron_left,
-                                    color: Colors.black,
-                                    size: 30,
-                                  ),
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 32,
-                                  ),
-                                  onPressed: () => _changeWeek(-7),
-                                ),
-                                Text(
-                                  _formatDateRange(),
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 20,
-                                    color: Colors.black,
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(vertical: 12),
+                                  child: Center(
+                                    child: Text(
+                                      'Date',
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
                                   ),
                                 ),
-                                IconButton(
-                                  icon: const Icon(
-                                    Icons.chevron_right,
-                                    color: Colors.black,
-                                    size: 30,
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(vertical: 12),
+                                  child: Center(
+                                    child: Text(
+                                      'Shift',
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
                                   ),
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 32,
-                                  ),
-                                  onPressed: () => _changeWeek(7),
                                 ),
                               ],
                             ),
-                          ),
-                          Table(
-                            border: TableBorder.all(
-                              color: Colors.grey.shade300,
-                              width: 1.0,
-                            ),
-                            columnWidths: const {
-                              0: FlexColumnWidth(1),
-                              1: FlexColumnWidth(1.5),
-                            },
-                            children: [
-                              // Table header
-                              TableRow(
+                            ...List.generate(7, (index) {
+                              final dayName = _dayLabel(index);
+                              final dateNumber = _dateLabel(index);
+                              final shift = _getShiftForDay(dayName);
+
+                              return TableRow(
                                 decoration: BoxDecoration(
-                                  color: Colors.deepPurple,
+                                  color: index % 2 == 0 ? Colors.white : Colors.grey.shade50,
                                 ),
                                 children: [
                                   Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                      vertical: 12,
-                                    ),
-                                    child: Center(
-                                      child: Text(
-                                        'Date',
-                                        style: TextStyle(
-                                          color: Colors.white,
-                                          fontWeight: FontWeight.bold,
+                                    padding: const EdgeInsets.symmetric(vertical: 12),
+                                    child: Column(
+                                      children: [
+                                        Text(
+                                          dateNumber,
+                                          style: TextStyle(
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.bold,
+                                          ),
                                         ),
-                                      ),
+                                        SizedBox(height: 4),
+                                        Text(dayName, style: TextStyle(fontSize: 16)),
+                                      ],
                                     ),
                                   ),
-                                  Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                      vertical: 12,
-                                    ),
-                                    child: Center(
-                                      child: Text(
-                                        'Shift',
-                                        style: TextStyle(
-                                          color: Colors.white,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
+                                  Container(
+                                    height: 70.0,
+                                    alignment: Alignment.center,
+                                    child: Builder(
+                                      builder: (context) {
+                                        final shiftName = shift?['shift_name'] ?? '';
+                                        final startTimeMillis = shift?['start_time'];
+                                        final endTimeMillis = shift?['end_time'];
+
+                                        String formatTime(int? millis) {
+                                          if (millis == null) return '';
+                                          final dt = DateTime.fromMillisecondsSinceEpoch(millis);
+                                          return '${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
+                                        }
+
+                                        final startTime = formatTime(startTimeMillis);
+                                        final endTime = formatTime(endTimeMillis);
+
+                                        final hasName = shiftName.isNotEmpty;
+                                        final hasTime = startTime.isNotEmpty && endTime.isNotEmpty;
+
+                                        if (hasName && hasTime) {
+                                          return RichText(
+                                            textAlign: TextAlign.center,
+                                            text: TextSpan(
+                                              children: [
+                                                TextSpan(
+                                                  text: shiftName,
+                                                  style: const TextStyle(
+                                                    fontWeight: FontWeight.bold,
+                                                    fontSize: 16,
+                                                    color: Colors.black,
+                                                  ),
+                                                ),
+                                                TextSpan(
+                                                  text: '\n($startTime to $endTime)',
+                                                  style: const TextStyle(
+                                                    fontWeight: FontWeight.normal,
+                                                    fontSize: 16,
+                                                    color: Colors.black,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          );
+                                        } else if (hasName) {
+                                          return Text(
+                                            shiftName,
+                                            textAlign: TextAlign.center,
+                                            style: const TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 16,
+                                              color: Colors.black,
+                                            ),
+                                          );
+                                        } else if (hasTime) {
+                                          return Text(
+                                            '$startTime to $endTime',
+                                            textAlign: TextAlign.center,
+                                            style: const TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 16,
+                                              color: Colors.black,
+                                            ),
+                                          );
+                                        } else {
+                                          return const Text(
+                                            '',
+                                            textAlign: TextAlign.center,
+                                            style: TextStyle(fontSize: 16, color: Colors.black54),
+                                          );
+                                        }
+                                      },
                                     ),
                                   ),
                                 ],
-                              ),
-                              // Table rows for each day
-                              ...List.generate(7, (index) {
-                                final dayName = _dayLabel(index);
-                                final dateNumber = _dateLabel(index);
-                                final shift = _getShiftForDay(dayName);
-                                final shiftText = shift != null
-                                    ? _formatShiftTime(shift)
-                                    : 'No Shift';
-
-                                return TableRow(
-                                  decoration: BoxDecoration(
-                                    color: index % 2 == 0
-                                        ? Colors.white
-                                        : Colors.grey.shade50,
-                                  ),
-                                  children: [
-                                    Padding(
-                                      padding: const EdgeInsets.symmetric(
-                                        vertical: 12,
-                                      ),
-                                      child: Column(
-                                        children: [
-                                          Text(
-                                            dateNumber,
-                                            style: TextStyle(
-                                              fontSize: 16,
-                                              fontWeight: FontWeight.bold,
-                                            ),
-                                          ),
-                                          SizedBox(height: 4),
-                                          Text(
-                                            dayName,
-                                            style: TextStyle(fontSize: 16),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                    Container(
-                                      height: 70.0,
-                                      alignment: Alignment.center,
-                                      child: Builder(
-                                        builder: (context) {
-                                          final shiftName =
-                                              shift?['shift_name'] ?? '';
-                                          final startTimeMillis =
-                                              shift?['start_time'];
-                                          final endTimeMillis =
-                                              shift?['end_time'];
-
-                                          String formatTime(int? millis) {
-                                            if (millis == null) return '';
-                                            final dt =
-                                                DateTime.fromMillisecondsSinceEpoch(
-                                                  millis,
-                                                );
-                                            return '${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
-                                          }
-
-                                          final startTime = formatTime(
-                                            startTimeMillis,
-                                          );
-                                          final endTime = formatTime(
-                                            endTimeMillis,
-                                          );
-
-                                          final hasName = shiftName.isNotEmpty;
-                                          final hasTime =
-                                              startTime.isNotEmpty &&
-                                              endTime.isNotEmpty;
-
-                                          if (hasName && hasTime) {
-                                            return RichText(
-                                              textAlign: TextAlign.center,
-                                              text: TextSpan(
-                                                children: [
-                                                  TextSpan(
-                                                    text: shiftName,
-                                                    style: const TextStyle(
-                                                      fontWeight:
-                                                          FontWeight.bold,
-                                                      fontSize: 16,
-                                                      color: Colors.black,
-                                                    ),
-                                                  ),
-                                                  TextSpan(
-                                                    text:
-                                                        '\n($startTime to $endTime)',
-                                                    style: const TextStyle(
-                                                      fontWeight:
-                                                          FontWeight.normal,
-                                                      fontSize: 16,
-                                                      color: Colors.black,
-                                                    ),
-                                                  ),
-                                                ],
-                                              ),
-                                            );
-                                          } else if (hasName) {
-                                            return Text(
-                                              shiftName,
-                                              textAlign: TextAlign.center,
-                                              style: const TextStyle(
-                                                fontWeight: FontWeight.bold,
-                                                fontSize: 16,
-                                                color: Colors.black,
-                                              ),
-                                            );
-                                          } else if (hasTime) {
-                                            return Text(
-                                              '$startTime to $endTime',
-                                              textAlign: TextAlign.center,
-                                              style: const TextStyle(
-                                                fontWeight: FontWeight.bold,
-                                                fontSize: 16,
-                                                color: Colors.black,
-                                              ),
-                                            );
-                                          } else {
-                                            return const Text(
-                                              '',
-                                              textAlign: TextAlign.center,
-                                              style: TextStyle(
-                                                fontSize: 16,
-                                                color: Colors.black54,
-                                              ),
-                                            );
-                                          }
-                                        },
-                                      ),
-                                    ),
-                                  ],
-                                );
-                              }),
-                            ],
-                          ),
-                        ],
-                      ),
+                              );
+                            }),
+                          ],
+                        ),
+                      ],
                     ),
                   ),
                 ),
               ),
             ),
-          ],
-        ),
+          ),
+          // Google Ad Banner at the bottom
+          if (_isBannerAdLoaded)
+            Container(
+              width: _bannerAd.size.width.toDouble(),
+              height: _bannerAd.size.height.toDouble(),
+              child: AdWidget(ad: _bannerAd),
+            ),
+        ],
       ),
     );
   }
