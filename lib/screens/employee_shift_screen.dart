@@ -10,6 +10,8 @@ import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
+import 'package:Shiftwise/utils/strings.dart';
+
 
 class EmployeeShiftScreen extends StatefulWidget {
   final Employee employee;
@@ -52,7 +54,7 @@ class _EmployeeShiftScreenState extends State<EmployeeShiftScreen> {
 
   void _loadBannerAd() {
     _bannerAd = BannerAd(
-      adUnitId: 'ca-app-pub-3940256099942544/6300978111', // Test Ad Unit
+      adUnitId: AppStrings.bannerAdUnitID,  // Test Ad Unit
       size: AdSize.banner,
       request: AdRequest(),
       listener: BannerAdListener(

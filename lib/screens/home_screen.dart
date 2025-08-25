@@ -18,6 +18,7 @@ import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:in_app_review/in_app_review.dart';
 import 'package:in_app_update/in_app_update.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
+import 'package:Shiftwise/utils/strings.dart';
 
 final GlobalKey<_HomeScreenState> homeScreenKey = GlobalKey<_HomeScreenState>();
 
@@ -128,7 +129,7 @@ class _HomeScreenState extends State<HomeScreen>
     });
 
     _bannerAd = BannerAd(
-      adUnitId: 'ca-app-pub-3940256099942544/6300978111', // Replace with your AdMob banner unit ID
+      adUnitId: AppStrings.bannerAdUnitID, // Replace with your AdMob banner unit ID
       size: AdSize.banner,
       request: AdRequest(),
       listener: BannerAdListener(

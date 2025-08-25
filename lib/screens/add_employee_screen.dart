@@ -6,6 +6,8 @@ import 'package:Shiftwise/widgets/limits_dialog.dart';
 import 'package:Shiftwise/screens/subscription.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
+import 'package:Shiftwise/utils/strings.dart';
+
 
 class AddEmployeeScreen extends StatefulWidget {
   final bool isFreeUser;
@@ -32,7 +34,7 @@ class _AddEmployeeScreenState extends State<AddEmployeeScreen> {
 
   void _loadBannerAd() {
     _bannerAd = BannerAd(
-      adUnitId: 'ca-app-pub-3940256099942544/6300978111', // Test Ad Unit
+      adUnitId: AppStrings.bannerAdUnitID,  // Test Ad Unit
       size: AdSize.banner,
       request: AdRequest(),
       listener: BannerAdListener(
