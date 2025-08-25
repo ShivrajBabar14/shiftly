@@ -6,7 +6,7 @@ import 'package:in_app_purchase_android/in_app_purchase_android.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../widgets/success.dart';
 import 'package:Shiftwise/services/subscription_service.dart';
-import 'package:Shiftwise/services/go_pro_display_service.dart';  // Added import for GoProDisplayService
+import 'package:Shiftwise/services/go_pro_display_service.dart';  
 import 'home_screen.dart';
 
 class ShiftlyProScreen extends StatefulWidget {

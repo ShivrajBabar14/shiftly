@@ -28,7 +28,7 @@ android {
 
     defaultConfig {
         applicationId = "com.shift.schedule.app"
-        minSdk = 21
+        minSdk = flutter.minSdkVersion
         targetSdk = 34
         versionCode = flutter.versionCode.toInt()
         versionName = flutter.versionName
