@@ -1035,13 +1035,21 @@ class _HomeScreenState extends State<HomeScreen>
                       },
                       fieldViewBuilder:
                           (context, controller, focusNode, onFieldSubmitted) {
-                            // Initialize the controller with the initial text
-                            if (controller.text.isEmpty &&
-                                textEditingController.text.isNotEmpty) {
+                            // Only add listeners once
+                            if (textEditingController.text != controller.text) {
                               controller.text = textEditingController.text;
                               controller.selection =
                                   textEditingController.selection;
                             }
+
+                            controller.addListener(() {
+                              if (controller.text !=
+                                  textEditingController.text) {
+                                textEditingController
+                                  ..text = controller.text
+                                  ..selection = controller.selection;
+                              }
+                            });
 
                             return TextField(
                               controller: controller,
@@ -1055,10 +1063,7 @@ class _HomeScreenState extends State<HomeScreen>
                               ),
                               textCapitalization: TextCapitalization.sentences,
                               onChanged: (value) {
-                                textEditingController.text = value;
-                                textEditingController.selection =
-                                    controller.selection;
-
+                                // Optional capitalization logic
                                 String cap = value
                                     .split(' ')
                                     .map(
@@ -1067,6 +1072,7 @@ class _HomeScreenState extends State<HomeScreen>
                                           : '${word[0].toUpperCase()}${word.substring(1)}',
                                     )
                                     .join(' ');
+
                                 if (cap != value) {
                                   controller.value = TextEditingValue(
                                     text: cap,
@@ -1074,9 +1080,6 @@ class _HomeScreenState extends State<HomeScreen>
                                       offset: cap.length,
                                     ),
                                   );
-                                  textEditingController.text = cap;
-                                  textEditingController.selection =
-                                      controller.selection;
                                 }
                               },
                             );
@@ -1197,100 +1200,128 @@ class _HomeScreenState extends State<HomeScreen>
                     ),
                     const SizedBox(height: 24),
                     Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
+                        // 🔹 Left-aligned button
                         TextButton(
-                          onPressed: () => Navigator.pop(context),
-                          child: const Text(
-                            'Cancel',
-                            style: TextStyle(color: Colors.grey, fontSize: 18),
-                          ),
-                        ),
-                        const SizedBox(width: 16),
-                        TextButton(
-                          onPressed: () async {
-                            shiftName = textEditingController.text.trim();
-                            final hasName =
-                                shiftName != null && shiftName!.isNotEmpty;
-
-                            final hasTime =
-                                startTime != null && endTime != null;
-
-                            if (hasName || hasTime) {
-                              int? startTimeMillis;
-                              int? endTimeMillis;
-
-                              if (hasTime) {
-                                final startDateTime = DateTime(
-                                  selectedDate.year,
-                                  selectedDate.month,
-                                  selectedDate.day,
-                                  startTime!.hour,
-                                  startTime!.minute,
-                                );
-                                startTimeMillis =
-                                    startDateTime.millisecondsSinceEpoch;
-
-                                final endDateTime = DateTime(
-                                  selectedDate.year,
-                                  selectedDate.month,
-                                  selectedDate.day,
-                                  endTime!.hour,
-                                  endTime!.minute,
-                                );
-                                endTimeMillis =
-                                    endDateTime.millisecondsSinceEpoch;
-                              }
-
-                              await _dbHelper.insertOrUpdateShift(
-                                employeeId: employeeId,
-                                day: day.toLowerCase(),
-                                weekStart: weekStart,
-                                shiftName: hasName ? shiftName : null,
-                                startTime: startTimeMillis,
-                                endTime: endTimeMillis,
-                              );
-
-                              // ✅ Build parameters without null values
-                              final params = {
-                                'employee_id': employeeId,
-                                'day': day,
-                                'week_start': weekStart,
-                              };
-                              if (hasName) params['shift_name'] = shiftName!;
-                              if (startTimeMillis != null)
-                                params['start_time'] = startTimeMillis;
-                              if (endTimeMillis != null)
-                                params['end_time'] = endTimeMillis;
-
-                              await analytics.logEvent(
-                                name: 'shift_saved',
-                                parameters: params,
-                              );
-
-                              await _loadData();
-                              if (!mounted) return;
-                              Navigator.pop(context);
-                            } else {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text(
-                                    'Please enter a shift name or time range.',
-                                  ),
-                                  backgroundColor: Colors.redAccent,
-                                ),
-                              );
-                            }
+                          onPressed: () {
+                            setState(() {
+                              textEditingController
+                                  .clear(); // ✅ Clears shift name
+                              shiftName =
+                                  null; // ✅ Optional: clear backing variable
+                              startTime = null; // ✅ Clears start time
+                              endTime = null; // ✅ Clears end time
+                            });
                           },
-
                           child: const Text(
-                            'Save',
+                            'Clear', // <-- change text if needed
                             style: TextStyle(
                               color: Colors.deepPurple,
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
+                        ),
+
+                        // 🔹 Right-aligned Cancel and Save buttons
+                        Row(
+                          children: [
+                            TextButton(
+                              onPressed: () => Navigator.pop(context),
+                              child: const Text(
+                                'Cancel',
+                                style: TextStyle(
+                                  color: Colors.grey,
+                                  fontSize: 18,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 16),
+                            TextButton(
+                              onPressed: () async {
+                                shiftName = textEditingController.text.trim();
+                                final hasName =
+                                    shiftName != null && shiftName!.isNotEmpty;
+                                final hasTime =
+                                    startTime != null && endTime != null;
+
+                                if (hasName || hasTime) {
+                                  int? startTimeMillis;
+                                  int? endTimeMillis;
+
+                                  if (hasTime) {
+                                    final startDateTime = DateTime(
+                                      selectedDate.year,
+                                      selectedDate.month,
+                                      selectedDate.day,
+                                      startTime!.hour,
+                                      startTime!.minute,
+                                    );
+                                    startTimeMillis =
+                                        startDateTime.millisecondsSinceEpoch;
+
+                                    final endDateTime = DateTime(
+                                      selectedDate.year,
+                                      selectedDate.month,
+                                      selectedDate.day,
+                                      endTime!.hour,
+                                      endTime!.minute,
+                                    );
+                                    endTimeMillis =
+                                        endDateTime.millisecondsSinceEpoch;
+                                  }
+
+                                  await _dbHelper.insertOrUpdateShift(
+                                    employeeId: employeeId,
+                                    day: day.toLowerCase(),
+                                    weekStart: weekStart,
+                                    shiftName: hasName ? shiftName : null,
+                                    startTime: startTimeMillis,
+                                    endTime: endTimeMillis,
+                                  );
+
+                                  final params = {
+                                    'employee_id': employeeId,
+                                    'day': day,
+                                    'week_start': weekStart,
+                                  };
+                                  if (hasName)
+                                    params['shift_name'] = shiftName!;
+                                  if (startTimeMillis != null)
+                                    params['start_time'] = startTimeMillis;
+                                  if (endTimeMillis != null)
+                                    params['end_time'] = endTimeMillis;
+
+                                  await analytics.logEvent(
+                                    name: 'shift_saved',
+                                    parameters: params,
+                                  );
+
+                                  await _loadData();
+                                  if (!mounted) return;
+                                  Navigator.pop(context);
+                                } else {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text(
+                                        'Please enter a shift name or time range.',
+                                      ),
+                                      backgroundColor: Colors.redAccent,
+                                    ),
+                                  );
+                                }
+                              },
+                              child: const Text(
+                                'Save',
+                                style: TextStyle(
+                                  color: Colors.deepPurple,
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                       ],
                     ),
@@ -1595,8 +1626,7 @@ class _HomeScreenState extends State<HomeScreen>
             ],
           ),
           floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
-          floatingActionButton:
-              (_employees.isNotEmpty && !showOverlay)
+          floatingActionButton: (_employees.isNotEmpty && !showOverlay)
               ? Padding(
                   padding: EdgeInsets.only(
                     bottom: _isBannerAdLoaded
