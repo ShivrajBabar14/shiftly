@@ -923,8 +923,6 @@ class _HomeScreenState extends State<HomeScreen>
                     const SizedBox(height: 24),
                     const Text('Shift name', style: TextStyle(fontSize: 16)),
                     RawAutocomplete<String>(
-                      textEditingController: textEditingController,
-                      focusNode: FocusNode(),
                       optionsBuilder: (TextEditingValue textEditingValue) async {
                         final input = textEditingValue.text.toLowerCase();
                         final allShiftSuggestions = await _dbHelper
@@ -969,38 +967,48 @@ class _HomeScreenState extends State<HomeScreen>
                       },
 
                       onSelected: (String selection) {
-                        final regex = RegExp(
-                          r'^(.*?)\s*\((\d{2}):(\d{2})-(\d{2}):(\d{2})\)?$',
-                        );
-                        final match = regex.firstMatch(selection);
-                        final cleanName = match?.group(1)?.trim() ?? selection;
+                        try {
+                          final regex = RegExp(
+                            r'^(.*?)\s*\((\d{2}):(\d{2})-(\d{2}):(\d{2})\)?$',
+                          );
+                          final match = regex.firstMatch(selection);
+                          final cleanName = match?.group(1)?.trim() ?? selection;
 
-                        textEditingController.text = cleanName;
-                        textEditingController.selection =
-                            TextSelection.collapsed(offset: cleanName.length);
+                          textEditingController.text = cleanName;
+                          textEditingController.selection =
+                              TextSelection.collapsed(offset: cleanName.length);
 
-                        if (match != null) {
-                          final sHour = int.tryParse(match.group(2) ?? '');
-                          final sMin = int.tryParse(match.group(3) ?? '');
-                          final eHour = int.tryParse(match.group(4) ?? '');
-                          final eMin = int.tryParse(match.group(5) ?? '');
+                          if (match != null) {
+                            final sHour = int.tryParse(match.group(2) ?? '');
+                            final sMin = int.tryParse(match.group(3) ?? '');
+                            final eHour = int.tryParse(match.group(4) ?? '');
+                            final eMin = int.tryParse(match.group(5) ?? '');
 
-                          setState(() {
-                            if (sHour != null && sMin != null) {
-                              startTime = TimeOfDay(hour: sHour, minute: sMin);
+                            if (sHour != null && sMin != null && eHour != null && eMin != null) {
+                              if (sHour >= 0 && sHour <= 23 && sMin >= 0 && sMin <= 59 &&
+                                  eHour >= 0 && eHour <= 23 && eMin >= 0 && eMin <= 59) {
+                                setState(() {
+                                  startTime = TimeOfDay(hour: sHour, minute: sMin);
+                                  endTime = TimeOfDay(hour: eHour, minute: eMin);
+                                });
+                              }
                             }
-                            if (eHour != null && eMin != null) {
-                              endTime = TimeOfDay(hour: eHour, minute: eMin);
-                            }
-                          });
+                          }
+                        } catch (e) {
+                          // If parsing fails, just set the text without time
+                          final cleanName = selection.split('(').first.trim();
+                          textEditingController.text = cleanName;
+                          textEditingController.selection =
+                              TextSelection.collapsed(offset: cleanName.length);
                         }
                       },
                       fieldViewBuilder:
                           (context, controller, focusNode, onFieldSubmitted) {
-                            // Link external controller (textEditingController) to internal one (controller)
-                            controller.text = textEditingController.text;
-                            controller.selection =
-                                textEditingController.selection;
+                            // Initialize the controller with the initial text
+                            if (controller.text.isEmpty && textEditingController.text.isNotEmpty) {
+                              controller.text = textEditingController.text;
+                              controller.selection = textEditingController.selection;
+                            }
 
                             return TextField(
                               controller: controller,
@@ -1013,31 +1021,31 @@ class _HomeScreenState extends State<HomeScreen>
                                 border: UnderlineInputBorder(),
                               ),
                               textCapitalization: TextCapitalization.sentences,
-                              // onChanged: (value) {
-                              //   textEditingController.text = value;
-                              //   textEditingController.selection =
-                              //       controller.selection;
+                              onChanged: (value) {
+                                textEditingController.text = value;
+                                textEditingController.selection =
+                                    controller.selection;
 
-                              //   String cap = value
-                              //       .split(' ')
-                              //       .map(
-                              //         (word) => word.isEmpty
-                              //             ? word
-                              //             : '${word[0].toUpperCase()}${word.substring(1)}',
-                              //       )
-                              //       .join(' ');
-                              //   if (cap != value) {
-                              //     controller.value = TextEditingValue(
-                              //       text: cap,
-                              //       selection: TextSelection.collapsed(
-                              //         offset: cap.length,
-                              //       ),
-                              //     );
-                              //     textEditingController.text = cap;
-                              //     textEditingController.selection =
-                              //         controller.selection;
-                              //   }
-                              // },
+                                String cap = value
+                                    .split(' ')
+                                    .map(
+                                      (word) => word.isEmpty
+                                          ? word
+                                          : '${word[0].toUpperCase()}${word.substring(1)}',
+                                    )
+                                    .join(' ');
+                                if (cap != value) {
+                                  controller.value = TextEditingValue(
+                                    text: cap,
+                                    selection: TextSelection.collapsed(
+                                      offset: cap.length,
+                                    ),
+                                  );
+                                  textEditingController.text = cap;
+                                  textEditingController.selection =
+                                      controller.selection;
+                                }
+                              },
                             );
                           },
 
