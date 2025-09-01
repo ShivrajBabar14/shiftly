@@ -200,6 +200,8 @@ class _HomeScreenState extends State<HomeScreen>
     }
   }
 
+
+
   /// ---------------- In-App Review Logic ----------------
   Future<void> _checkVisitsForReview() async {
     final prefs = await SharedPreferences.getInstance();
