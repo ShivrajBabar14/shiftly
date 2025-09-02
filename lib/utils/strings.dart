@@ -2,10 +2,10 @@
 class AppStrings {
 
   //Test Ad Unit ID
-  static const String bannerAdUnitID = 'ca-app-pub-3940256099942544/6300978111';
+  // static const String bannerAdUnitID = 'ca-app-pub-3940256099942544/6300978111';
 
   //Live Ad Unit IDs
-  // static const String bannerAdUnitID = 'ca-app-pub-4784249065269929/8967261627';
+  static const String bannerAdUnitID = 'ca-app-pub-4784249065269929/8967261627';
 
   // General
   // static const String appName = "Shiftly";
