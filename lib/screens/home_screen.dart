@@ -1422,6 +1422,14 @@ class _HomeScreenState extends State<HomeScreen>
       return _currentWeekStart.isAfter(nowWeekStart);
     }
 
+    bool isCurrentOrPreviousWeek() {
+      final now = DateTime.now();
+      final nowWeekStart = now.subtract(Duration(days: now.weekday - 1));
+      final prevWeekStart = nowWeekStart.subtract(const Duration(days: 7));
+      return _currentWeekStart.isAtSameMomentAs(nowWeekStart) ||
+             _currentWeekStart.isAtSameMomentAs(prevWeekStart);
+    }
+
     final bool showOverlay = isFreeUser && isFutureWeek();
 
     return Stack(
@@ -1579,49 +1587,49 @@ class _HomeScreenState extends State<HomeScreen>
               Expanded(
                 child: _isLoading
                     ? const Center(child: CircularProgressIndicator())
-                    : (_employees.isEmpty
-                          ? Stack(
+              : (_employees.isEmpty && (!isFreeUser || !isFutureWeek())
+                    ? Stack(
+                        children: [
+                          _buildEmptyShiftTable(),
+                          Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                _buildEmptyShiftTable(),
-                                Center(
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      const Text(
-                                        'Your shift tracking will appear here.',
-                                        style: TextStyle(fontSize: 15),
-                                      ),
-                                      const Text(
-                                        'Tap below to begin.',
-                                        style: TextStyle(fontSize: 15),
-                                      ),
-                                      const SizedBox(height: 20),
-                                      ElevatedButton(
-                                        style: ElevatedButton.styleFrom(
-                                          backgroundColor: Colors.deepPurple,
-                                          padding: const EdgeInsets.symmetric(
-                                            horizontal: 30,
-                                            vertical: 15,
-                                          ),
-                                        ),
-                                        onPressed: _handleAddEmployeePressed,
-                                        child: const Text(
-                                          'Add Employee',
-                                          style: TextStyle(
-                                            color: Colors.white,
-                                            fontSize: 14,
-                                          ),
-                                        ),
-                                      ),
-                                    ],
+                                const Text(
+                                  'Your shift tracking will appear here.',
+                                  style: TextStyle(fontSize: 15),
+                                ),
+                                const Text(
+                                  'Tap below to begin.',
+                                  style: TextStyle(fontSize: 15),
+                                ),
+                                const SizedBox(height: 20),
+                                ElevatedButton(
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.deepPurple,
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 30,
+                                      vertical: 15,
+                                    ),
+                                  ),
+                                  onPressed: _handleAddEmployeePressed,
+                                  child: const Text(
+                                    'Add Employee',
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 14,
+                                    ),
                                   ),
                                 ),
                               ],
-                            )
-                          : Container(
-                              decoration: const BoxDecoration(),
-                              child: _buildShiftTable(),
-                            )),
+                            ),
+                          ),
+                        ],
+                      )
+                    : Container(
+                        decoration: const BoxDecoration(),
+                        child: _buildShiftTable(),
+                      )),
               ),
             ],
           ),
