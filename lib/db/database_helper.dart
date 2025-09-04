@@ -722,13 +722,14 @@ class DatabaseHelper {
     final db = await database;
     return await db.rawQuery(
       '''
-    SELECT 
+    SELECT
       e.employee_id,
       e.name,
       st.day,
       st.shift_name,
       st.start_time,
-      st.end_time
+      st.end_time,
+      st.status
     FROM employees e
     JOIN week_assignments wa ON e.employee_id = wa.employee_id AND wa.week_start = ?
     LEFT JOIN shift_timings st ON e.employee_id = st.employee_id AND st.week_start = ?

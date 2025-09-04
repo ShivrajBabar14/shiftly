@@ -571,6 +571,7 @@ class _HomeScreenState extends State<HomeScreen>
             'shift_name': row['shift_name'],
             'start_time': row['start_time'],
             'end_time': row['end_time'],
+            'status': row['status'],
           });
         }
       }
@@ -2255,72 +2256,95 @@ class _HomeScreenState extends State<HomeScreen>
                                                 ),
                                               ),
                                               child: (hasName || hasTime)
-                                                  ? Container(
-                                                      padding:
-                                                          const EdgeInsets.symmetric(
-                                                            vertical: 4.0,
+                                                  ? Stack(
+                                                      children: [
+                                                        Container(
+                                                          padding:
+                                                              const EdgeInsets.symmetric(
+                                                            vertical: 8.0,
                                                             horizontal: 6.0,
                                                           ),
-                                                      decoration: BoxDecoration(
-                                                        color:
-                                                            Colors.transparent,
-                                                        borderRadius:
-                                                            BorderRadius.circular(
+                                                          decoration: BoxDecoration(
+                                                            color:
+                                                                Colors.transparent,
+                                                            borderRadius:
+                                                                BorderRadius.circular(
                                                               4.0,
                                                             ),
-                                                      ),
-                                                      child: hasName && hasTime
-                                                          ? RichText(
-                                                              textAlign:
-                                                                  TextAlign
-                                                                      .center,
-                                                              text: TextSpan(
-                                                                children: [
-                                                                  TextSpan(
-                                                                    text:
-                                                                        shiftName,
-                                                                    style: const TextStyle(
-                                                                      fontWeight:
-                                                                          FontWeight
-                                                                              .bold,
-                                                                      fontSize:
-                                                                          12.5,
-                                                                      color: Colors
-                                                                          .black,
-                                                                    ),
+                                                          ),
+                                                          child: hasName && hasTime
+                                                              ? RichText(
+                                                                  textAlign:
+                                                                      TextAlign
+                                                                          .center,
+                                                                  text: TextSpan(
+                                                                    children: [
+                                                                      TextSpan(
+                                                                        text:
+                                                                            shiftName,
+                                                                        style: const TextStyle(
+                                                                          fontWeight:
+                                                                              FontWeight.bold,
+                                                                          fontSize:
+                                                                              12.5,
+                                                                          color:
+                                                                              Colors.black,
+                                                                        ),
+                                                                      ),
+                                                                      TextSpan(
+                                                                        text:
+                                                                            '\n($startTime-$endTime)',
+                                                                        style: const TextStyle(
+                                                                          fontWeight:
+                                                                              FontWeight.normal,
+                                                                          fontSize:
+                                                                              12.5,
+                                                                          color:
+                                                                              Colors.black,
+                                                                        ),
+                                                                      ),
+                                                                    ],
                                                                   ),
-                                                                  TextSpan(
-                                                                    text:
-                                                                        '\n($startTime-$endTime)',
-                                                                    style: const TextStyle(
-                                                                      fontWeight:
-                                                                          FontWeight
-                                                                              .normal,
-                                                                      fontSize:
-                                                                          12.5,
-                                                                      color: Colors
-                                                                          .black,
-                                                                    ),
+                                                                )
+                                                              : Text(
+                                                                  hasName
+                                                                      ? shiftName
+                                                                      : '$startTime-$endTime',
+                                                                  textAlign:
+                                                                      TextAlign
+                                                                          .center,
+                                                                  style: const TextStyle(
+                                                                    fontWeight:
+                                                                        FontWeight
+                                                                            .bold,
+                                                                    fontSize:
+                                                                        12.5,
+                                                                    color: Colors
+                                                                        .black,
                                                                   ),
-                                                                ],
-                                                              ),
-                                                            )
-                                                          : Text(
-                                                              hasName
-                                                                  ? shiftName
-                                                                  : '$startTime-$endTime',
-                                                              textAlign:
-                                                                  TextAlign
-                                                                      .center,
-                                                              style: const TextStyle(
-                                                                fontWeight:
-                                                                    FontWeight
-                                                                        .bold,
-                                                                fontSize: 12.5,
-                                                                color: Colors
-                                                                    .black,
-                                                              ),
+                                                                ),
+                                                        ),
+                                                        if (shift['status'] == 'Present')
+                                                          Positioned(
+                                                            top: 2,
+                                                            right: 2,
+                                                            child: Icon(
+                                                              Icons.check,
+                                                              size: 14,
+                                                              color: Colors.green,
                                                             ),
+                                                          )
+                                                        else if (shift['status'] == 'Absent')
+                                                          Positioned(
+                                                            top: 2,
+                                                            right: 2,
+                                                            child: Icon(
+                                                              Icons.close,
+                                                              size: 14,
+                                                              color: Colors.red,
+                                                            ),
+                                                          ),
+                                                      ],
                                                     )
                                                   : Icon(
                                                       Icons.add,
