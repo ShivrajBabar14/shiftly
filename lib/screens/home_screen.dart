@@ -1201,7 +1201,10 @@ class _HomeScreenState extends State<HomeScreen>
                       ],
                     ),
                     const SizedBox(height: 24),
-                    const Text('Mark Attendance', style: TextStyle(fontSize: 16)),
+                    const Text(
+                      'Mark Attendance',
+                      style: TextStyle(fontSize: 16),
+                    ),
                     const SizedBox(height: 8),
                     Row(
                       children: [
@@ -1464,7 +1467,7 @@ class _HomeScreenState extends State<HomeScreen>
       final nowWeekStart = now.subtract(Duration(days: now.weekday - 1));
       final prevWeekStart = nowWeekStart.subtract(const Duration(days: 7));
       return _currentWeekStart.isAtSameMomentAs(nowWeekStart) ||
-             _currentWeekStart.isAtSameMomentAs(prevWeekStart);
+          _currentWeekStart.isAtSameMomentAs(prevWeekStart);
     }
 
     final bool showOverlay = isFreeUser && isFutureWeek();
@@ -1624,49 +1627,49 @@ class _HomeScreenState extends State<HomeScreen>
               Expanded(
                 child: _isLoading
                     ? const Center(child: CircularProgressIndicator())
-              : (_employees.isEmpty && (!isFreeUser || !isFutureWeek())
-                    ? Stack(
-                        children: [
-                          _buildEmptyShiftTable(),
-                          Center(
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
+                    : (_employees.isEmpty && (!isFreeUser || !isFutureWeek())
+                          ? Stack(
                               children: [
-                                const Text(
-                                  'Your shift tracking will appear here.',
-                                  style: TextStyle(fontSize: 15),
-                                ),
-                                const Text(
-                                  'Tap below to begin.',
-                                  style: TextStyle(fontSize: 15),
-                                ),
-                                const SizedBox(height: 20),
-                                ElevatedButton(
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: Colors.deepPurple,
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 30,
-                                      vertical: 15,
-                                    ),
-                                  ),
-                                  onPressed: _handleAddEmployeePressed,
-                                  child: const Text(
-                                    'Add Employee',
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 14,
-                                    ),
+                                _buildEmptyShiftTable(),
+                                Center(
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      const Text(
+                                        'Your shift tracking will appear here.',
+                                        style: TextStyle(fontSize: 15),
+                                      ),
+                                      const Text(
+                                        'Tap below to begin.',
+                                        style: TextStyle(fontSize: 15),
+                                      ),
+                                      const SizedBox(height: 20),
+                                      ElevatedButton(
+                                        style: ElevatedButton.styleFrom(
+                                          backgroundColor: Colors.deepPurple,
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 30,
+                                            vertical: 15,
+                                          ),
+                                        ),
+                                        onPressed: _handleAddEmployeePressed,
+                                        child: const Text(
+                                          'Add Employee',
+                                          style: TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 14,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ),
                               ],
-                            ),
-                          ),
-                        ],
-                      )
-                    : Container(
-                        decoration: const BoxDecoration(),
-                        child: _buildShiftTable(),
-                      )),
+                            )
+                          : Container(
+                              decoration: const BoxDecoration(),
+                              child: _buildShiftTable(),
+                            )),
               ),
             ],
           ),
@@ -2255,102 +2258,121 @@ class _HomeScreenState extends State<HomeScreen>
                                                         ),
                                                 ),
                                               ),
-                                              child: (hasName || hasTime)
-                                                  ? Stack(
-                                                      children: [
-                                                        Container(
-                                                          padding:
-                                                              const EdgeInsets.symmetric(
-                                                            vertical: 8.0,
-                                                            horizontal: 6.0,
-                                                          ),
-                                                          decoration: BoxDecoration(
-                                                            color:
-                                                                Colors.transparent,
-                                                            borderRadius:
-                                                                BorderRadius.circular(
-                                                              4.0,
+                                              child: SizedBox.expand(
+                                                child: (hasName || hasTime)
+                                                    ? Stack(
+                                                        children: [
+                                                          Align(
+                                                            alignment: Alignment
+                                                                .center,
+                                                            child: Container(
+                                                              padding:
+                                                                  const EdgeInsets.symmetric(
+                                                                    vertical:
+                                                                        8.0,
+                                                                    horizontal:
+                                                                        6.0,
+                                                                  ),
+                                                              decoration: BoxDecoration(
+                                                                color: Colors
+                                                                    .transparent,
+                                                                borderRadius:
+                                                                    BorderRadius.circular(
+                                                                      4.0,
+                                                                    ),
+                                                              ),
+                                                              child:
+                                                                  hasName &&
+                                                                      hasTime
+                                                                  ? RichText(
+                                                                      textAlign:
+                                                                          TextAlign
+                                                                              .center,
+                                                                      text: TextSpan(
+                                                                        children: [
+                                                                          TextSpan(
+                                                                            text:
+                                                                                shiftName,
+                                                                            style: const TextStyle(
+                                                                              fontWeight: FontWeight.bold,
+                                                                              fontSize: 12.5,
+                                                                              color: Colors.black,
+                                                                            ),
+                                                                          ),
+                                                                          TextSpan(
+                                                                            text:
+                                                                                '\n($startTime-$endTime)',
+                                                                            style: const TextStyle(
+                                                                              fontWeight: FontWeight.normal,
+                                                                              fontSize: 12.5,
+                                                                              color: Colors.black,
+                                                                            ),
+                                                                          ),
+                                                                        ],
+                                                                      ),
+                                                                    )
+                                                                  : Text(
+                                                                      hasName
+                                                                          ? shiftName
+                                                                          : '$startTime-$endTime',
+                                                                      textAlign:
+                                                                          TextAlign
+                                                                              .center,
+                                                                      style: const TextStyle(
+                                                                        fontWeight:
+                                                                            FontWeight.bold,
+                                                                        fontSize:
+                                                                            12.5,
+                                                                        color: Colors
+                                                                            .black,
+                                                                      ),
+                                                                    ),
                                                             ),
                                                           ),
-                                                          child: hasName && hasTime
-                                                              ? RichText(
-                                                                  textAlign:
-                                                                      TextAlign
-                                                                          .center,
-                                                                  text: TextSpan(
-                                                                    children: [
-                                                                      TextSpan(
-                                                                        text:
-                                                                            shiftName,
-                                                                        style: const TextStyle(
-                                                                          fontWeight:
-                                                                              FontWeight.bold,
-                                                                          fontSize:
-                                                                              12.5,
-                                                                          color:
-                                                                              Colors.black,
-                                                                        ),
-                                                                      ),
-                                                                      TextSpan(
-                                                                        text:
-                                                                            '\n($startTime-$endTime)',
-                                                                        style: const TextStyle(
-                                                                          fontWeight:
-                                                                              FontWeight.normal,
-                                                                          fontSize:
-                                                                              12.5,
-                                                                          color:
-                                                                              Colors.black,
-                                                                        ),
-                                                                      ),
-                                                                    ],
-                                                                  ),
-                                                                )
-                                                              : Text(
-                                                                  hasName
-                                                                      ? shiftName
-                                                                      : '$startTime-$endTime',
-                                                                  textAlign:
-                                                                      TextAlign
-                                                                          .center,
-                                                                  style: const TextStyle(
-                                                                    fontWeight:
-                                                                        FontWeight
-                                                                            .bold,
-                                                                    fontSize:
-                                                                        12.5,
-                                                                    color: Colors
-                                                                        .black,
-                                                                  ),
+                                                          if (shift['status'] ==
+                                                              'Present')
+                                                            Positioned(
+                                                              top: 2,
+                                                              right: 2,
+                                                              child: Icon(
+                                                                Icons
+                                                                    .check_circle,
+                                                                size: 14,
+                                                                color: Colors
+                                                                    .green,
+                                                              ),
+                                                            )
+                                                          else if (shift['status'] ==
+                                                              'Absent')
+                                                            Positioned(
+                                                              top: 2,
+                                                              right: 2,
+                                                              child: CircleAvatar(
+                                                                radius:
+                                                                    6, // Adjust the size of the circle as needed
+                                                                backgroundColor:
+                                                                    Colors.red,
+                                                                child: Icon(
+                                                                  Icons.close,
+                                                                  size: 12,
+                                                                  color: Colors
+                                                                      .white,
                                                                 ),
+                                                              ),
+                                                            ),
+                                                        ],
+                                                      )
+                                                    : Align(
+                                                        alignment:
+                                                            Alignment.center,
+                                                        child: Icon(
+                                                          Icons.add,
+                                                          size: 16.0,
+                                                          color:
+                                                              Colors.grey[300],
                                                         ),
-                                                        if (shift['status'] == 'Present')
-                                                          Positioned(
-                                                            top: 2,
-                                                            right: 2,
-                                                            child: Icon(
-                                                              Icons.check,
-                                                              size: 14,
-                                                              color: Colors.green,
-                                                            ),
-                                                          )
-                                                        else if (shift['status'] == 'Absent')
-                                                          Positioned(
-                                                            top: 2,
-                                                            right: 2,
-                                                            child: Icon(
-                                                              Icons.close,
-                                                              size: 14,
-                                                              color: Colors.red,
-                                                            ),
-                                                          ),
-                                                      ],
-                                                    )
-                                                  : Icon(
-                                                      Icons.add,
-                                                      size: 16.0,
-                                                      color: Colors.grey[300],
-                                                    ),
+                                                      ),
+                                              ),
                                             ),
                                           );
                                         }),
