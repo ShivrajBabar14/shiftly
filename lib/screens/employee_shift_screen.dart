@@ -380,55 +380,86 @@ class _EmployeeShiftScreenState extends State<EmployeeShiftScreen> {
                                         final hasName = shiftName.isNotEmpty;
                                         final hasTime = startTime.isNotEmpty && endTime.isNotEmpty;
 
-                                        if (hasName && hasTime) {
-                                          return RichText(
-                                            textAlign: TextAlign.center,
-                                            text: TextSpan(
-                                              children: [
-                                                TextSpan(
-                                                  text: shiftName,
-                                                  style: const TextStyle(
-                                                    fontWeight: FontWeight.bold,
-                                                    fontSize: 16,
-                                                    color: Colors.black,
+                                        if (hasName || hasTime) {
+                                          return Stack(
+                                            children: [
+                                              Align(
+                                                alignment: Alignment.center,
+                                                child: Container(
+                                                  padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 6.0),
+                                                  decoration: BoxDecoration(
+                                                    color: Colors.transparent,
+                                                    borderRadius: BorderRadius.circular(4.0),
+                                                  ),
+                                                  child: hasName && hasTime
+                                                      ? RichText(
+                                                          textAlign: TextAlign.center,
+                                                          text: TextSpan(
+                                                            children: [
+                                                              TextSpan(
+                                                                text: shiftName,
+                                                                style: const TextStyle(
+                                                                  fontWeight: FontWeight.bold,
+                                                                  fontSize: 16,
+                                                                  color: Colors.black,
+                                                                ),
+                                                              ),
+                                                              TextSpan(
+                                                                text: '\n($startTime to $endTime)',
+                                                                style: const TextStyle(
+                                                                  fontWeight: FontWeight.normal,
+                                                                  fontSize: 16,
+                                                                  color: Colors.black,
+                                                                ),
+                                                              ),
+                                                            ],
+                                                          ),
+                                                        )
+                                                      : Text(
+                                                          hasName ? shiftName : '$startTime to $endTime',
+                                                          textAlign: TextAlign.center,
+                                                          style: const TextStyle(
+                                                            fontWeight: FontWeight.bold,
+                                                            fontSize: 16,
+                                                            color: Colors.black,
+                                                          ),
+                                                        ),
+                                                ),
+                                              ),
+                                              if (shift?['status'] == 'Present')
+                                                Positioned(
+                                                  top: 2,
+                                                  right: 4,
+                                                  child: Icon(
+                                                    Icons.check_circle,
+                                                    size: 20,
+                                                    color: Colors.green,
+                                                  ),
+                                                )
+                                              else if (shift?['status'] == 'Absent')
+                                                Positioned(
+                                                  top: 2,
+                                                  right: 6,
+                                                  child: CircleAvatar(
+                                                    radius: 8,
+                                                    backgroundColor: Colors.red,
+                                                    child: Icon(
+                                                      Icons.close,
+                                                      size: 16,
+                                                      color: Colors.white,
+                                                    ),
                                                   ),
                                                 ),
-                                                TextSpan(
-                                                  text: '\n($startTime to $endTime)',
-                                                  style: const TextStyle(
-                                                    fontWeight: FontWeight.normal,
-                                                    fontSize: 16,
-                                                    color: Colors.black,
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                          );
-                                        } else if (hasName) {
-                                          return Text(
-                                            shiftName,
-                                            textAlign: TextAlign.center,
-                                            style: const TextStyle(
-                                              fontWeight: FontWeight.bold,
-                                              fontSize: 16,
-                                              color: Colors.black,
-                                            ),
-                                          );
-                                        } else if (hasTime) {
-                                          return Text(
-                                            '$startTime to $endTime',
-                                            textAlign: TextAlign.center,
-                                            style: const TextStyle(
-                                              fontWeight: FontWeight.bold,
-                                              fontSize: 16,
-                                              color: Colors.black,
-                                            ),
+                                            ],
                                           );
                                         } else {
-                                          return const Text(
-                                            '',
-                                            textAlign: TextAlign.center,
-                                            style: TextStyle(fontSize: 16, color: Colors.black54),
+                                          return Align(
+                                            alignment: Alignment.center,
+                                            child: Icon(
+                                              Icons.add,
+                                              size: 16.0,
+                                              color: Colors.grey[300],
+                                            ),
                                           );
                                         }
                                       },
