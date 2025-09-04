@@ -908,6 +908,7 @@ class _HomeScreenState extends State<HomeScreen>
     }
 
     final textEditingController = TextEditingController(text: shiftName);
+    String? attendance = existingShift['status'];
 
     await showDialog(
       context: context,
@@ -1199,6 +1200,39 @@ class _HomeScreenState extends State<HomeScreen>
                       ],
                     ),
                     const SizedBox(height: 24),
+                    const Text('Mark Attendance', style: TextStyle(fontSize: 16)),
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: RadioListTile<String>(
+                            title: const Text('Present'),
+                            value: 'Present',
+                            groupValue: attendance,
+                            contentPadding: EdgeInsets.only(left: 0),
+                            onChanged: (value) {
+                              setState(() {
+                                attendance = value;
+                              });
+                            },
+                          ),
+                        ),
+                        Expanded(
+                          child: RadioListTile<String>(
+                            title: const Text('Absent'),
+                            value: 'Absent',
+                            groupValue: attendance,
+                            contentPadding: EdgeInsets.only(left: 0),
+                            onChanged: (value) {
+                              setState(() {
+                                attendance = value;
+                              });
+                            },
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 24),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
@@ -1212,6 +1246,7 @@ class _HomeScreenState extends State<HomeScreen>
                                   null; // ✅ Optional: clear backing variable
                               startTime = null; // ✅ Clears start time
                               endTime = null; // ✅ Clears end time
+                              attendance = null; // ✅ Clears attendance
                             });
                           },
                           child: const Text(
@@ -1279,6 +1314,7 @@ class _HomeScreenState extends State<HomeScreen>
                                     shiftName: hasName ? shiftName : null,
                                     startTime: startTimeMillis,
                                     endTime: endTimeMillis,
+                                    status: attendance,
                                   );
 
                                   final params = {
