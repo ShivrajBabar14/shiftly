@@ -817,6 +817,8 @@ class _HomeScreenState extends State<HomeScreen>
       ),
     );
 
+    final bool isFutureDay = selectedDate.isAfter(DateTime.now());
+
     if (isLoadingSubscription) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -1214,7 +1216,7 @@ class _HomeScreenState extends State<HomeScreen>
                             value: 'Present',
                             groupValue: attendance,
                             contentPadding: EdgeInsets.only(left: 0),
-                            onChanged: (value) {
+                            onChanged: isFutureDay ? null : (value) {
                               setState(() {
                                 attendance = value;
                               });
@@ -1227,7 +1229,7 @@ class _HomeScreenState extends State<HomeScreen>
                             value: 'Absent',
                             groupValue: attendance,
                             contentPadding: EdgeInsets.only(left: 0),
-                            onChanged: (value) {
+                            onChanged: isFutureDay ? null : (value) {
                               setState(() {
                                 attendance = value;
                               });
