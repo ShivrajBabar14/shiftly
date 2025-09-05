@@ -1238,6 +1238,14 @@ class _HomeScreenState extends State<HomeScreen>
                         ),
                       ],
                     ),
+                    if (isFutureDay) ...[
+                      const SizedBox(height: 8),
+                      const Text(
+                        'Attendance can only be marked for today and prior dates.',
+                        style: TextStyle(fontSize: 12, color: Colors.grey),
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
                     const SizedBox(height: 24),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
