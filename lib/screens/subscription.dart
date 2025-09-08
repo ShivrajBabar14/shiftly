@@ -282,7 +282,13 @@ class _ShiftlyProScreenState extends State<ShiftlyProScreen> {
                 title: 'Advanced Shift Scheduling',
                 subtitle: 'Create shifts for the upcoming weeks in advance.',
               ),
-              const SizedBox(height: 100),
+              const SizedBox(height: 35),
+              buildFeature(
+                assetPath: 'assets/check.png',
+                title: 'Mark Attendance',
+                subtitle: 'Keep track of daily attendance of your team.',
+              ),
+              const SizedBox(height: 30),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [

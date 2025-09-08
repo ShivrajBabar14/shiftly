@@ -53,6 +53,7 @@ class _LimitsDialogState extends State<LimitsDialog> {
             _buildFeatureItem('Add unlimited employees'),
             _buildFeatureItem('Auto Backup'),
             _buildFeatureItem('Access advanced shift scheduling'),
+            _buildFeatureItem('Attendance Management.'),
             const SizedBox(height: 24),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
