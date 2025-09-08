@@ -52,6 +52,7 @@ class _HomeScreenState extends State<HomeScreen>
   final InAppReview _inAppReview = InAppReview.instance;
   late BannerAd _bannerAd;
   bool _isBannerAdLoaded = false;
+  String attendance = 'None';
 
   // Add isFreeUser flag to indicate free user status
   bool isFreeUser = true;
@@ -915,6 +916,9 @@ class _HomeScreenState extends State<HomeScreen>
 
     final textEditingController = TextEditingController(text: shiftName);
     String? attendance = existingShift['status'];
+    if (attendance == null) {
+      attendance = 'None';
+    }
 
     await showDialog(
       context: context,
@@ -1211,6 +1215,7 @@ class _HomeScreenState extends State<HomeScreen>
                       style: TextStyle(fontSize: 16),
                     ),
                     const SizedBox(height: 8),
+
                     Row(
                       children: [
                         Expanded(
@@ -1218,12 +1223,19 @@ class _HomeScreenState extends State<HomeScreen>
                             title: const Text('Present'),
                             value: 'Present',
                             groupValue: attendance,
-                            contentPadding: EdgeInsets.only(left: 0),
+                            dense: true,
+                            contentPadding: EdgeInsets.zero,
+                            visualDensity: const VisualDensity(
+                              horizontal: -4,
+                              vertical: -4,
+                            ),
+                            materialTapTargetSize:
+                                MaterialTapTargetSize.shrinkWrap,
                             onChanged: isFutureDay
                                 ? null
                                 : (value) {
                                     setState(() {
-                                      attendance = value;
+                                      attendance = value!;
                                     });
                                   },
                           ),
@@ -1233,22 +1245,52 @@ class _HomeScreenState extends State<HomeScreen>
                             title: const Text('Absent'),
                             value: 'Absent',
                             groupValue: attendance,
-                            contentPadding: EdgeInsets.only(left: 0),
+                            dense: true,
+                            contentPadding: EdgeInsets.zero,
+                            visualDensity: const VisualDensity(
+                              horizontal: -4,
+                              vertical: -4,
+                            ),
+                            materialTapTargetSize:
+                                MaterialTapTargetSize.shrinkWrap,
                             onChanged: isFutureDay
                                 ? null
                                 : (value) {
                                     setState(() {
-                                      attendance = value;
+                                      attendance = value!;
+                                    });
+                                  },
+                          ),
+                        ),
+                        Expanded(
+                          child: RadioListTile<String>(
+                            title: const Text('None'),
+                            value: 'None',
+                            groupValue: attendance,
+                            dense: true,
+                            contentPadding: EdgeInsets.zero,
+                            visualDensity: const VisualDensity(
+                              horizontal: -4,
+                              vertical: -4,
+                            ),
+                            materialTapTargetSize:
+                                MaterialTapTargetSize.shrinkWrap,
+                            onChanged: isFutureDay
+                                ? null
+                                : (value) {
+                                    setState(() {
+                                      attendance = value!;
                                     });
                                   },
                           ),
                         ),
                       ],
                     ),
+
                     if (isFutureDay) ...[
                       const SizedBox(height: 8),
                       const Text(
-                        'Attendance can only be marked for today and prior dates.',
+                        '(Attendance can only be marked for today and prior dates.)',
                         style: TextStyle(fontSize: 12, color: Colors.grey),
                         textAlign: TextAlign.center,
                       ),
