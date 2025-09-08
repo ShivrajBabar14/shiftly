@@ -920,6 +920,8 @@ class _HomeScreenState extends State<HomeScreen>
       attendance = 'None';
     }
 
+   
+
     await showDialog(
       context: context,
       builder: (context) {
@@ -1234,9 +1236,32 @@ class _HomeScreenState extends State<HomeScreen>
                             onChanged: isFutureDay
                                 ? null
                                 : (value) {
-                                    setState(() {
-                                      attendance = value!;
-                                    });
+                                    if (isFreeUser) {
+                                      showDialog(
+                                        context: context,
+                                        builder: (context) {
+                                          return LimitsDialog(
+                                            onGoPro: () {
+                                              Navigator.of(context).pop();
+                                              Navigator.push(
+                                                context,
+                                                MaterialPageRoute(
+                                                  builder: (context) =>
+                                                      ShiftlyProScreen(),
+                                                ),
+                                              );
+                                            },
+                                            onContinueFree: () {
+                                              Navigator.of(context).pop();
+                                            },
+                                          );
+                                        },
+                                      );
+                                    } else {
+                                      setState(() {
+                                        attendance = value!;
+                                      });
+                                    }
                                   },
                           ),
                         ),
@@ -1256,9 +1281,32 @@ class _HomeScreenState extends State<HomeScreen>
                             onChanged: isFutureDay
                                 ? null
                                 : (value) {
-                                    setState(() {
-                                      attendance = value!;
-                                    });
+                                    if (isFreeUser) {
+                                      showDialog(
+                                        context: context,
+                                        builder: (context) {
+                                          return LimitsDialog(
+                                            onGoPro: () {
+                                              Navigator.of(context).pop();
+                                              Navigator.push(
+                                                context,
+                                                MaterialPageRoute(
+                                                  builder: (context) =>
+                                                      ShiftlyProScreen(),
+                                                ),
+                                              );
+                                            },
+                                            onContinueFree: () {
+                                              Navigator.of(context).pop();
+                                            },
+                                          );
+                                        },
+                                      );
+                                    } else {
+                                      setState(() {
+                                        attendance = value!;
+                                      });
+                                    }
                                   },
                           ),
                         ),
@@ -1278,9 +1326,32 @@ class _HomeScreenState extends State<HomeScreen>
                             onChanged: isFutureDay
                                 ? null
                                 : (value) {
-                                    setState(() {
-                                      attendance = value!;
-                                    });
+                                    if (isFreeUser) {
+                                      showDialog(
+                                        context: context,
+                                        builder: (context) {
+                                          return LimitsDialog(
+                                            onGoPro: () {
+                                              Navigator.of(context).pop();
+                                              Navigator.push(
+                                                context,
+                                                MaterialPageRoute(
+                                                  builder: (context) =>
+                                                      ShiftlyProScreen(),
+                                                ),
+                                              );
+                                            },
+                                            onContinueFree: () {
+                                              Navigator.of(context).pop();
+                                            },
+                                          );
+                                        },
+                                      );
+                                    } else {
+                                      setState(() {
+                                        attendance = value!;
+                                      });
+                                    }
                                   },
                           ),
                         ),
