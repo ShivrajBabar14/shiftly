@@ -1288,14 +1288,14 @@ class _HomeScreenState extends State<HomeScreen>
                     ),
 
                     if (isFutureDay) ...[
-                      const SizedBox(height: 8),
+                      // const SizedBox(height: 8),
                       const Text(
                         '(Attendance can only be marked for today and prior dates.)',
                         style: TextStyle(fontSize: 12, color: Colors.grey),
                         textAlign: TextAlign.center,
                       ),
                     ],
-                    const SizedBox(height: 24),
+                    const SizedBox(height: 30),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
@@ -1963,7 +1963,7 @@ class _HomeScreenState extends State<HomeScreen>
     const List<String> days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
     final dateFormat = DateFormat('d');
     const double cellWidth = 75.0;
-    const double rowHeight = 70.0;
+    const double rowHeight = 80.0;
     final today = DateTime.now();
 
     final todayIndex = today.difference(_currentWeekStart).inDays;
