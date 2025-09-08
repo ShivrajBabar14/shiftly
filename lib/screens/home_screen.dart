@@ -830,22 +830,25 @@ class _HomeScreenState extends State<HomeScreen>
     }
 
     if (isFreeUser && _isOutsideActualCurrentWeek(selectedDate)) {
-      await showDialog(
-        context: context,
-        builder: (context) {
-          return LimitsDialog(
-            onGoPro: () {
-              Navigator.of(context).pop();
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => ShiftlyProScreen()),
-              );
-            },
-            onContinueFree: () => Navigator.of(context).pop(),
-          );
-        },
-      );
-      return;
+      // Only show dialog if the selected date is after the current week
+      if (selectedDate.isAfter(_actualCurrentWeekEnd)) {
+        await showDialog(
+          context: context,
+          builder: (context) {
+            return LimitsDialog(
+              onGoPro: () {
+                Navigator.of(context).pop();
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => ShiftlyProScreen()),
+                );
+              },
+              onContinueFree: () => Navigator.of(context).pop(),
+            );
+          },
+        );
+        return;
+      }
     }
 
     final employee = _employees.firstWhere((e) => e.employeeId == employeeId);
@@ -1216,11 +1219,13 @@ class _HomeScreenState extends State<HomeScreen>
                             value: 'Present',
                             groupValue: attendance,
                             contentPadding: EdgeInsets.only(left: 0),
-                            onChanged: isFutureDay ? null : (value) {
-                              setState(() {
-                                attendance = value;
-                              });
-                            },
+                            onChanged: isFutureDay
+                                ? null
+                                : (value) {
+                                    setState(() {
+                                      attendance = value;
+                                    });
+                                  },
                           ),
                         ),
                         Expanded(
@@ -1229,11 +1234,13 @@ class _HomeScreenState extends State<HomeScreen>
                             value: 'Absent',
                             groupValue: attendance,
                             contentPadding: EdgeInsets.only(left: 0),
-                            onChanged: isFutureDay ? null : (value) {
-                              setState(() {
-                                attendance = value;
-                              });
-                            },
+                            onChanged: isFutureDay
+                                ? null
+                                : (value) {
+                                    setState(() {
+                                      attendance = value;
+                                    });
+                                  },
                           ),
                         ),
                       ],
