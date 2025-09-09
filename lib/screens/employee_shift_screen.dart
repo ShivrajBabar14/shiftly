@@ -383,11 +383,11 @@ class _EmployeeShiftScreenState extends State<EmployeeShiftScreen> {
                                         if (hasName || hasTime) {
                                           return Align(
                                             alignment: Alignment.center,
-                                            child: Column(
-                                              mainAxisSize: MainAxisSize.min,
+                                            child: Stack(
+                                              alignment: Alignment.center,
                                               children: [
                                                 Container(
-                                                  padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 6.0),
+                                                  padding: const EdgeInsets.only(top: 8.0, bottom: 24.0, left: 6.0, right: 6.0),
                                                   decoration: BoxDecoration(
                                                     color: Colors.transparent,
                                                     borderRadius: BorderRadius.circular(4.0),
@@ -427,21 +427,27 @@ class _EmployeeShiftScreenState extends State<EmployeeShiftScreen> {
                                                         ),
                                                 ),
                                                 if (shift?['status'] == 'Present')
-                                                  Text(
-                                                    'Present',
-                                                    style: TextStyle(
-                                                      color: Colors.green,
-                                                      fontWeight: FontWeight.bold,
-                                                      fontSize: 14,
+                                                  Positioned(
+                                                    bottom: 0,
+                                                    child: Text(
+                                                      'Present',
+                                                      style: TextStyle(
+                                                        color: Colors.green,
+                                                        fontWeight: FontWeight.bold,
+                                                        fontSize: 14,
+                                                      ),
                                                     ),
                                                   )
                                                 else if (shift?['status'] == 'Absent')
-                                                  Text(
-                                                    'Absent',
-                                                    style: TextStyle(
-                                                      color: Colors.red,
-                                                      fontWeight: FontWeight.bold,
-                                                      fontSize: 14,
+                                                  Positioned(
+                                                    bottom: 0,
+                                                    child: Text(
+                                                      'Absent',
+                                                      style: TextStyle(
+                                                        color: Colors.red,
+                                                        fontWeight: FontWeight.bold,
+                                                        fontSize: 14,
+                                                      ),
                                                     ),
                                                   ),
                                               ],
