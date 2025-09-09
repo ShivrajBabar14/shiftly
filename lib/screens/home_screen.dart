@@ -2390,39 +2390,27 @@ class _HomeScreenState extends State<HomeScreen>
                                               ),
                                               child: SizedBox.expand(
                                                 child: (hasName || hasTime)
-                                                    ? Stack(
-                                                        children: [
-                                                          Align(
-                                                            alignment: Alignment
-                                                                .center,
-                                                            child: Container(
-                                                              padding:
-                                                                  const EdgeInsets.symmetric(
-                                                                    vertical:
-                                                                        8.0,
-                                                                    horizontal:
-                                                                        6.0,
-                                                                  ),
-                                                              decoration: BoxDecoration(
-                                                                color: Colors
-                                                                    .transparent,
-                                                                borderRadius:
-                                                                    BorderRadius.circular(
-                                                                      4.0,
-                                                                    ),
+                                                    ? Align(
+                                                        alignment: Alignment.center,
+                                                        child: Column(
+                                                          mainAxisAlignment: MainAxisAlignment.center,
+                                                          children: [
+                                                            Container(
+                                                              padding: const EdgeInsets.symmetric(
+                                                                vertical: 8.0,
+                                                                horizontal: 6.0,
                                                               ),
-                                                              child:
-                                                                  hasName &&
-                                                                      hasTime
+                                                              decoration: BoxDecoration(
+                                                                color: Colors.transparent,
+                                                                borderRadius: BorderRadius.circular(4.0),
+                                                              ),
+                                                              child: hasName && hasTime
                                                                   ? RichText(
-                                                                      textAlign:
-                                                                          TextAlign
-                                                                              .center,
+                                                                      textAlign: TextAlign.center,
                                                                       text: TextSpan(
                                                                         children: [
                                                                           TextSpan(
-                                                                            text:
-                                                                                shiftName,
+                                                                            text: shiftName,
                                                                             style: const TextStyle(
                                                                               fontWeight: FontWeight.bold,
                                                                               fontSize: 12.5,
@@ -2430,8 +2418,7 @@ class _HomeScreenState extends State<HomeScreen>
                                                                             ),
                                                                           ),
                                                                           TextSpan(
-                                                                            text:
-                                                                                '\n($startTime-$endTime)',
+                                                                            text: '\n($startTime-$endTime)',
                                                                             style: const TextStyle(
                                                                               fontWeight: FontWeight.normal,
                                                                               fontSize: 12.5,
@@ -2442,64 +2429,33 @@ class _HomeScreenState extends State<HomeScreen>
                                                                       ),
                                                                     )
                                                                   : Text(
-                                                                      hasName
-                                                                          ? shiftName
-                                                                          : '$startTime-$endTime',
-                                                                      textAlign:
-                                                                          TextAlign
-                                                                              .center,
+                                                                      hasName ? shiftName : '$startTime-$endTime',
+                                                                      textAlign: TextAlign.center,
                                                                       style: const TextStyle(
-                                                                        fontWeight:
-                                                                            FontWeight.bold,
-                                                                        fontSize:
-                                                                            12.5,
-                                                                        color: Colors
-                                                                            .black,
+                                                                        fontWeight: FontWeight.bold,
+                                                                        fontSize: 12.5,
+                                                                        color: Colors.black,
                                                                       ),
                                                                     ),
                                                             ),
-                                                          ),
-                                                          if (shift['status'] ==
-                                                              'Present')
-                                                            Positioned(
-                                                              top: 2,
-                                                              right: 2,
-                                                              child: Icon(
-                                                                Icons
-                                                                    .check_circle,
-                                                                size: 14,
-                                                                color: Colors
-                                                                    .green,
-                                                              ),
-                                                            )
-                                                          else if (shift['status'] ==
-                                                              'Absent')
-                                                            Positioned(
-                                                              top: 2,
-                                                              right: 2,
-                                                              child: CircleAvatar(
-                                                                radius:
-                                                                    6, // Adjust the size of the circle as needed
-                                                                backgroundColor:
-                                                                    Colors.red,
-                                                                child: Icon(
-                                                                  Icons.close,
-                                                                  size: 12,
-                                                                  color: Colors
-                                                                      .white,
+                                                            if (shift['status'] != null && shift['status'] != 'None')
+                                                              Text(
+                                                                shift['status'],
+                                                                style: TextStyle(
+                                                                  fontSize: 10,
+                                                                  color: shift['status'] == 'Present' ? Colors.green : Colors.red,
+                                                                  fontWeight: FontWeight.bold,
                                                                 ),
                                                               ),
-                                                            ),
-                                                        ],
+                                                          ],
+                                                        ),
                                                       )
                                                     : Align(
-                                                        alignment:
-                                                            Alignment.center,
+                                                        alignment: Alignment.center,
                                                         child: Icon(
                                                           Icons.add,
                                                           size: 16.0,
-                                                          color:
-                                                              Colors.grey[300],
+                                                          color: Colors.grey[300],
                                                         ),
                                                       ),
                                               ),
