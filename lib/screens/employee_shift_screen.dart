@@ -360,7 +360,7 @@ class _EmployeeShiftScreenState extends State<EmployeeShiftScreen> {
                                     ),
                                   ),
                                   Container(
-                                    height: 70.0,
+                                    height: 75.0,
                                     alignment: Alignment.center,
                                     child: Builder(
                                       builder: (context) {
@@ -381,11 +381,12 @@ class _EmployeeShiftScreenState extends State<EmployeeShiftScreen> {
                                         final hasTime = startTime.isNotEmpty && endTime.isNotEmpty;
 
                                         if (hasName || hasTime) {
-                                          return Stack(
-                                            children: [
-                                              Align(
-                                                alignment: Alignment.center,
-                                                child: Container(
+                                          return Align(
+                                            alignment: Alignment.center,
+                                            child: Column(
+                                              mainAxisSize: MainAxisSize.min,
+                                              children: [
+                                                Container(
                                                   padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 6.0),
                                                   decoration: BoxDecoration(
                                                     color: Colors.transparent,
@@ -425,42 +426,45 @@ class _EmployeeShiftScreenState extends State<EmployeeShiftScreen> {
                                                           ),
                                                         ),
                                                 ),
-                                              ),
-                                              if (shift?['status'] == 'Present')
-                                                Positioned(
-                                                  top: 2,
-                                                  right: 4,
-                                                  child: Icon(
-                                                    Icons.check_circle,
-                                                    size: 20,
-                                                    color: Colors.green,
-                                                  ),
-                                                )
-                                              else if (shift?['status'] == 'Absent')
-                                                Positioned(
-                                                  top: 2,
-                                                  right: 6,
-                                                  child: CircleAvatar(
-                                                    radius: 8,
-                                                    backgroundColor: Colors.red,
-                                                    child: Icon(
-                                                      Icons.close,
-                                                      size: 16,
-                                                      color: Colors.white,
+                                                if (shift?['status'] == 'Present')
+                                                  Text(
+                                                    'Present',
+                                                    style: TextStyle(
+                                                      color: Colors.green,
+                                                      fontWeight: FontWeight.bold,
+                                                      fontSize: 14,
+                                                    ),
+                                                  )
+                                                else if (shift?['status'] == 'Absent')
+                                                  Text(
+                                                    'Absent',
+                                                    style: TextStyle(
+                                                      color: Colors.red,
+                                                      fontWeight: FontWeight.bold,
+                                                      fontSize: 14,
                                                     ),
                                                   ),
-                                                ),
-                                            ],
-                                          );
-                                        } else {
-                                          return Align(
-                                            alignment: Alignment.center,
-                                            child: Icon(
-                                              Icons.add,
-                                              size: 16.0,
-                                              color: Colors.grey[300],
+                                              ],
                                             ),
                                           );
+                                        } else {
+
+                                          return Align(
+
+                                            alignment: Alignment.center,
+
+                                            child: Icon(
+
+                                              Icons.add,
+
+                                              size: 16.0,
+
+                                              color: Colors.grey[300],
+
+                                            ),
+
+                                          );
+
                                         }
                                       },
                                     ),
