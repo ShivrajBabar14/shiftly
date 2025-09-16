@@ -1223,33 +1223,33 @@ class _HomeScreenState extends State<HomeScreen>
                         Expanded(
                           child: InkWell(
                             onTap: () {
-                                    if (isFreeUser) {
-                                      showDialog(
-                                        context: context,
-                                        builder: (context) {
-                                          return LimitsDialog(
-                                            onGoPro: () {
-                                              Navigator.of(context).pop();
-                                              Navigator.push(
-                                                context,
-                                                MaterialPageRoute(
-                                                  builder: (context) =>
-                                                      ShiftlyProScreen(),
-                                                ),
-                                              );
-                                            },
-                                            onContinueFree: () {
-                                              Navigator.of(context).pop();
-                                            },
-                                          );
-                                        },
-                                      );
-                                    } else if (!isFutureDay) {
-                                      setState(() {
-                                        attendance = 'Present';
-                                      });
-                                    }
+                              if (isFreeUser) {
+                                showDialog(
+                                  context: context,
+                                  builder: (context) {
+                                    return LimitsDialog(
+                                      onGoPro: () {
+                                        Navigator.of(context).pop();
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) =>
+                                                ShiftlyProScreen(),
+                                          ),
+                                        );
+                                      },
+                                      onContinueFree: () {
+                                        Navigator.of(context).pop();
+                                      },
+                                    );
                                   },
+                                );
+                              } else if (!isFutureDay) {
+                                setState(() {
+                                  attendance = 'Present';
+                                });
+                              }
+                            },
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
@@ -1433,7 +1433,6 @@ class _HomeScreenState extends State<HomeScreen>
                             ),
                           ),
                         ),
-
                       ],
                     ),
 
@@ -1506,7 +1505,6 @@ class _HomeScreenState extends State<HomeScreen>
                         //     ),
                         //   ),
                         // ),
-
                         Expanded(
                           child: InkWell(
                             onTap: isFutureDay
@@ -1667,7 +1665,9 @@ class _HomeScreenState extends State<HomeScreen>
                                     shiftName: hasName ? shiftName : null,
                                     startTime: startTimeMillis,
                                     endTime: endTimeMillis,
-                                    status: attendance == 'None' ? null : attendance,
+                                    status: attendance == 'None'
+                                        ? null
+                                        : attendance,
                                   );
 
                                   final params = {
@@ -2615,20 +2615,31 @@ class _HomeScreenState extends State<HomeScreen>
                                                             child: Container(
                                                               padding:
                                                                   const EdgeInsets.symmetric(
-                                                                vertical: 8.0,
-                                                                horizontal: 6.0,
-                                                              ),
+                                                                    vertical:
+                                                                        8.0,
+                                                                    horizontal:
+                                                                        6.0,
+                                                                  ),
                                                               decoration: BoxDecoration(
-                                                                color: Colors.transparent,
-                                                                borderRadius: BorderRadius.circular(4.0),
+                                                                color: Colors
+                                                                    .transparent,
+                                                                borderRadius:
+                                                                    BorderRadius.circular(
+                                                                      4.0,
+                                                                    ),
                                                               ),
-                                                              child: hasName && hasTime
+                                                              child:
+                                                                  hasName &&
+                                                                      hasTime
                                                                   ? RichText(
-                                                                      textAlign: TextAlign.center,
+                                                                      textAlign:
+                                                                          TextAlign
+                                                                              .center,
                                                                       text: TextSpan(
                                                                         children: [
                                                                           TextSpan(
-                                                                            text: shiftName,
+                                                                            text:
+                                                                                shiftName,
                                                                             style: const TextStyle(
                                                                               fontWeight: FontWeight.bold,
                                                                               fontSize: 12.5,
@@ -2636,7 +2647,8 @@ class _HomeScreenState extends State<HomeScreen>
                                                                             ),
                                                                           ),
                                                                           TextSpan(
-                                                                            text: '\n($startTime-$endTime)',
+                                                                            text:
+                                                                                '\n($startTime-$endTime)',
                                                                             style: const TextStyle(
                                                                               fontWeight: FontWeight.normal,
                                                                               fontSize: 12.5,
@@ -2647,17 +2659,27 @@ class _HomeScreenState extends State<HomeScreen>
                                                                       ),
                                                                     )
                                                                   : Text(
-                                                                      hasName ? shiftName : '$startTime-$endTime',
-                                                                      textAlign: TextAlign.center,
+                                                                      hasName
+                                                                          ? shiftName
+                                                                          : '$startTime-$endTime',
+                                                                      textAlign:
+                                                                          TextAlign
+                                                                              .center,
                                                                       style: const TextStyle(
-                                                                        fontWeight: FontWeight.bold,
-                                                                        fontSize: 12.5,
-                                                                        color: Colors.black,
+                                                                        fontWeight:
+                                                                            FontWeight.bold,
+                                                                        fontSize:
+                                                                            12.5,
+                                                                        color: Colors
+                                                                            .black,
                                                                       ),
                                                                     ),
                                                             ),
                                                           ),
-                                                          if (shift['status'] != null && shift['status'] != 'None')
+                                                          if (shift['status'] !=
+                                                                  null &&
+                                                              shift['status'] !=
+                                                                  'None')
                                                             Positioned(
                                                               top: 0,
                                                               right: 0,
@@ -2665,24 +2687,42 @@ class _HomeScreenState extends State<HomeScreen>
                                                                 width: 15,
                                                                 height: 15,
                                                                 decoration: BoxDecoration(
-                                                                  color: shift['status'] == 'Present'
-                                                                      ? Colors.green
-                                                                      : shift['status'] == 'Absent'
-                                                                          ? Colors.red
-                                                                          : Colors.yellow,
-                                                                  borderRadius: BorderRadius.circular(4),
+                                                                  color:
+                                                                      shift['status'] ==
+                                                                          'Present'
+                                                                      ? Colors
+                                                                            .green
+                                                                      : shift['status'] ==
+                                                                            'Absent'
+                                                                      ? Colors
+                                                                            .red
+                                                                      : Colors
+                                                                            .yellow,
+                                                                  borderRadius:
+                                                                      BorderRadius.only(
+                                                                        bottomLeft:
+                                                                            Radius.circular(
+                                                                              4,
+                                                                            ),
+                                                                      ),
                                                                 ),
                                                                 child: Center(
                                                                   child: Text(
-                                                                    shift['status'] == 'Present'
+                                                                    shift['status'] ==
+                                                                            'Present'
                                                                         ? 'P'
-                                                                        : shift['status'] == 'Absent'
-                                                                            ? 'A'
-                                                                            : 'L',
+                                                                        : shift['status'] ==
+                                                                              'Absent'
+                                                                        ? 'A'
+                                                                        : 'L',
                                                                     style: const TextStyle(
-                                                                      color: Colors.white,
-                                                                      fontSize: 12,
-                                                                      fontWeight: FontWeight.bold,
+                                                                      color: Colors
+                                                                          .white,
+                                                                      fontSize:
+                                                                          12,
+                                                                      fontWeight:
+                                                                          FontWeight
+                                                                              .bold,
                                                                     ),
                                                                   ),
                                                                 ),
@@ -2691,11 +2731,13 @@ class _HomeScreenState extends State<HomeScreen>
                                                         ],
                                                       )
                                                     : Align(
-                                                        alignment: Alignment.center,
+                                                        alignment:
+                                                            Alignment.center,
                                                         child: Icon(
                                                           Icons.add,
                                                           size: 16.0,
-                                                          color: Colors.grey[300],
+                                                          color:
+                                                              Colors.grey[300],
                                                         ),
                                                       ),
                                               ),
