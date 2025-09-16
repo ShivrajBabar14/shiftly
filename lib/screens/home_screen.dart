@@ -2590,101 +2590,93 @@ class _HomeScreenState extends State<HomeScreen>
                                               ),
                                               child: SizedBox.expand(
                                                 child: (hasName || hasTime)
-                                                    ? Column(
+                                                    ? Stack(
                                                         children: [
-                                                          Expanded(
-                                                            child: Center(
-                                                              child: Container(
-                                                                padding:
-                                                                    const EdgeInsets.symmetric(
-                                                                      vertical:
-                                                                          8.0,
-                                                                      horizontal:
-                                                                          6.0,
-                                                                    ),
-                                                                decoration: BoxDecoration(
-                                                                  color: Colors
-                                                                      .transparent,
-                                                                  borderRadius:
-                                                                      BorderRadius.circular(
-                                                                        4.0,
-                                                                      ),
-                                                                ),
-                                                                child:
-                                                                    hasName &&
-                                                                        hasTime
-                                                                    ? RichText(
-                                                                        textAlign:
-                                                                            TextAlign.center,
-                                                                        text: TextSpan(
-                                                                          children: [
-                                                                            TextSpan(
-                                                                              text: shiftName,
-                                                                              style: const TextStyle(
-                                                                                fontWeight: FontWeight.bold,
-                                                                                fontSize: 12.5,
-                                                                                color: Colors.black,
-                                                                              ),
-                                                                            ),
-                                                                            TextSpan(
-                                                                              text: '\n($startTime-$endTime)',
-                                                                              style: const TextStyle(
-                                                                                fontWeight: FontWeight.normal,
-                                                                                fontSize: 12.5,
-                                                                                color: Colors.black,
-                                                                              ),
-                                                                            ),
-                                                                          ],
-                                                                        ),
-                                                                      )
-                                                                    : Text(
-                                                                        hasName
-                                                                            ? shiftName
-                                                                            : '$startTime-$endTime',
-                                                                        textAlign:
-                                                                            TextAlign.center,
-                                                                        style: const TextStyle(
-                                                                          fontWeight:
-                                                                              FontWeight.bold,
-                                                                          fontSize:
-                                                                              12.5,
-                                                                          color:
-                                                                              Colors.black,
-                                                                        ),
-                                                                      ),
+                                                          Center(
+                                                            child: Container(
+                                                              padding:
+                                                                  const EdgeInsets.symmetric(
+                                                                vertical: 8.0,
+                                                                horizontal: 6.0,
                                                               ),
+                                                              decoration: BoxDecoration(
+                                                                color: Colors.transparent,
+                                                                borderRadius: BorderRadius.circular(4.0),
+                                                              ),
+                                                              child: hasName && hasTime
+                                                                  ? RichText(
+                                                                      textAlign: TextAlign.center,
+                                                                      text: TextSpan(
+                                                                        children: [
+                                                                          TextSpan(
+                                                                            text: shiftName,
+                                                                            style: const TextStyle(
+                                                                              fontWeight: FontWeight.bold,
+                                                                              fontSize: 12.5,
+                                                                              color: Colors.black,
+                                                                            ),
+                                                                          ),
+                                                                          TextSpan(
+                                                                            text: '\n($startTime-$endTime)',
+                                                                            style: const TextStyle(
+                                                                              fontWeight: FontWeight.normal,
+                                                                              fontSize: 12.5,
+                                                                              color: Colors.black,
+                                                                            ),
+                                                                          ),
+                                                                        ],
+                                                                      ),
+                                                                    )
+                                                                  : Text(
+                                                                      hasName ? shiftName : '$startTime-$endTime',
+                                                                      textAlign: TextAlign.center,
+                                                                      style: const TextStyle(
+                                                                        fontWeight: FontWeight.bold,
+                                                                        fontSize: 12.5,
+                                                                        color: Colors.black,
+                                                                      ),
+                                                                    ),
                                                             ),
                                                           ),
-                                                          if (shift['status'] !=
-                                                                  null &&
-                                                              shift['status'] !=
-                                                                  'None')
-                                                            Text(
-                                                              shift['status'],
-                                                              style: TextStyle(
-                                                                fontSize: 10,
-                                                                color:
-                                                                    shift['status'] ==
-                                                                        'Present'
-                                                                    ? Colors
-                                                                          .green
-                                                                    : Colors
-                                                                          .red,
-                                                                fontWeight:
-                                                                    FontWeight
-                                                                        .bold,
+                                                          if (shift['status'] != null && shift['status'] != 'None')
+                                                            Positioned(
+                                                              top: 0,
+                                                              right: 0,
+                                                              child: Container(
+                                                                width: 18,
+                                                                height: 18,
+                                                                decoration: BoxDecoration(
+                                                                  color: shift['status'] == 'Present'
+                                                                      ? Colors.green
+                                                                      : shift['status'] == 'Absent'
+                                                                          ? Colors.red
+                                                                          : Colors.yellow,
+                                                                  borderRadius: BorderRadius.circular(4),
+                                                                ),
+                                                                child: Center(
+                                                                  child: Text(
+                                                                    shift['status'] == 'Present'
+                                                                        ? 'P'
+                                                                        : shift['status'] == 'Absent'
+                                                                            ? 'A'
+                                                                            : 'L',
+                                                                    style: const TextStyle(
+                                                                      color: Colors.white,
+                                                                      fontSize: 12,
+                                                                      fontWeight: FontWeight.bold,
+                                                                    ),
+                                                                  ),
+                                                                ),
                                                               ),
                                                             ),
                                                         ],
                                                       )
                                                     : Align(
-                                                        alignment:
-                                                            Alignment.center,
+                                                        alignment: Alignment.center,
                                                         child: Icon(
                                                           Icons.add,
                                                           size: 16.0,
-                                                          color:
-                                                              Colors.grey[300],
+                                                          color: Colors.grey[300],
                                                         ),
                                                       ),
                                               ),
