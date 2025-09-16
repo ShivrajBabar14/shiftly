@@ -2643,8 +2643,8 @@ class _HomeScreenState extends State<HomeScreen>
                                                               top: 0,
                                                               right: 0,
                                                               child: Container(
-                                                                width: 18,
-                                                                height: 18,
+                                                                width: 15,
+                                                                height: 15,
                                                                 decoration: BoxDecoration(
                                                                   color: shift['status'] == 'Present'
                                                                       ? Colors.green

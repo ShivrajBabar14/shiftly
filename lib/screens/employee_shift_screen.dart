@@ -429,27 +429,66 @@ class _EmployeeShiftScreenState extends State<EmployeeShiftScreen> {
                                                 if (shift?['status'] == 'Present')
                                                   Positioned(
                                                     bottom: 0,
-                                                    child: Text(
-                                                      'Present',
-                                                      style: TextStyle(
+                                                    child: Container(
+                                                      width: 20,
+                                                      height: 20,
+                                                      decoration: BoxDecoration(
                                                         color: Colors.green,
-                                                        fontWeight: FontWeight.bold,
-                                                        fontSize: 14,
+                                                        borderRadius: BorderRadius.circular(4),
+                                                      ),
+                                                      alignment: Alignment.center,
+                                                      child: const Text(
+                                                        'P',
+                                                        style: TextStyle(
+                                                          color: Colors.white,
+                                                          fontWeight: FontWeight.bold,
+                                                          fontSize: 14,
+                                                        ),
                                                       ),
                                                     ),
                                                   )
                                                 else if (shift?['status'] == 'Absent')
                                                   Positioned(
                                                     bottom: 0,
-                                                    child: Text(
-                                                      'Absent',
-                                                      style: TextStyle(
+                                                    child: Container(
+                                                      width: 20,
+                                                      height: 20,
+                                                      decoration: BoxDecoration(
                                                         color: Colors.red,
-                                                        fontWeight: FontWeight.bold,
-                                                        fontSize: 14,
+                                                        borderRadius: BorderRadius.circular(4),
+                                                      ),
+                                                      alignment: Alignment.center,
+                                                      child: const Text(
+                                                        'A',
+                                                        style: TextStyle(
+                                                          color: Colors.white,
+                                                          fontWeight: FontWeight.bold,
+                                                          fontSize: 14,
+                                                        ),
                                                       ),
                                                     ),
-                                                  ),
+                                                  )
+                                                else if (shift?['status'] == 'Leave')
+                                                  Positioned(
+                                                    bottom: 0,
+                                                    child: Container(
+                                                      width: 20,
+                                                      height: 20,
+                                                      decoration: BoxDecoration(
+                                                        color: Colors.yellow[700],
+                                                        borderRadius: BorderRadius.circular(4),
+                                                      ),
+                                                      alignment: Alignment.center,
+                                                      child: const Text(
+                                                        'L',
+                                                        style: TextStyle(
+                                                          color: Colors.black,
+                                                          fontWeight: FontWeight.bold,
+                                                          fontSize: 14,
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  )
                                               ],
                                             ),
                                           );
