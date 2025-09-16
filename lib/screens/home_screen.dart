@@ -920,8 +920,6 @@ class _HomeScreenState extends State<HomeScreen>
       attendance = 'None';
     }
 
-   
-
     await showDialog(
       context: context,
       builder: (context) {
@@ -1218,24 +1216,15 @@ class _HomeScreenState extends State<HomeScreen>
                     ),
                     const SizedBox(height: 8),
 
+                    // Top row: Present & Absent
                     Row(
                       children: [
+                        // Present
                         Expanded(
-                          child: RadioListTile<String>(
-                            title: const Text('Present'),
-                            value: 'Present',
-                            groupValue: attendance,
-                            dense: true,
-                            contentPadding: EdgeInsets.zero,
-                            visualDensity: const VisualDensity(
-                              horizontal: -4,
-                              vertical: -4,
-                            ),
-                            materialTapTargetSize:
-                                MaterialTapTargetSize.shrinkWrap,
-                            onChanged: isFutureDay
+                          child: InkWell(
+                            onTap: isFutureDay
                                 ? null
-                                : (value) {
+                                : () {
                                     if (isFreeUser) {
                                       showDialog(
                                         context: context,
@@ -1259,28 +1248,48 @@ class _HomeScreenState extends State<HomeScreen>
                                       );
                                     } else {
                                       setState(() {
-                                        attendance = value!;
+                                        attendance = 'Present';
                                       });
                                     }
                                   },
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Radio<String>(
+                                  value: 'Present',
+                                  groupValue: attendance,
+                                  onChanged: isFutureDay
+                                      ? null
+                                      : (value) {
+                                          if (!isFreeUser) {
+                                            setState(() {
+                                              attendance = value!;
+                                            });
+                                          }
+                                        },
+                                  materialTapTargetSize:
+                                      MaterialTapTargetSize.shrinkWrap,
+                                  visualDensity: const VisualDensity(
+                                    horizontal: -4,
+                                    vertical: -4,
+                                  ),
+                                ),
+                                const SizedBox(width: 4), // minimal gap
+                                const Text(
+                                  'Present',
+                                  style: TextStyle(fontSize: 15),
+                                ),
+                              ],
+                            ),
                           ),
                         ),
+
+                        // Absent
                         Expanded(
-                          child: RadioListTile<String>(
-                            title: const Text('Absent'),
-                            value: 'Absent',
-                            groupValue: attendance,
-                            dense: true,
-                            contentPadding: EdgeInsets.zero,
-                            visualDensity: const VisualDensity(
-                              horizontal: -4,
-                              vertical: -4,
-                            ),
-                            materialTapTargetSize:
-                                MaterialTapTargetSize.shrinkWrap,
-                            onChanged: isFutureDay
+                          child: InkWell(
+                            onTap: isFutureDay
                                 ? null
-                                : (value) {
+                                : () {
                                     if (isFreeUser) {
                                       showDialog(
                                         context: context,
@@ -1304,28 +1313,47 @@ class _HomeScreenState extends State<HomeScreen>
                                       );
                                     } else {
                                       setState(() {
-                                        attendance = value!;
+                                        attendance = 'Absent';
                                       });
                                     }
                                   },
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Radio<String>(
+                                  value: 'Absent',
+                                  groupValue: attendance,
+                                  onChanged: isFutureDay
+                                      ? null
+                                      : (value) {
+                                          if (!isFreeUser) {
+                                            setState(() {
+                                              attendance = value!;
+                                            });
+                                          }
+                                        },
+                                  materialTapTargetSize:
+                                      MaterialTapTargetSize.shrinkWrap,
+                                  visualDensity: const VisualDensity(
+                                    horizontal: -4,
+                                    vertical: -4,
+                                  ),
+                                ),
+                                const SizedBox(width: 4), // minimal gap
+                                const Text(
+                                  'Absent',
+                                  style: TextStyle(fontSize: 15),
+                                ),
+                              ],
+                            ),
                           ),
                         ),
+
                         Expanded(
-                          child: RadioListTile<String>(
-                            title: const Text('None'),
-                            value: 'None',
-                            groupValue: attendance,
-                            dense: true,
-                            contentPadding: EdgeInsets.zero,
-                            visualDensity: const VisualDensity(
-                              horizontal: -4,
-                              vertical: -4,
-                            ),
-                            materialTapTargetSize:
-                                MaterialTapTargetSize.shrinkWrap,
-                            onChanged: isFutureDay
+                          child: InkWell(
+                            onTap: isFutureDay
                                 ? null
-                                : (value) {
+                                : () {
                                     if (isFreeUser) {
                                       showDialog(
                                         context: context,
@@ -1349,10 +1377,182 @@ class _HomeScreenState extends State<HomeScreen>
                                       );
                                     } else {
                                       setState(() {
-                                        attendance = value!;
+                                        attendance = 'Leave';
                                       });
                                     }
                                   },
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Radio<String>(
+                                  value: 'Leave',
+                                  groupValue: attendance,
+                                  onChanged: isFutureDay
+                                      ? null
+                                      : (value) {
+                                          if (!isFreeUser) {
+                                            setState(() {
+                                              attendance = value!;
+                                            });
+                                          }
+                                        },
+                                  materialTapTargetSize:
+                                      MaterialTapTargetSize.shrinkWrap,
+                                  visualDensity: const VisualDensity(
+                                    horizontal: -4,
+                                    vertical: -4,
+                                  ),
+                                ),
+                                const SizedBox(
+                                  width: 4,
+                                ), // Minimal space between radio and text
+                                const Text(
+                                  'Leave',
+                                  style: TextStyle(fontSize: 15),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+
+                      ],
+                    ),
+
+                    const SizedBox(height: 8),
+
+                    Row(
+                      children: [
+                        // Expanded(
+                        //   child: InkWell(
+                        //     onTap: isFutureDay
+                        //         ? null
+                        //         : () {
+                        //             if (isFreeUser) {
+                        //               showDialog(
+                        //                 context: context,
+                        //                 builder: (context) {
+                        //                   return LimitsDialog(
+                        //                     onGoPro: () {
+                        //                       Navigator.of(context).pop();
+                        //                       Navigator.push(
+                        //                         context,
+                        //                         MaterialPageRoute(
+                        //                           builder: (context) =>
+                        //                               ShiftlyProScreen(),
+                        //                         ),
+                        //                       );
+                        //                     },
+                        //                     onContinueFree: () {
+                        //                       Navigator.of(context).pop();
+                        //                     },
+                        //                   );
+                        //                 },
+                        //               );
+                        //             } else {
+                        //               setState(() {
+                        //                 attendance = 'Leave';
+                        //               });
+                        //             }
+                        //           },
+                        //     child: Row(
+                        //       mainAxisSize: MainAxisSize.min,
+                        //       children: [
+                        //         Radio<String>(
+                        //           value: 'Leave',
+                        //           groupValue: attendance,
+                        //           onChanged: isFutureDay
+                        //               ? null
+                        //               : (value) {
+                        //                   if (!isFreeUser) {
+                        //                     setState(() {
+                        //                       attendance = value!;
+                        //                     });
+                        //                   }
+                        //                 },
+                        //           materialTapTargetSize:
+                        //               MaterialTapTargetSize.shrinkWrap,
+                        //           visualDensity: const VisualDensity(
+                        //             horizontal: -4,
+                        //             vertical: -4,
+                        //           ),
+                        //         ),
+                        //         const SizedBox(
+                        //           width: 4,
+                        //         ), // Minimal space between radio and text
+                        //         const Text(
+                        //           'Leave',
+                        //           style: TextStyle(fontSize: 15),
+                        //         ),
+                        //       ],
+                        //     ),
+                        //   ),
+                        // ),
+
+                        Expanded(
+                          child: InkWell(
+                            onTap: isFutureDay
+                                ? null
+                                : () {
+                                    if (isFreeUser) {
+                                      showDialog(
+                                        context: context,
+                                        builder: (context) {
+                                          return LimitsDialog(
+                                            onGoPro: () {
+                                              Navigator.of(context).pop();
+                                              Navigator.push(
+                                                context,
+                                                MaterialPageRoute(
+                                                  builder: (context) =>
+                                                      ShiftlyProScreen(),
+                                                ),
+                                              );
+                                            },
+                                            onContinueFree: () {
+                                              Navigator.of(context).pop();
+                                            },
+                                          );
+                                        },
+                                      );
+                                    } else {
+                                      setState(() {
+                                        attendance = 'None';
+                                      });
+                                    }
+                                  },
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Radio<String>(
+                                  value: 'None',
+                                  groupValue: attendance,
+                                  onChanged: isFutureDay
+                                      ? null
+                                      : (value) {
+                                          if (!isFreeUser) {
+                                            setState(() {
+                                              attendance = value!;
+                                            });
+                                          }
+                                        },
+                                  materialTapTargetSize:
+                                      MaterialTapTargetSize.shrinkWrap,
+                                  visualDensity: const VisualDensity(
+                                    horizontal: -4,
+                                    vertical: -4,
+                                  ),
+                                ),
+                                const SizedBox(
+                                  width: 4,
+                                ), // minimal gap between radio and text
+                                const Text(
+                                  'None',
+                                  style: TextStyle(
+                                    fontSize: 15,
+                                  ), // increased font size
+                                ),
+                              ],
+                            ),
                           ),
                         ),
                       ],
@@ -2395,17 +2595,27 @@ class _HomeScreenState extends State<HomeScreen>
                                                           Expanded(
                                                             child: Center(
                                                               child: Container(
-                                                                padding: const EdgeInsets.symmetric(
-                                                                  vertical: 8.0,
-                                                                  horizontal: 6.0,
-                                                                ),
+                                                                padding:
+                                                                    const EdgeInsets.symmetric(
+                                                                      vertical:
+                                                                          8.0,
+                                                                      horizontal:
+                                                                          6.0,
+                                                                    ),
                                                                 decoration: BoxDecoration(
-                                                                  color: Colors.transparent,
-                                                                  borderRadius: BorderRadius.circular(4.0),
+                                                                  color: Colors
+                                                                      .transparent,
+                                                                  borderRadius:
+                                                                      BorderRadius.circular(
+                                                                        4.0,
+                                                                      ),
                                                                 ),
-                                                                child: hasName && hasTime
+                                                                child:
+                                                                    hasName &&
+                                                                        hasTime
                                                                     ? RichText(
-                                                                        textAlign: TextAlign.center,
+                                                                        textAlign:
+                                                                            TextAlign.center,
                                                                         text: TextSpan(
                                                                           children: [
                                                                             TextSpan(
@@ -2428,34 +2638,53 @@ class _HomeScreenState extends State<HomeScreen>
                                                                         ),
                                                                       )
                                                                     : Text(
-                                                                        hasName ? shiftName : '$startTime-$endTime',
-                                                                        textAlign: TextAlign.center,
+                                                                        hasName
+                                                                            ? shiftName
+                                                                            : '$startTime-$endTime',
+                                                                        textAlign:
+                                                                            TextAlign.center,
                                                                         style: const TextStyle(
-                                                                          fontWeight: FontWeight.bold,
-                                                                          fontSize: 12.5,
-                                                                          color: Colors.black,
+                                                                          fontWeight:
+                                                                              FontWeight.bold,
+                                                                          fontSize:
+                                                                              12.5,
+                                                                          color:
+                                                                              Colors.black,
                                                                         ),
                                                                       ),
                                                               ),
                                                             ),
                                                           ),
-                                                          if (shift['status'] != null && shift['status'] != 'None')
+                                                          if (shift['status'] !=
+                                                                  null &&
+                                                              shift['status'] !=
+                                                                  'None')
                                                             Text(
                                                               shift['status'],
                                                               style: TextStyle(
                                                                 fontSize: 10,
-                                                                color: shift['status'] == 'Present' ? Colors.green : Colors.red,
-                                                                fontWeight: FontWeight.bold,
+                                                                color:
+                                                                    shift['status'] ==
+                                                                        'Present'
+                                                                    ? Colors
+                                                                          .green
+                                                                    : Colors
+                                                                          .red,
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .bold,
                                                               ),
                                                             ),
                                                         ],
                                                       )
                                                     : Align(
-                                                        alignment: Alignment.center,
+                                                        alignment:
+                                                            Alignment.center,
                                                         child: Icon(
                                                           Icons.add,
                                                           size: 16.0,
-                                                          color: Colors.grey[300],
+                                                          color:
+                                                              Colors.grey[300],
                                                         ),
                                                       ),
                                               ),
