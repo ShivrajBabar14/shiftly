@@ -1222,9 +1222,7 @@ class _HomeScreenState extends State<HomeScreen>
                         // Present
                         Expanded(
                           child: InkWell(
-                            onTap: isFutureDay
-                                ? null
-                                : () {
+                            onTap: () {
                                     if (isFreeUser) {
                                       showDialog(
                                         context: context,
@@ -1246,7 +1244,7 @@ class _HomeScreenState extends State<HomeScreen>
                                           );
                                         },
                                       );
-                                    } else {
+                                    } else if (!isFutureDay) {
                                       setState(() {
                                         attendance = 'Present';
                                       });
@@ -1261,7 +1259,28 @@ class _HomeScreenState extends State<HomeScreen>
                                   onChanged: isFutureDay
                                       ? null
                                       : (value) {
-                                          if (!isFreeUser) {
+                                          if (isFreeUser) {
+                                            showDialog(
+                                              context: context,
+                                              builder: (context) {
+                                                return LimitsDialog(
+                                                  onGoPro: () {
+                                                    Navigator.of(context).pop();
+                                                    Navigator.push(
+                                                      context,
+                                                      MaterialPageRoute(
+                                                        builder: (context) =>
+                                                            ShiftlyProScreen(),
+                                                      ),
+                                                    );
+                                                  },
+                                                  onContinueFree: () {
+                                                    Navigator.of(context).pop();
+                                                  },
+                                                );
+                                              },
+                                            );
+                                          } else {
                                             setState(() {
                                               attendance = value!;
                                             });
