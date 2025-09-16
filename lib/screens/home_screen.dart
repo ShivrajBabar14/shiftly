@@ -1648,7 +1648,7 @@ class _HomeScreenState extends State<HomeScreen>
                                     shiftName: hasName ? shiftName : null,
                                     startTime: startTimeMillis,
                                     endTime: endTimeMillis,
-                                    status: attendance,
+                                    status: attendance == 'None' ? null : attendance,
                                   );
 
                                   final params = {
