@@ -1286,6 +1286,7 @@ class _HomeScreenState extends State<HomeScreen>
                                             });
                                           }
                                         },
+                                  activeColor: Colors.green,
                                   materialTapTargetSize:
                                       MaterialTapTargetSize.shrinkWrap,
                                   visualDensity: const VisualDensity(
@@ -1351,6 +1352,7 @@ class _HomeScreenState extends State<HomeScreen>
                                             });
                                           }
                                         },
+                                  activeColor: Colors.red,
                                   materialTapTargetSize:
                                       MaterialTapTargetSize.shrinkWrap,
                                   visualDensity: const VisualDensity(
@@ -1415,6 +1417,8 @@ class _HomeScreenState extends State<HomeScreen>
                                             });
                                           }
                                         },
+                                  activeColor: Colors
+                                      .yellow[700], // This changes the selected radio button color to yellow
                                   materialTapTargetSize:
                                       MaterialTapTargetSize.shrinkWrap,
                                   visualDensity: const VisualDensity(
@@ -1422,9 +1426,7 @@ class _HomeScreenState extends State<HomeScreen>
                                     vertical: -4,
                                   ),
                                 ),
-                                const SizedBox(
-                                  width: 4,
-                                ), // Minimal space between radio and text
+                                const SizedBox(width: 4),
                                 const Text(
                                   'Leave',
                                   style: TextStyle(fontSize: 15),
@@ -1436,154 +1438,15 @@ class _HomeScreenState extends State<HomeScreen>
                       ],
                     ),
 
-                    const SizedBox(height: 8),
-
-                    Row(
-                      children: [
-                        // Expanded(
-                        //   child: InkWell(
-                        //     onTap: isFutureDay
-                        //         ? null
-                        //         : () {
-                        //             if (isFreeUser) {
-                        //               showDialog(
-                        //                 context: context,
-                        //                 builder: (context) {
-                        //                   return LimitsDialog(
-                        //                     onGoPro: () {
-                        //                       Navigator.of(context).pop();
-                        //                       Navigator.push(
-                        //                         context,
-                        //                         MaterialPageRoute(
-                        //                           builder: (context) =>
-                        //                               ShiftlyProScreen(),
-                        //                         ),
-                        //                       );
-                        //                     },
-                        //                     onContinueFree: () {
-                        //                       Navigator.of(context).pop();
-                        //                     },
-                        //                   );
-                        //                 },
-                        //               );
-                        //             } else {
-                        //               setState(() {
-                        //                 attendance = 'Leave';
-                        //               });
-                        //             }
-                        //           },
-                        //     child: Row(
-                        //       mainAxisSize: MainAxisSize.min,
-                        //       children: [
-                        //         Radio<String>(
-                        //           value: 'Leave',
-                        //           groupValue: attendance,
-                        //           onChanged: isFutureDay
-                        //               ? null
-                        //               : (value) {
-                        //                   if (!isFreeUser) {
-                        //                     setState(() {
-                        //                       attendance = value!;
-                        //                     });
-                        //                   }
-                        //                 },
-                        //           materialTapTargetSize:
-                        //               MaterialTapTargetSize.shrinkWrap,
-                        //           visualDensity: const VisualDensity(
-                        //             horizontal: -4,
-                        //             vertical: -4,
-                        //           ),
-                        //         ),
-                        //         const SizedBox(
-                        //           width: 4,
-                        //         ), // Minimal space between radio and text
-                        //         const Text(
-                        //           'Leave',
-                        //           style: TextStyle(fontSize: 15),
-                        //         ),
-                        //       ],
-                        //     ),
-                        //   ),
-                        // ),
-                        Expanded(
-                          child: InkWell(
-                            onTap: isFutureDay
-                                ? null
-                                : () {
-                                    if (isFreeUser) {
-                                      showDialog(
-                                        context: context,
-                                        builder: (context) {
-                                          return LimitsDialog(
-                                            onGoPro: () {
-                                              Navigator.of(context).pop();
-                                              Navigator.push(
-                                                context,
-                                                MaterialPageRoute(
-                                                  builder: (context) =>
-                                                      ShiftlyProScreen(),
-                                                ),
-                                              );
-                                            },
-                                            onContinueFree: () {
-                                              Navigator.of(context).pop();
-                                            },
-                                          );
-                                        },
-                                      );
-                                    } else {
-                                      setState(() {
-                                        attendance = 'None';
-                                      });
-                                    }
-                                  },
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Radio<String>(
-                                  value: 'None',
-                                  groupValue: attendance,
-                                  onChanged: isFutureDay
-                                      ? null
-                                      : (value) {
-                                          if (!isFreeUser) {
-                                            setState(() {
-                                              attendance = value!;
-                                            });
-                                          }
-                                        },
-                                  materialTapTargetSize:
-                                      MaterialTapTargetSize.shrinkWrap,
-                                  visualDensity: const VisualDensity(
-                                    horizontal: -4,
-                                    vertical: -4,
-                                  ),
-                                ),
-                                const SizedBox(
-                                  width: 4,
-                                ), // minimal gap between radio and text
-                                const Text(
-                                  'None',
-                                  style: TextStyle(
-                                    fontSize: 15,
-                                  ), // increased font size
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-
                     if (isFutureDay) ...[
-                      // const SizedBox(height: 8),
+                      const SizedBox(height: 8),
                       const Text(
                         '(Attendance can only be marked for today and prior dates.)',
                         style: TextStyle(fontSize: 12, color: Colors.grey),
                         textAlign: TextAlign.center,
                       ),
                     ],
-                    const SizedBox(height: 30),
+                    const SizedBox(height: 10),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
