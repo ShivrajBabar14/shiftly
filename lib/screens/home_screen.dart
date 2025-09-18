@@ -2555,9 +2555,7 @@ class _HomeScreenState extends State<HomeScreen>
                                             child: Container(
                                               height: rowHeight,
                                               alignment: Alignment.center,
-                                              padding: const EdgeInsets.all(
-                                                1.0,
-                                              ),
+                                              padding: EdgeInsets.zero,
                                               decoration: BoxDecoration(
                                                 color: index.isEven
                                                     ? Colors.white
@@ -2618,7 +2616,7 @@ class _HomeScreenState extends State<HomeScreen>
                                                                     vertical:
                                                                         8.0,
                                                                     horizontal:
-                                                                        6.0,
+                                                                        8.0,
                                                                   ),
                                                               decoration: BoxDecoration(
                                                                 color: Colors
@@ -2697,7 +2695,7 @@ class _HomeScreenState extends State<HomeScreen>
                                                                       ? Colors
                                                                             .red
                                                                       : Colors
-                                                                            .yellow,
+                                                                            .yellow[700],
                                                                   borderRadius:
                                                                       BorderRadius.only(
                                                                         bottomLeft:
