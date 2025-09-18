@@ -2684,8 +2684,8 @@ class _HomeScreenState extends State<HomeScreen>
                                                               top: 0,
                                                               right: 0,
                                                               child: Container(
-                                                                width: 15,
-                                                                height: 15,
+                                                                width: 13,
+                                                                height: 13,
                                                                 decoration: BoxDecoration(
                                                                   color:
                                                                       shift['status'] ==
@@ -2719,7 +2719,7 @@ class _HomeScreenState extends State<HomeScreen>
                                                                       color: Colors
                                                                           .white,
                                                                       fontSize:
-                                                                          12,
+                                                                          10,
                                                                       fontWeight:
                                                                           FontWeight
                                                                               .bold,
