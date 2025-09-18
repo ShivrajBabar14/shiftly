@@ -381,17 +381,18 @@ class _EmployeeShiftScreenState extends State<EmployeeShiftScreen> {
                                         final hasTime = startTime.isNotEmpty && endTime.isNotEmpty;
 
                                         if (hasName || hasTime) {
-                                          return Stack(
-                                            children: [
-                                              Align(
-                                                alignment: Alignment.center,
-                                                child: Container(
-                                                  padding: const EdgeInsets.only(top: 8.0, bottom: 24.0, left: 6.0, right: 6.0),
-                                                  decoration: BoxDecoration(
-                                                    color: Colors.transparent,
-                                                    borderRadius: BorderRadius.circular(4.0),
-                                                  ),
-                                                  child: hasName && hasTime
+                                          return Align(
+                                            alignment: Alignment.center,
+                                            child: Container(
+                                              padding: const EdgeInsets.symmetric(horizontal: 6.0),
+                                              decoration: BoxDecoration(
+                                                color: Colors.transparent,
+                                                borderRadius: BorderRadius.circular(4.0),
+                                              ),
+                                              child: Column(
+                                                mainAxisAlignment: MainAxisAlignment.center,
+                                                children: [
+                                                  hasName && hasTime
                                                       ? RichText(
                                                           textAlign: TextAlign.center,
                                                           text: TextSpan(
@@ -415,103 +416,57 @@ class _EmployeeShiftScreenState extends State<EmployeeShiftScreen> {
                                                             ],
                                                           ),
                                                         )
-                                                      : Text(
-                                                          hasName ? shiftName : '$startTime to $endTime',
-                                                          textAlign: TextAlign.center,
-                                                          style: const TextStyle(
-                                                            fontWeight: FontWeight.bold,
-                                                            fontSize: 16,
-                                                            color: Colors.black,
-                                                          ),
+                                                      : hasName || hasTime
+                                                          ? RichText(
+                                                              textAlign: TextAlign.center,
+                                                              text: TextSpan(
+                                                                children: [
+                                                                  TextSpan(
+                                                                    text: hasName ? shiftName : '$startTime to $endTime',
+                                                                    style: const TextStyle(
+                                                                      fontWeight: FontWeight.bold,
+                                                                      fontSize: 16,
+                                                                      color: Colors.black,
+                                                                    ),
+                                                                  ),
+                                                                ],
+                                                              ),
+                                                            )
+                                                          : SizedBox.shrink(),
+                                                  if (shift?['status'] != null && shift?['status'] != 'None')
+                                                    Container(
+                                                      margin: const EdgeInsets.only(top: 8.0),
+                                                      padding: const EdgeInsets.symmetric(horizontal: 4.0, vertical: 2.0),
+                                                      decoration: BoxDecoration(
+                                                        color: shift!['status'] == 'Present'
+                                                            ? Colors.green
+                                                            : shift!['status'] == 'Absent'
+                                                                ? Colors.red
+                                                                : Colors.yellow[700],
+                                                        borderRadius: BorderRadius.circular(4.0),
+                                                      ),
+                                                      child: Text(
+                                                        shift!['status'],
+                                                        style: const TextStyle(
+                                                          color: Colors.white,
+                                                          fontSize: 10,
+                                                          fontWeight: FontWeight.bold,
                                                         ),
-                                                ),
+                                                      ),
+                                                    ),
+                                                ],
                                               ),
-                                              if (shift?['status'] == 'Present')
-                                                Positioned(
-                                                  top: 8,
-                                                  right: 8,
-                                                  child: Container(
-                                                    width: 20,
-                                                    height: 20,
-                                                    decoration: BoxDecoration(
-                                                      color: Colors.green,
-                                                      borderRadius: BorderRadius.circular(4),
-                                                    ),
-                                                    alignment: Alignment.center,
-                                                    child: const Text(
-                                                      'P',
-                                                      style: TextStyle(
-                                                        color: Colors.white,
-                                                        fontWeight: FontWeight.bold,
-                                                        fontSize: 14,
-                                                      ),
-                                                    ),
-                                                  ),
-                                                )
-                                              else if (shift?['status'] == 'Absent')
-                                                Positioned(
-                                                  top: 8,
-                                                  right: 8,
-                                                  child: Container(
-                                                    width: 20,
-                                                    height: 20,
-                                                    decoration: BoxDecoration(
-                                                      color: Colors.red,
-                                                      borderRadius: BorderRadius.circular(4),
-                                                    ),
-                                                    alignment: Alignment.center,
-                                                    child: const Text(
-                                                      'A',
-                                                      style: TextStyle(
-                                                        color: Colors.white,
-                                                        fontWeight: FontWeight.bold,
-                                                        fontSize: 14,
-                                                      ),
-                                                    ),
-                                                  ),
-                                                )
-                                              else if (shift?['status'] == 'Leave')
-                                                Positioned(
-                                                  top: 8,
-                                                  right: 8,
-                                                  child: Container(
-                                                    width: 20,
-                                                    height: 20,
-                                                    decoration: BoxDecoration(
-                                                      color: Colors.yellow[700],
-                                                      borderRadius: BorderRadius.circular(4),
-                                                    ),
-                                                    alignment: Alignment.center,
-                                                    child: const Text(
-                                                      'L',
-                                                      style: TextStyle(
-                                                        color: Colors.black,
-                                                        fontWeight: FontWeight.bold,
-                                                        fontSize: 14,
-                                                      ),
-                                                    ),
-                                                  ),
-                                                )
-                                            ],
+                                            ),
                                           );
                                         } else {
-
                                           return Align(
-
                                             alignment: Alignment.center,
-
                                             child: Icon(
-
                                               Icons.add,
-
                                               size: 16.0,
-
                                               color: Colors.grey[300],
-
                                             ),
-
                                           );
-
                                         }
                                       },
                                     ),
