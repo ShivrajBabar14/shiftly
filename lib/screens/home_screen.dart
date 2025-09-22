@@ -61,6 +61,8 @@ class _HomeScreenState extends State<HomeScreen>
   // New flag to control overlay visibility
   bool _showProOverlay = false;
 
+
+
   bool get isLoadingSubscription => !_subscriptionStatusLoaded;
 
   Timer? _subscriptionRefreshTimer;
@@ -950,6 +952,11 @@ class _HomeScreenState extends State<HomeScreen>
                     const Text('Shift name', style: TextStyle(fontSize: 16)),
                     RawAutocomplete<String>(
                       optionsBuilder: (TextEditingValue textEditingValue) async {
+                        // Check if a suggestion was already selected
+                        if (textEditingController.text.isNotEmpty) {
+                          return [];
+                        }
+
                         final input = textEditingValue.text.toLowerCase();
                         final allShiftSuggestions = await _dbHelper
                             .getAllShiftSuggestions();
@@ -1005,6 +1012,11 @@ class _HomeScreenState extends State<HomeScreen>
                           textEditingController.selection =
                               TextSelection.collapsed(offset: cleanName.length);
 
+                          // Mark that a suggestion has been selected
+                          setState(() {
+                            // Suggestion selected - no longer need global variable
+                          });
+
                           if (match != null) {
                             final sHour = int.tryParse(match.group(2) ?? '');
                             final sMin = int.tryParse(match.group(3) ?? '');
@@ -1042,6 +1054,11 @@ class _HomeScreenState extends State<HomeScreen>
                           textEditingController.text = cleanName;
                           textEditingController.selection =
                               TextSelection.collapsed(offset: cleanName.length);
+
+                          // Mark that a suggestion has been selected
+                          setState(() {
+                            // Suggestion selected - no longer need global variable
+                          });
                         }
                       },
                       fieldViewBuilder:
