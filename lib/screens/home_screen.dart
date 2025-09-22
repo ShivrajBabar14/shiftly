@@ -2560,7 +2560,7 @@ class _HomeScreenState extends State<HomeScreen>
                                                                       : Colors
                                                                             .yellow[700],
                                                                   borderRadius:
-                                                                      BorderRadius.only(
+                                                                      const BorderRadius.only(
                                                                         bottomLeft:
                                                                             Radius.circular(
                                                                               4,
@@ -2576,6 +2576,15 @@ class _HomeScreenState extends State<HomeScreen>
                                                                               'Absent'
                                                                         ? 'A'
                                                                         : 'L',
+                                                                    textAlign:
+                                                                        TextAlign
+                                                                            .center,
+                                                                    textHeightBehavior: const TextHeightBehavior(
+                                                                      applyHeightToFirstAscent:
+                                                                          false,
+                                                                      applyHeightToLastDescent:
+                                                                          false,
+                                                                    ),
                                                                     style: const TextStyle(
                                                                       color: Colors
                                                                           .white,
@@ -2584,6 +2593,8 @@ class _HomeScreenState extends State<HomeScreen>
                                                                       fontWeight:
                                                                           FontWeight
                                                                               .bold,
+                                                                      height:
+                                                                          1, // removes extra line spacing
                                                                     ),
                                                                   ),
                                                                 ),
