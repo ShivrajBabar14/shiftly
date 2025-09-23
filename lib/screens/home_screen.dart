@@ -732,7 +732,7 @@ class _HomeScreenState extends State<HomeScreen>
           ),
           child: Container(
             width: 400,
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+            padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 20),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -1684,6 +1684,16 @@ class _HomeScreenState extends State<HomeScreen>
 
   @override
   Widget build(BuildContext context) {
+    return Scaffold(
+      resizeToAvoidBottomInset: false, // Prevent automatic keyboard adjustments
+      body: _buildMainLayout(),
+    );
+  }
+
+  Widget _buildMainLayout() {
+    final padding = MediaQuery.of(context).padding; // status bar + nav bar
+    final viewInsets = MediaQuery.of(context).viewInsets; // keyboard
+
     // Week check logic
     bool isFutureWeek() {
       final now = DateTime.now();
@@ -1902,16 +1912,16 @@ class _HomeScreenState extends State<HomeScreen>
               ),
             ],
           ),
-          floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
           floatingActionButton: (_employees.isNotEmpty && !showOverlay)
-              ? Padding(
-                  padding: EdgeInsets.only(
-                    bottom: _isBannerAdLoaded
-                        ? _bannerAd.size.height.toDouble() + 8
+              ? Container(
+                  margin: EdgeInsets.only(
+                    bottom: (_isBannerAdLoaded && isFreeUser)
+                        ? _bannerAd.size.height.toDouble() + 16 // Add some margin above banner
                         : 16,
                   ),
                   child: FloatingActionButton(
                     backgroundColor: Colors.deepPurple,
+                    elevation: 0,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(30.0),
                     ),
@@ -2799,14 +2809,14 @@ class _HomeScreenState extends State<HomeScreen>
         return StatefulBuilder(
           builder: (context, setState) {
             return Dialog(
-              insetPadding: const EdgeInsets.all(16),
+              insetPadding: const EdgeInsets.all(26),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(16),
               ),
               child: Container(
                 width: 500,
                 padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
+                  horizontal: 12,
                   vertical: 12,
                 ),
                 child: Column(

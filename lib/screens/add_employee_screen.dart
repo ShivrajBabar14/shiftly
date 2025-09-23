@@ -8,7 +8,6 @@ import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:Shiftwise/utils/strings.dart';
 
-
 class AddEmployeeScreen extends StatefulWidget {
   final bool isFreeUser;
   const AddEmployeeScreen({super.key, required this.isFreeUser});
@@ -34,7 +33,7 @@ class _AddEmployeeScreenState extends State<AddEmployeeScreen> {
 
   void _loadBannerAd() {
     _bannerAd = BannerAd(
-      adUnitId: AppStrings.bannerAdUnitID,  // Test Ad Unit
+      adUnitId: AppStrings.bannerAdUnitID, // Test Ad Unit
       size: AdSize.banner,
       request: AdRequest(),
       listener: BannerAdListener(
@@ -366,10 +365,10 @@ class _AddEmployeeScreenState extends State<AddEmployeeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset: true, // Let Scaffold handle keyboard automatically
       appBar: AppBar(
         titleSpacing: 0,
         leadingWidth: 40,
-        backgroundColor: Colors.white,
         iconTheme: const IconThemeData(color: Colors.deepPurple),
         title: const Padding(
           padding: EdgeInsets.only(left: 20.0),
@@ -386,70 +385,80 @@ class _AddEmployeeScreenState extends State<AddEmployeeScreen> {
           ),
         ),
       ),
-      body: Column(
-        children: [
-          Expanded(
-            child: ListView.builder(
-              itemCount: _employees.length,
-              itemBuilder: (context, index) {
-                final employee = _employees[index];
-                return Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                  child: InkWell(
-                    onTap: () => _updateEmployeeDialog(employee),
-                    child: Column(
-                      children: [
-                        Container(
-                          width: double.infinity,
-                          padding: const EdgeInsets.symmetric(vertical: 12.0),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                employee.name,
-                                style: const TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w500,
-                                ),
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            children: [
+              Expanded(
+                child: ListView.builder(
+                  itemCount: _employees.length,
+                  itemBuilder: (context, index) {
+                    final employee = _employees[index];
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                      child: InkWell(
+                        onTap: () => _updateEmployeeDialog(employee),
+                        child: Column(
+                          children: [
+                            Container(
+                              width: double.infinity,
+                              padding: const EdgeInsets.symmetric(
+                                vertical: 12.0,
                               ),
-                              Text(
-                                '${employee.employeeId}',
-                                style: const TextStyle(
-                                  fontSize: 12,
-                                  color: Colors.grey,
-                                ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    employee.name,
+                                    style: const TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                  Text(
+                                    '${employee.employeeId}',
+                                    style: const TextStyle(
+                                      fontSize: 12,
+                                      color: Colors.grey,
+                                    ),
+                                  ),
+                                ],
                               ),
-                            ],
-                          ),
+                            ),
+                            const Divider(height: 1, color: Colors.grey),
+                          ],
                         ),
-                        const Divider(height: 1, color: Colors.grey),
-                      ],
-                    ),
-                  ),
-                );
-              },
-            ),
+                      ),
+                    );
+                  },
+                ),
+              ),
+              // Banner Ad at the bottom
+              if (widget.isFreeUser && _isBannerAdLoaded)
+                Container(
+                  width: _bannerAd.size.width.toDouble(),
+                  height: _bannerAd.size.height.toDouble(),
+                  child: AdWidget(ad: _bannerAd),
+                ),
+            ],
           ),
-          // Banner Ad at the bottom
-          if (widget.isFreeUser && _isBannerAdLoaded)
-            Container(
-              width: _bannerAd.size.width.toDouble(),
-              height: _bannerAd.size.height.toDouble(),
-              child: AdWidget(ad: _bannerAd),
-            ),
-        ],
+        ),
       ),
       floatingActionButton: Container(
         margin: EdgeInsets.only(
           bottom: (widget.isFreeUser && _isBannerAdLoaded)
-              ? _bannerAd.size.height.toDouble() +
-                    10 // Add extra space for banner
-              : 10,
+              ? _bannerAd.size.height.toDouble() + 16 // Add some margin above banner
+              : 16,
         ),
         child: ClipRRect(
-          borderRadius: BorderRadius.circular(30),
+          borderRadius: BorderRadius.circular(20),
           child: FloatingActionButton(
             backgroundColor: Colors.deepPurple,
+            elevation: 0,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(30.0),
+            ),
             onPressed: _addEmployeeDialog,
             child: const Icon(Icons.add, color: Colors.white),
           ),
