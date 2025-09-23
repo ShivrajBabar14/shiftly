@@ -1682,126 +1682,150 @@ class _HomeScreenState extends State<HomeScreen>
     });
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      resizeToAvoidBottomInset: false, // Prevent automatic keyboard adjustments
-      body: _buildMainLayout(),
-    );
+@override
+Widget build(BuildContext context) {
+  final padding = MediaQuery.of(context).padding;     // status bar + nav bar
+  final viewInsets = MediaQuery.of(context).viewInsets; // keyboard
+
+  // Week check logic
+  bool isFutureWeek() {
+    final now = DateTime.now();
+    final nowWeekStart = now.subtract(Duration(days: now.weekday - 1));
+    return _currentWeekStart.isAfter(nowWeekStart);
   }
 
-  Widget _buildMainLayout() {
-    final padding = MediaQuery.of(context).padding; // status bar + nav bar
-    final viewInsets = MediaQuery.of(context).viewInsets; // keyboard
+  bool isCurrentOrPreviousWeek() {
+    final now = DateTime.now();
+    final nowWeekStart = now.subtract(Duration(days: now.weekday - 1));
+    final prevWeekStart = nowWeekStart.subtract(const Duration(days: 7));
+    return _currentWeekStart.isAtSameMomentAs(nowWeekStart) ||
+        _currentWeekStart.isAtSameMomentAs(prevWeekStart);
+  }
 
-    // Week check logic
-    bool isFutureWeek() {
-      final now = DateTime.now();
-      final nowWeekStart = now.subtract(Duration(days: now.weekday - 1));
-      return _currentWeekStart.isAfter(nowWeekStart);
-    }
+  final bool showOverlay = isFreeUser && isFutureWeek();
 
-    bool isCurrentOrPreviousWeek() {
-      final now = DateTime.now();
-      final nowWeekStart = now.subtract(Duration(days: now.weekday - 1));
-      final prevWeekStart = nowWeekStart.subtract(const Duration(days: 7));
-      return _currentWeekStart.isAtSameMomentAs(nowWeekStart) ||
-          _currentWeekStart.isAtSameMomentAs(prevWeekStart);
-    }
+  // Calculate keyboard height
+  final double keyboardHeight = viewInsets.bottom;
 
-    final bool showOverlay = isFreeUser && isFutureWeek();
+  // Calculate banner ad height
+  final double bannerHeight = (_isBannerAdLoaded && isFreeUser)
+      ? _bannerAd.size.height.toDouble()
+      : 0;
 
-    return Stack(
-      children: [
-        Scaffold(
-          key: _scaffoldKey,
-          drawer: AppDrawer(onBackupRestore: _fullRefreshHome),
-          appBar: AppBar(
-            backgroundColor: Colors.white,
-            elevation: 0,
-            leading: Builder(
-              builder: (context) => IconButton(
-                icon: const Icon(Icons.menu, color: Colors.deepPurple),
-                onPressed: () {
-                  Scaffold.of(context).openDrawer();
-                },
+  return Scaffold(
+    key: _scaffoldKey,
+    resizeToAvoidBottomInset: false, // Prevent automatic keyboard adjustments
+    drawer: AppDrawer(onBackupRestore: _fullRefreshHome),
+    floatingActionButton: (_employees.isNotEmpty && !showOverlay)
+        ? Container(
+            margin: EdgeInsets.only(
+              bottom: bannerHeight + keyboardHeight + 16, // Account for banner and keyboard
+            ),
+            child: FloatingActionButton(
+              backgroundColor: Colors.deepPurple,
+              elevation: 0,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(30.0),
+              ),
+              onPressed: _handleAddEmployeePressed,
+              child: const Icon(Icons.add, color: Colors.white),
+            ),
+          )
+        : null,
+    appBar: AppBar(
+      backgroundColor: Colors.white,
+      elevation: 0,
+      leading: Builder(
+        builder: (context) => IconButton(
+          icon: const Icon(Icons.menu, color: Colors.deepPurple),
+          onPressed: () {
+            Scaffold.of(context).openDrawer();
+          },
+        ),
+      ),
+      title: Row(
+        mainAxisAlignment: MainAxisAlignment.start,
+        children: [
+          const Text(
+            'Shiftwise',
+            style: TextStyle(
+              color: Colors.deepPurple,
+              fontWeight: FontWeight.bold,
+              fontSize: 20,
+            ),
+          ),
+          if (!isFreeUser) ...[
+            const SizedBox(width: 8),
+            Container(
+              padding: const EdgeInsets.all(6),
+              decoration: const BoxDecoration(
+                color: Colors.deepPurple,
+                shape: BoxShape.circle,
+              ),
+              child: SvgPicture.asset(
+                'assets/crown.svg',
+                width: 15,
+                height: 15,
+                color: Color.fromARGB(255, 255, 183, 0),
               ),
             ),
-            title: Row(
-              mainAxisAlignment: MainAxisAlignment.start,
-              children: [
-                const Text(
-                  'Shiftwise',
-                  style: TextStyle(
-                    color: Colors.deepPurple,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 20,
+          ],
+        ],
+      ),
+      actions: [
+        if (isFreeUser)
+          Container(
+            margin: const EdgeInsets.only(right: 16),
+            child: ElevatedButton(
+              onPressed: () async {
+                await analytics.logEvent(
+                  name: 'go_pro_clicked',
+                  parameters: {
+                    'user_type': isFreeUser ? 'free' : 'pro',
+                    'timestamp': DateTime.now().millisecondsSinceEpoch,
+                  },
+                );
+
+                final subscriptionSuccess = await Navigator.push<bool>(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => ShiftlyProScreen(),
                   ),
+                );
+
+                if (subscriptionSuccess == true) {
+                  await _loadSubscriptionStatus();
+                  await _loadData();
+                  setState(() {
+                    _showProOverlay = false;
+                  });
+                }
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.deepPurple,
+                foregroundColor: Colors.white,
+                elevation: 1,
+                padding: const EdgeInsets.symmetric(horizontal: 5),
+                textStyle: const TextStyle(fontSize: 16),
+                minimumSize: const Size(80, 30),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(6),
                 ),
-                if (!isFreeUser) ...[
-                  const SizedBox(width: 8),
-                  Container(
-                    padding: const EdgeInsets.all(6),
-                    decoration: const BoxDecoration(
-                      color: Colors.deepPurple,
-                      shape: BoxShape.circle,
-                    ),
-                    child: SvgPicture.asset(
-                      'assets/crown.svg',
-                      width: 15,
-                      height: 15,
-                      color: Color.fromARGB(255, 255, 183, 0),
-                    ),
-                  ),
-                ],
-              ],
+              ),
+              child: const Text('Go Pro'),
             ),
-            actions: [
-              if (isFreeUser)
-                Container(
-                  margin: const EdgeInsets.only(right: 16),
-                  child: ElevatedButton(
-                    onPressed: () async {
-                      await analytics.logEvent(
-                        name: 'go_pro_clicked',
-                        parameters: {
-                          'user_type': isFreeUser ? 'free' : 'pro',
-                          'timestamp': DateTime.now().millisecondsSinceEpoch,
-                        },
-                      );
-
-                      final subscriptionSuccess = await Navigator.push<bool>(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => ShiftlyProScreen(),
-                        ),
-                      );
-
-                      if (subscriptionSuccess == true) {
-                        await _loadSubscriptionStatus();
-                        await _loadData();
-                        setState(() {
-                          _showProOverlay = false;
-                        });
-                      }
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.deepPurple,
-                      foregroundColor: Colors.white,
-                      elevation: 1,
-                      padding: const EdgeInsets.symmetric(horizontal: 5),
-                      textStyle: const TextStyle(fontSize: 16),
-                      minimumSize: const Size(80, 30),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                    ),
-                    child: const Text('Go Pro'),
-                  ),
-                ),
-            ],
           ),
-          body: Column(
+      ],
+    ),
+    body: Padding(
+      padding: EdgeInsets.only(
+        left: padding.left,
+        right: padding.right,
+        bottom: padding.bottom,
+      ),
+      child: Stack(
+        children: [
+          Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               // Week Navigation
@@ -1867,87 +1891,70 @@ class _HomeScreenState extends State<HomeScreen>
                 child: _isLoading
                     ? const Center(child: CircularProgressIndicator())
                     : (_employees.isEmpty && (!isFreeUser || !isFutureWeek())
-                          ? Stack(
-                              children: [
-                                _buildEmptyShiftTable(),
-                                Center(
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      const Text(
-                                        'Your shift tracking will appear here.',
-                                        style: TextStyle(fontSize: 15),
-                                      ),
-                                      const Text(
-                                        'Tap below to begin.',
-                                        style: TextStyle(fontSize: 15),
-                                      ),
-                                      const SizedBox(height: 20),
-                                      ElevatedButton(
-                                        style: ElevatedButton.styleFrom(
-                                          backgroundColor: Colors.deepPurple,
-                                          padding: const EdgeInsets.symmetric(
-                                            horizontal: 30,
-                                            vertical: 15,
-                                          ),
-                                        ),
-                                        onPressed: _handleAddEmployeePressed,
-                                        child: const Text(
-                                          'Add Employee',
-                                          style: TextStyle(
-                                            color: Colors.white,
-                                            fontSize: 14,
-                                          ),
+                        ? Stack(
+                            children: [
+                              _buildEmptyShiftTable(),
+                              Center(
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    const Text(
+                                      'Your shift tracking will appear here.',
+                                      style: TextStyle(fontSize: 15),
+                                    ),
+                                    const Text(
+                                      'Tap below to begin.',
+                                      style: TextStyle(fontSize: 15),
+                                    ),
+                                    const SizedBox(height: 20),
+                                    ElevatedButton(
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: Colors.deepPurple,
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 30,
+                                          vertical: 15,
                                         ),
                                       ),
-                                    ],
-                                  ),
+                                      onPressed: _handleAddEmployeePressed,
+                                      child: const Text(
+                                        'Add Employee',
+                                        style: TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 14,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
                                 ),
-                              ],
-                            )
-                          : Container(
-                              decoration: const BoxDecoration(),
-                              child: _buildShiftTable(),
-                            )),
+                              ),
+                            ],
+                          )
+                        : Container(
+                            decoration: const BoxDecoration(),
+                            child: _buildShiftTable(),
+                          )),
               ),
             ],
           ),
-          floatingActionButton: (_employees.isNotEmpty && !showOverlay)
-              ? Container(
-                  margin: EdgeInsets.only(
-                    bottom: (_isBannerAdLoaded && isFreeUser)
-                        ? _bannerAd.size.height.toDouble() + 16 // Add some margin above banner
-                        : 16,
-                  ),
-                  child: FloatingActionButton(
-                    backgroundColor: Colors.deepPurple,
-                    elevation: 0,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(30.0),
-                    ),
-                    onPressed: _handleAddEmployeePressed,
-                    child: const Icon(Icons.add, color: Colors.white),
-                  ),
-                )
-              : null,
-        ),
-
-        // Banner Ad at the bottom
-        if (_isBannerAdLoaded && isFreeUser)
-          Positioned(
-            bottom: 0,
-            left: 0,
-            right: 0,
-            child: Container(
-              color: Colors.white,
-              width: _bannerAd.size.width.toDouble(),
-              height: _bannerAd.size.height.toDouble(),
-              child: AdWidget(ad: _bannerAd),
+          if (_isBannerAdLoaded && isFreeUser)
+            Positioned(
+              bottom: 0,
+              left: 0,
+              right: 0,
+              child: Container(
+                color: Colors.white,
+                width: _bannerAd.size.width.toDouble(),
+                height: _bannerAd.size.height.toDouble(),
+                child: AdWidget(ad: _bannerAd),
+              ),
             ),
-          ),
-      ],
-    );
-  }
+        ],
+      ),
+    ),
+  );
+}
+
+
 
   Widget _buildEmptyShiftTable() {
     const List<String> days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
