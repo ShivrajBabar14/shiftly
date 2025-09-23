@@ -183,6 +183,9 @@ class _EmployeeShiftScreenState extends State<EmployeeShiftScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final padding = MediaQuery.of(context).padding;     // status bar + nav bar
+    final viewInsets = MediaQuery.of(context).viewInsets; // keyboard
+
     return Scaffold(
       resizeToAvoidBottomInset: true, // Let Scaffold handle keyboard automatically
       appBar: AppBar(
@@ -241,267 +244,278 @@ class _EmployeeShiftScreenState extends State<EmployeeShiftScreen> {
         backgroundColor: Colors.white,
         elevation: 0,
       ),
-      body: _buildMainLayout(),
+      body: Padding(
+        padding: EdgeInsets.only(
+          left: padding.left,
+          // top: padding.top,
+          right: padding.right,
+          // bottom: nav bar + keyboard height
+          bottom: padding.bottom + viewInsets.bottom,
+        ),
+        child: _buildMainLayout(),
+      ),
     );
   }
 
   Widget _buildMainLayout() {
-    return Stack(
-      children: [
-        Column(
-          children: [
-            Expanded(
-              child: SingleChildScrollView(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 0),
-                  child: Screenshot(
-                    controller: _screenshotController,
-                    child: Container(
-                      color: Colors.white,
-                      child: Column(
-                        children: [
-                          Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 8.0),
-                            child: Text(
-                              widget.employee.name,
-                              style: TextStyle(
-                                fontSize: 24,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.deepPurple,
+    return SafeArea(
+      bottom: true,
+      child: Stack(
+        children: [
+          Column(
+            children: [
+              Expanded(
+                child: SingleChildScrollView(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 0),
+                    child: Screenshot(
+                      controller: _screenshotController,
+                      child: Container(
+                        color: Colors.white,
+                        child: Column(
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 8.0),
+                              child: Text(
+                                widget.employee.name,
+                                style: TextStyle(
+                                  fontSize: 24,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.deepPurple,
+                                ),
                               ),
                             ),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.only(bottom: 12),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                IconButton(
-                                  icon: const Icon(
-                                    Icons.chevron_left,
-                                    color: Colors.black,
-                                    size: 30,
-                                  ),
-                                  padding: const EdgeInsets.symmetric(horizontal: 32),
-                                  onPressed: () => _changeWeek(-7),
-                                ),
-                                Text(
-                                  _formatDateRange(),
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 20,
-                                    color: Colors.black,
-                                  ),
-                                ),
-                                IconButton(
-                                  icon: const Icon(
-                                    Icons.chevron_right,
-                                    color: Colors.black,
-                                    size: 30,
-                                  ),
-                                  padding: const EdgeInsets.symmetric(horizontal: 32),
-                                  onPressed: () => _changeWeek(7),
-                                ),
-                              ],
-                            ),
-                          ),
-                          Table(
-                            border: TableBorder.all(color: Colors.grey.shade300, width: 1.0),
-                            columnWidths: const {
-                              0: FlexColumnWidth(1),
-                              1: FlexColumnWidth(1.5),
-                            },
-                            children: [
-                              TableRow(
-                                decoration: BoxDecoration(color: Colors.deepPurple),
+                            Padding(
+                              padding: const EdgeInsets.only(bottom: 12),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  Padding(
-                                    padding: const EdgeInsets.symmetric(vertical: 12),
-                                    child: Center(
-                                      child: Text(
-                                        'Date',
-                                        style: TextStyle(
-                                          color: Colors.white,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
+                                  IconButton(
+                                    icon: const Icon(
+                                      Icons.chevron_left,
+                                      color: Colors.black,
+                                      size: 30,
+                                    ),
+                                    padding: const EdgeInsets.symmetric(horizontal: 32),
+                                    onPressed: () => _changeWeek(-7),
+                                  ),
+                                  Text(
+                                    _formatDateRange(),
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 20,
+                                      color: Colors.black,
                                     ),
                                   ),
-                                  Padding(
-                                    padding: const EdgeInsets.symmetric(vertical: 12),
-                                    child: Center(
-                                      child: Text(
-                                        'Shift',
-                                        style: TextStyle(
-                                          color: Colors.white,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
+                                  IconButton(
+                                    icon: const Icon(
+                                      Icons.chevron_right,
+                                      color: Colors.black,
+                                      size: 30,
                                     ),
+                                    padding: const EdgeInsets.symmetric(horizontal: 32),
+                                    onPressed: () => _changeWeek(7),
                                   ),
                                 ],
                               ),
-                              ...List.generate(7, (index) {
-                                final dayName = _dayLabel(index);
-                                final dateNumber = _dateLabel(index);
-                                final shift = _getShiftForDay(dayName);
-
-                                return TableRow(
-                                  decoration: BoxDecoration(
-                                    color: index % 2 == 0 ? Colors.white : Colors.grey.shade50,
-                                  ),
+                            ),
+                            Table(
+                              border: TableBorder.all(color: Colors.grey.shade300, width: 1.0),
+                              columnWidths: const {
+                                0: FlexColumnWidth(1),
+                                1: FlexColumnWidth(1.5),
+                              },
+                              children: [
+                                TableRow(
+                                  decoration: BoxDecoration(color: Colors.deepPurple),
                                   children: [
                                     Padding(
                                       padding: const EdgeInsets.symmetric(vertical: 12),
-                                      child: Column(
-                                        children: [
-                                          Text(
-                                            dateNumber,
-                                            style: TextStyle(
-                                              fontSize: 16,
-                                              fontWeight: FontWeight.bold,
-                                            ),
+                                      child: Center(
+                                        child: Text(
+                                          'Date',
+                                          style: TextStyle(
+                                            color: Colors.white,
+                                            fontWeight: FontWeight.bold,
                                           ),
-                                          SizedBox(height: 4),
-                                          Text(dayName, style: TextStyle(fontSize: 16)),
-                                        ],
+                                        ),
                                       ),
                                     ),
-                                    Container(
-                                      height: 75.0,
-                                      alignment: Alignment.center,
-                                      child: Builder(
-                                        builder: (context) {
-                                          final shiftName = shift?['shift_name'] ?? '';
-                                          final startTimeMillis = shift?['start_time'];
-                                          final endTimeMillis = shift?['end_time'];
-
-                                          String formatTime(int? millis) {
-                                            if (millis == null) return '';
-                                            final dt = DateTime.fromMillisecondsSinceEpoch(millis);
-                                            return '${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
-                                          }
-
-                                          final startTime = formatTime(startTimeMillis);
-                                          final endTime = formatTime(endTimeMillis);
-
-                                          final hasName = shiftName.isNotEmpty;
-                                          final hasTime = startTime.isNotEmpty && endTime.isNotEmpty;
-
-                                          if (hasName || hasTime) {
-                                            return Align(
-                                              alignment: Alignment.center,
-                                              child: Container(
-                                                padding: const EdgeInsets.symmetric(horizontal: 6.0),
-                                                decoration: BoxDecoration(
-                                                  color: Colors.transparent,
-                                                  borderRadius: BorderRadius.circular(4.0),
-                                                ),
-                                                child: Column(
-                                                  mainAxisAlignment: MainAxisAlignment.center,
-                                                  children: [
-                                                    hasName && hasTime
-                                                        ? RichText(
-                                                            textAlign: TextAlign.center,
-                                                            text: TextSpan(
-                                                              children: [
-                                                                TextSpan(
-                                                                  text: shiftName,
-                                                                  style: const TextStyle(
-                                                                    fontWeight: FontWeight.bold,
-                                                                    fontSize: 16,
-                                                                    color: Colors.black,
-                                                                  ),
-                                                                ),
-                                                                TextSpan(
-                                                                  text: '\n($startTime to $endTime)',
-                                                                  style: const TextStyle(
-                                                                    fontWeight: FontWeight.normal,
-                                                                    fontSize: 16,
-                                                                    color: Colors.black,
-                                                                  ),
-                                                                ),
-                                                              ],
-                                                            ),
-                                                          )
-                                                        : hasName || hasTime
-                                                            ? RichText(
-                                                                textAlign: TextAlign.center,
-                                                                text: TextSpan(
-                                                                  children: [
-                                                                    TextSpan(
-                                                                      text: hasName ? shiftName : '$startTime to $endTime',
-                                                                      style: const TextStyle(
-                                                                        fontWeight: FontWeight.bold,
-                                                                        fontSize: 16,
-                                                                        color: Colors.black,
-                                                                      ),
-                                                                    ),
-                                                                  ],
-                                                                ),
-                                                              )
-                                                            : SizedBox.shrink(),
-                                                    if (shift?['status'] != null && shift?['status'] != 'None')
-                                                      Container(
-                                                        margin: const EdgeInsets.only(top: 8.0),
-                                                        padding: const EdgeInsets.symmetric(horizontal: 4.0, vertical: 2.0),
-                                                        decoration: BoxDecoration(
-                                                          color: shift!['status'] == 'Present'
-                                                              ? Colors.green
-                                                              : shift!['status'] == 'Absent'
-                                                                  ? Colors.red
-                                                                  : Colors.yellow[700],
-                                                          borderRadius: BorderRadius.circular(4.0),
-                                                        ),
-                                                        child: Text(
-                                                          shift!['status'],
-                                                          style: const TextStyle(
-                                                            color: Colors.white,
-                                                            fontSize: 10,
-                                                            fontWeight: FontWeight.bold,
-                                                          ),
-                                                        ),
-                                                      ),
-                                                  ],
-                                                ),
-                                              ),
-                                            );
-                                          } else {
-                                            return Align(
-                                              alignment: Alignment.center,
-                                              child: Icon(
-                                                Icons.add,
-                                                size: 16.0,
-                                                color: Colors.grey[300],
-                                              ),
-                                            );
-                                          }
-                                        },
+                                    Padding(
+                                      padding: const EdgeInsets.symmetric(vertical: 12),
+                                      child: Center(
+                                        child: Text(
+                                          'Shift',
+                                          style: TextStyle(
+                                            color: Colors.white,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
                                       ),
                                     ),
                                   ],
-                                );
-                              }),
-                            ],
-                          ),
-                        ],
+                                ),
+                                ...List.generate(7, (index) {
+                                  final dayName = _dayLabel(index);
+                                  final dateNumber = _dateLabel(index);
+                                  final shift = _getShiftForDay(dayName);
+
+                                  return TableRow(
+                                    decoration: BoxDecoration(
+                                      color: index % 2 == 0 ? Colors.white : Colors.grey.shade50,
+                                    ),
+                                    children: [
+                                      Padding(
+                                        padding: const EdgeInsets.symmetric(vertical: 12),
+                                        child: Column(
+                                          children: [
+                                            Text(
+                                              dateNumber,
+                                              style: TextStyle(
+                                                fontSize: 16,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                            SizedBox(height: 4),
+                                            Text(dayName, style: TextStyle(fontSize: 16)),
+                                          ],
+                                        ),
+                                      ),
+                                      Container(
+                                        height: 75.0,
+                                        alignment: Alignment.center,
+                                        child: Builder(
+                                          builder: (context) {
+                                            final shiftName = shift?['shift_name'] ?? '';
+                                            final startTimeMillis = shift?['start_time'];
+                                            final endTimeMillis = shift?['end_time'];
+
+                                            String formatTime(int? millis) {
+                                              if (millis == null) return '';
+                                              final dt = DateTime.fromMillisecondsSinceEpoch(millis);
+                                              return '${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
+                                            }
+
+                                            final startTime = formatTime(startTimeMillis);
+                                            final endTime = formatTime(endTimeMillis);
+
+                                            final hasName = shiftName.isNotEmpty;
+                                            final hasTime = startTime.isNotEmpty && endTime.isNotEmpty;
+
+                                            if (hasName || hasTime) {
+                                              return Align(
+                                                alignment: Alignment.center,
+                                                child: Container(
+                                                  padding: const EdgeInsets.symmetric(horizontal: 6.0),
+                                                  decoration: BoxDecoration(
+                                                    color: Colors.transparent,
+                                                    borderRadius: BorderRadius.circular(4.0),
+                                                  ),
+                                                  child: Column(
+                                                    mainAxisAlignment: MainAxisAlignment.center,
+                                                    children: [
+                                                      hasName && hasTime
+                                                          ? RichText(
+                                                              textAlign: TextAlign.center,
+                                                              text: TextSpan(
+                                                                children: [
+                                                                  TextSpan(
+                                                                    text: shiftName,
+                                                                    style: const TextStyle(
+                                                                      fontWeight: FontWeight.bold,
+                                                                      fontSize: 16,
+                                                                      color: Colors.black,
+                                                                    ),
+                                                                  ),
+                                                                  TextSpan(
+                                                                    text: '\n($startTime to $endTime)',
+                                                                    style: const TextStyle(
+                                                                      fontWeight: FontWeight.normal,
+                                                                      fontSize: 16,
+                                                                      color: Colors.black,
+                                                                    ),
+                                                                  ),
+                                                                ],
+                                                              ),
+                                                            )
+                                                          : hasName || hasTime
+                                                              ? RichText(
+                                                                  textAlign: TextAlign.center,
+                                                                  text: TextSpan(
+                                                                    children: [
+                                                                      TextSpan(
+                                                                        text: hasName ? shiftName : '$startTime to $endTime',
+                                                                        style: const TextStyle(
+                                                                          fontWeight: FontWeight.bold,
+                                                                          fontSize: 16,
+                                                                          color: Colors.black,
+                                                                        ),
+                                                                      ),
+                                                                    ],
+                                                                  ),
+                                                                )
+                                                              : SizedBox.shrink(),
+                                                      if (shift?['status'] != null && shift?['status'] != 'None')
+                                                        Container(
+                                                          margin: const EdgeInsets.only(top: 8.0),
+                                                          padding: const EdgeInsets.symmetric(horizontal: 4.0, vertical: 2.0),
+                                                          decoration: BoxDecoration(
+                                                            color: shift!['status'] == 'Present'
+                                                                ? Colors.green
+                                                                : shift!['status'] == 'Absent'
+                                                                    ? Colors.red
+                                                                    : Colors.yellow[700],
+                                                            borderRadius: BorderRadius.circular(4.0),
+                                                          ),
+                                                          child: Text(
+                                                            shift!['status'],
+                                                            style: const TextStyle(
+                                                              color: Colors.white,
+                                                              fontSize: 10,
+                                                              fontWeight: FontWeight.bold,
+                                                            ),
+                                                          ),
+                                                        ),
+                                                    ],
+                                                  ),
+                                                ),
+                                              );
+                                            } else {
+                                              return Align(
+                                                alignment: Alignment.center,
+                                                child: Icon(
+                                                  Icons.add,
+                                                  size: 16.0,
+                                                  color: Colors.grey[300],
+                                                ),
+                                              );
+                                            }
+                                          },
+                                        ),
+                                      ),
+                                    ],
+                                  );
+                                }),
+                              ],
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ),
                 ),
               ),
-            ),
-            // Banner Ad at the bottom
-            if (widget.isFreeUser && _isBannerAdLoaded)
-              Container(
-                width: _bannerAd.size.width.toDouble(),
-                height: _bannerAd.size.height.toDouble(),
-                child: AdWidget(ad: _bannerAd),
-              ),
-          ],
-        ),
-
-      ],
+              // Banner Ad at the bottom
+              if (widget.isFreeUser && _isBannerAdLoaded)
+                Container(
+                  width: _bannerAd.size.width.toDouble(),
+                  height: _bannerAd.size.height.toDouble(),
+                  child: AdWidget(ad: _bannerAd),
+                ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 }
