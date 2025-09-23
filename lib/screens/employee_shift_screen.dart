@@ -491,21 +491,16 @@ class _EmployeeShiftScreenState extends State<EmployeeShiftScreen> {
                 ),
               ),
             ),
+            // Banner Ad at the bottom
+            if (widget.isFreeUser && _isBannerAdLoaded)
+              Container(
+                width: _bannerAd.size.width.toDouble(),
+                height: _bannerAd.size.height.toDouble(),
+                child: AdWidget(ad: _bannerAd),
+              ),
           ],
         ),
-        // Google Ad Banner at the bottom - positioned to prevent overflow
-        if (widget.isFreeUser && _isBannerAdLoaded)
-          Positioned(
-            bottom: 0,
-            left: 0,
-            right: 0,
-            child: Container(
-              color: Colors.white,
-              width: _bannerAd.size.width.toDouble(),
-              height: _bannerAd.size.height.toDouble(),
-              child: AdWidget(ad: _bannerAd),
-            ),
-          ),
+
       ],
     );
   }

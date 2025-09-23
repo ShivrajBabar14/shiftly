@@ -732,7 +732,7 @@ class _HomeScreenState extends State<HomeScreen>
           ),
           child: Container(
             width: 400,
-            padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 20),
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 20),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
