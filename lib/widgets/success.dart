@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../utils/strings.dart';
 
 void showSuccessDialog({
   required BuildContext context,
@@ -74,7 +75,7 @@ class SuccessDialog extends StatelessWidget {
               ),
             const SizedBox(height: 20),
             const Text(
-              'Congratulations!',
+              AppStrings.Congratulations,
               style: TextStyle(
                 fontSize: 22,
                 fontWeight: FontWeight.bold,
@@ -83,7 +84,7 @@ class SuccessDialog extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             const Text(
-              'You have now successfully subscribed to Shiftwise Pro.',
+              AppStrings.Congratulationstext,
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 16,
@@ -107,7 +108,7 @@ class SuccessDialog extends StatelessWidget {
                   ),
                 ),
                 child: const Text(
-                  'Continue',
+                  AppStrings.Continue,
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,

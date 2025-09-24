@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import 'package:Shiftwise/db/database_helper.dart';
 import 'package:Shiftwise/services/backup_refresh_service.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
+import '../utils/strings.dart';
 // import 'package:Shiftwise/screens/home_screen.dart';
 
 final FirebaseAnalytics analytics = FirebaseAnalytics.instance;
@@ -19,7 +20,7 @@ void showBackupRestoreDialog(
     builder: (context) {
       final lastBackupStr = lastBackupDate != null
           ? DateFormat('dd MMM yyyy HH:mm').format(lastBackupDate)
-          : 'No backup found';
+          : AppStrings.Notfound;
 
       return Dialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -31,7 +32,7 @@ void showBackupRestoreDialog(
             children: [
               Center(
                 child: Text(
-                  'Backup & Restore',
+                  AppStrings.restoreBackup,
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 18,
@@ -41,7 +42,7 @@ void showBackupRestoreDialog(
               ),
               const SizedBox(height: 20),
               Text(
-                'Backup Path',
+                AppStrings.Backuppath,
                 style: TextStyle(fontWeight: FontWeight.w600),
               ),
               const SizedBox(height: 4),
@@ -67,7 +68,7 @@ void showBackupRestoreDialog(
                       if (result == null || result.files.isEmpty) {
                         if (context.mounted) {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text('No file selected.')),
+                            SnackBar(content: Text(AppStrings.Notselected)),
                           );
                         }
 
@@ -82,7 +83,7 @@ void showBackupRestoreDialog(
                       if (filePath == null) {
                         if (context.mounted) {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text('Invalid file path.')),
+                            SnackBar(content: Text(AppStrings.Invalidfilepath)),
                           );
                         }
 
@@ -99,7 +100,7 @@ void showBackupRestoreDialog(
                         if (success) {
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
-                              content: Text('Backup restored successfully.'),
+                              content: Text(AppStrings.restoreSuccess),
                             ),
                           );
 
@@ -121,7 +122,7 @@ void showBackupRestoreDialog(
                         } else {
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
-                              content: Text('Failed to restore backup.'),
+                              content: Text(AppStrings.restoreFailed),
                             ),
                           );
                           // 📊 Log failed restore
@@ -153,7 +154,7 @@ void showBackupRestoreDialog(
                     ),
                   ),
                   child: const Text(
-                    'Restore Data',
+                    AppStrings.restoreData,
                     style: TextStyle(fontSize: 16, color: Colors.white),
                   ),
                 ),

@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'screens/splash_screen.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
+import '../utils/strings.dart';
+
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -39,7 +41,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Shiftwise',
+      title: AppStrings.appTitle,
       theme: ThemeData(
         primarySwatch: Colors.red,
         appBarTheme: const AppBarTheme(

@@ -409,7 +409,7 @@ class _HomeScreenState extends State<HomeScreen>
                   controller: idController,
                   keyboardType: TextInputType.number,
                   decoration: const InputDecoration(
-                    labelText: 'Employee ID',
+                    labelText: AppStrings.empid,
                     labelStyle: TextStyle(color: Color(0xFF9E9E9E)),
                   ),
                 ),
@@ -418,7 +418,7 @@ class _HomeScreenState extends State<HomeScreen>
                 TextField(
                   controller: nameController,
                   decoration: const InputDecoration(
-                    labelText: 'Employee Name',
+                    labelText: AppStrings.empname,
                     labelStyle: TextStyle(color: Color(0xFF9E9E9E)),
                   ),
                   textCapitalization: TextCapitalization.sentences,
@@ -458,7 +458,7 @@ class _HomeScreenState extends State<HomeScreen>
                         Navigator.of(context).pop();
                       },
                       child: const Text(
-                        'Cancel',
+                        AppStrings.cancel,
                         style: TextStyle(color: Colors.grey, fontSize: 18),
                       ),
                     ),
@@ -480,7 +480,7 @@ class _HomeScreenState extends State<HomeScreen>
                           if (idExists) {
                             ScaffoldMessenger.of(context).showSnackBar(
                               const SnackBar(
-                                content: Text('Employee ID already exists'),
+                                content: Text(AppStrings.alredyexistID),
                                 backgroundColor: Colors.deepPurple,
                               ),
                             );
@@ -491,7 +491,7 @@ class _HomeScreenState extends State<HomeScreen>
                           if (existingNames.contains(name.toLowerCase())) {
                             ScaffoldMessenger.of(context).showSnackBar(
                               const SnackBar(
-                                content: Text('Employee name already exists'),
+                                content: Text(AppStrings.alredyexist),
                                 backgroundColor: Colors.red,
                               ),
                             );
@@ -526,7 +526,7 @@ class _HomeScreenState extends State<HomeScreen>
                         }
                       },
                       child: const Text(
-                        'Add',
+                        AppStrings.add,
                         style: TextStyle(
                           color: Colors.deepPurple,
                           fontSize: 18,
@@ -739,7 +739,7 @@ class _HomeScreenState extends State<HomeScreen>
               children: <Widget>[
                 const Center(
                   child: Text(
-                    'Remove Employee',
+                    AppStrings.removeEmployee,
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
@@ -749,12 +749,12 @@ class _HomeScreenState extends State<HomeScreen>
                 ),
                 const SizedBox(height: 16),
                 Text(
-                  'Are you sure you want to remove ${employee.name} from this week\'s shift table?',
+                  '${AppStrings.removeEmployeetext} ${employee.name} ${AppStrings.removeEmployeetext2}',
                   style: const TextStyle(fontSize: 16),
                 ),
                 const SizedBox(height: 8),
                 const Text(
-                  '(Employee will remain in your main employee list)',
+                  AppStrings.remains,
                   style: TextStyle(fontSize: 14, color: Colors.grey),
                 ),
                 const SizedBox(height: 16),
@@ -766,7 +766,7 @@ class _HomeScreenState extends State<HomeScreen>
                         Navigator.of(dialogContext).pop(false); // No refresh
                       },
                       child: const Text(
-                        'Cancel',
+                        AppStrings.cancel,
                         style: TextStyle(fontSize: 18, color: Colors.grey),
                       ),
                     ),
@@ -790,7 +790,7 @@ class _HomeScreenState extends State<HomeScreen>
                         Navigator.of(dialogContext).pop(true); // <-- Important
                       },
                       child: const Text(
-                        'Remove',
+                        AppStrings.remove,
                         style: TextStyle(
                           color: Colors.deepPurple,
                           fontSize: 18,
@@ -816,7 +816,7 @@ class _HomeScreenState extends State<HomeScreen>
   void _showShiftDialog(int employeeId, String day) async {
     final selectedDate = _currentWeekStart.add(
       Duration(
-        days: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].indexOf(day),
+        days: [AppStrings.mondayAbbr, AppStrings.tuesdayAbbr, AppStrings.wednesdayAbbr, AppStrings.thursdayAbbr, AppStrings.thursdayAbbr, AppStrings.saturdayAbbr, AppStrings.sundayAbbr].indexOf(day),
       ),
     );
 
@@ -949,7 +949,7 @@ class _HomeScreenState extends State<HomeScreen>
                       ),
                     ),
                     const SizedBox(height: 24),
-                    const Text('Shift name', style: TextStyle(fontSize: 16)),
+                    const Text(AppStrings.shiftname, style: TextStyle(fontSize: 16)),
                     RawAutocomplete<String>(
                       optionsBuilder: (TextEditingValue textEditingValue) async {
                         // Check if a suggestion was already selected
@@ -1139,7 +1139,7 @@ class _HomeScreenState extends State<HomeScreen>
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Text('Start Time'),
+                              const Text(AppStrings.startTime),
                               const SizedBox(height: 8),
                               InkWell(
                                 onTap: () async {
@@ -1184,7 +1184,7 @@ class _HomeScreenState extends State<HomeScreen>
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Text('End Time'),
+                              const Text(AppStrings.endTime),
                               const SizedBox(height: 8),
                               InkWell(
                                 onTap: () async {
@@ -1228,7 +1228,7 @@ class _HomeScreenState extends State<HomeScreen>
                     ),
                     const SizedBox(height: 24),
                     const Text(
-                      'Mark Attendance',
+                      AppStrings.featureMarkAttendance,
                       style: TextStyle(fontSize: 16),
                     ),
                     const SizedBox(height: 8),
@@ -1263,7 +1263,7 @@ class _HomeScreenState extends State<HomeScreen>
                                 );
                               } else if (!isFutureDay) {
                                 setState(() {
-                                  attendance = 'Present';
+                                  attendance = AppStrings.Present;
                                 });
                               }
                             },
@@ -1271,7 +1271,7 @@ class _HomeScreenState extends State<HomeScreen>
                               mainAxisSize: MainAxisSize.min,
                               children: [
                                 Radio<String>(
-                                  value: 'Present',
+                                  value: AppStrings.Present,
                                   groupValue: attendance,
                                   onChanged: isFutureDay
                                       ? null
@@ -1313,7 +1313,7 @@ class _HomeScreenState extends State<HomeScreen>
                                 ),
                                 const SizedBox(width: 4), // minimal gap
                                 const Text(
-                                  'Present',
+                                  AppStrings.Present,
                                   style: TextStyle(fontSize: 15),
                                 ),
                               ],
@@ -1350,7 +1350,7 @@ class _HomeScreenState extends State<HomeScreen>
                                       );
                                     } else {
                                       setState(() {
-                                        attendance = 'Absent';
+                                        attendance = AppStrings.Absent;
                                       });
                                     }
                                   },
@@ -1358,7 +1358,7 @@ class _HomeScreenState extends State<HomeScreen>
                               mainAxisSize: MainAxisSize.min,
                               children: [
                                 Radio<String>(
-                                  value: 'Absent',
+                                  value: AppStrings.Absent,
                                   groupValue: attendance,
                                   onChanged: isFutureDay
                                       ? null
@@ -1379,7 +1379,7 @@ class _HomeScreenState extends State<HomeScreen>
                                 ),
                                 const SizedBox(width: 4), // minimal gap
                                 const Text(
-                                  'Absent',
+                                  AppStrings.Absent,
                                   style: TextStyle(fontSize: 15),
                                 ),
                               ],
@@ -1415,7 +1415,7 @@ class _HomeScreenState extends State<HomeScreen>
                                       );
                                     } else {
                                       setState(() {
-                                        attendance = 'Leave';
+                                        attendance = AppStrings.Leave;
                                       });
                                     }
                                   },
@@ -1423,7 +1423,7 @@ class _HomeScreenState extends State<HomeScreen>
                               mainAxisSize: MainAxisSize.min,
                               children: [
                                 Radio<String>(
-                                  value: 'Leave',
+                                  value: AppStrings.Leave,
                                   groupValue: attendance,
                                   onChanged: isFutureDay
                                       ? null
@@ -1445,7 +1445,7 @@ class _HomeScreenState extends State<HomeScreen>
                                 ),
                                 const SizedBox(width: 4),
                                 const Text(
-                                  'Leave',
+                                  AppStrings.Leave,
                                   style: TextStyle(fontSize: 15),
                                 ),
                               ],
@@ -1458,7 +1458,7 @@ class _HomeScreenState extends State<HomeScreen>
                     if (isFutureDay) ...[
                       const SizedBox(height: 8),
                       const Text(
-                        '(Attendance can only be marked for today and prior dates.)',
+                        AppStrings.markAttendancelimit,
                         style: TextStyle(fontSize: 12, color: Colors.grey),
                         textAlign: TextAlign.center,
                       ),
@@ -1481,7 +1481,7 @@ class _HomeScreenState extends State<HomeScreen>
                             });
                           },
                           child: const Text(
-                            'Clear', // <-- change text if needed
+                            AppStrings.clear, // <-- change text if needed
                             style: TextStyle(
                               color: Colors.deepPurple,
                               fontSize: 18,
@@ -1496,7 +1496,7 @@ class _HomeScreenState extends State<HomeScreen>
                             TextButton(
                               onPressed: () => Navigator.pop(context),
                               child: const Text(
-                                'Cancel',
+                                AppStrings.cancel,
                                 style: TextStyle(
                                   color: Colors.grey,
                                   fontSize: 18,
@@ -1574,7 +1574,7 @@ class _HomeScreenState extends State<HomeScreen>
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     const SnackBar(
                                       content: Text(
-                                        'Please enter a shift name or time range.',
+                                        AppStrings.shiftwarning,
                                       ),
                                       backgroundColor: Colors.redAccent,
                                     ),
@@ -1582,7 +1582,7 @@ class _HomeScreenState extends State<HomeScreen>
                                 }
                               },
                               child: const Text(
-                                'Save',
+                                AppStrings.save,
                                 style: TextStyle(
                                   color: Colors.deepPurple,
                                   fontSize: 18,
@@ -1747,7 +1747,7 @@ Widget build(BuildContext context) {
         mainAxisAlignment: MainAxisAlignment.start,
         children: [
           const Text(
-            'Shiftwise',
+            AppStrings.appTitle,
             style: TextStyle(
               color: Colors.deepPurple,
               fontWeight: FontWeight.bold,
@@ -1812,7 +1812,7 @@ Widget build(BuildContext context) {
                   borderRadius: BorderRadius.circular(6),
                 ),
               ),
-              child: const Text('Go Pro'),
+              child: const Text(AppStrings.goProButton),
             ),
           ),
       ],
@@ -1899,11 +1899,11 @@ Widget build(BuildContext context) {
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
                                     const Text(
-                                      'Your shift tracking will appear here.',
+                                      AppStrings.emptytable,
                                       style: TextStyle(fontSize: 15),
                                     ),
                                     const Text(
-                                      'Tap below to begin.',
+                                      AppStrings.begin,
                                       style: TextStyle(fontSize: 15),
                                     ),
                                     const SizedBox(height: 20),
@@ -1917,7 +1917,7 @@ Widget build(BuildContext context) {
                                       ),
                                       onPressed: _handleAddEmployeePressed,
                                       child: const Text(
-                                        'Add Employee',
+                                        AppStrings.addEmployee,
                                         style: TextStyle(
                                           color: Colors.white,
                                           fontSize: 14,
@@ -1957,7 +1957,7 @@ Widget build(BuildContext context) {
 
 
   Widget _buildEmptyShiftTable() {
-    const List<String> days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    const List<String> days = [AppStrings.mondayAbbrc, AppStrings.tuesdayAbbrc, AppStrings.wednesdayAbbrc, AppStrings.thursdayAbbrc, AppStrings.thursdayAbbrc, AppStrings.saturdayAbbrc, AppStrings.sundayAbbrc];
     final dateFormat = DateFormat('d');
     const double cellWidth = 75.0;
     const double rowHeight = 40.0;
@@ -1999,7 +1999,7 @@ Widget build(BuildContext context) {
                         ),
                       ),
                       child: const Text(
-                        'Employee',
+                        AppStrings.employee,
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
                           color: Colors.white,
@@ -2093,7 +2093,7 @@ Widget build(BuildContext context) {
                   const Padding(
                     padding: EdgeInsets.symmetric(horizontal: 20),
                     child: Text(
-                      "Unlock Advanced Shift Scheduling",
+                      AppStrings.unlock,
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         fontSize: 18,
@@ -2106,7 +2106,7 @@ Widget build(BuildContext context) {
                   const Padding(
                     padding: EdgeInsets.symmetric(horizontal: 20),
                     child: Text(
-                      "You can create shifts for the upcoming or previous weeks with the Pro version.",
+                      AppStrings.proversion,
                       textAlign: TextAlign.center,
                       style: TextStyle(fontSize: 14.5, color: Colors.black),
                     ),
@@ -2131,7 +2131,7 @@ Widget build(BuildContext context) {
                       ),
                     ),
                     child: const Text(
-                      "Go Pro",
+                      AppStrings.goProButton,
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
@@ -2147,7 +2147,7 @@ Widget build(BuildContext context) {
   }
 
   Widget _buildShiftTable() {
-    const List<String> days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    const List<String> days = [AppStrings.mondayAbbrc, AppStrings.tuesdayAbbrc, AppStrings.wednesdayAbbrc, AppStrings.thursdayAbbrc, AppStrings.thursdayAbbrc, AppStrings.saturdayAbbrc, AppStrings.sundayAbbrc];
     final dateFormat = DateFormat('d');
     const double cellWidth = 75.0;
     const double rowHeight = 80.0;
@@ -2200,7 +2200,7 @@ Widget build(BuildContext context) {
                             ),
                           ),
                           child: const Text(
-                            'Employee',
+                            AppStrings.employee,
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
                               color: Colors.white,
@@ -2584,11 +2584,11 @@ Widget build(BuildContext context) {
                                                                 decoration: BoxDecoration(
                                                                   color:
                                                                       shift['status'] ==
-                                                                          'Present'
+                                                                          AppStrings.Present
                                                                       ? Colors
                                                                             .green
                                                                       : shift['status'] ==
-                                                                            'Absent'
+                                                                            AppStrings.Absent
                                                                       ? Colors
                                                                             .red
                                                                       : Colors
@@ -2604,10 +2604,10 @@ Widget build(BuildContext context) {
                                                                 child: Center(
                                                                   child: Text(
                                                                     shift['status'] ==
-                                                                            'Present'
+                                                                            AppStrings.Present
                                                                         ? 'P'
                                                                         : shift['status'] ==
-                                                                              'Absent'
+                                                                              AppStrings.Absent
                                                                         ? 'A'
                                                                         : 'L',
                                                                     textAlign:
@@ -2680,7 +2680,7 @@ Widget build(BuildContext context) {
                       const Padding(
                         padding: EdgeInsets.symmetric(horizontal: 20),
                         child: Text(
-                          "Unlock Advanced Shift Scheduling",
+                          AppStrings.unlock,
                           textAlign: TextAlign.center,
                           style: TextStyle(
                             fontSize: 18,
@@ -2693,7 +2693,7 @@ Widget build(BuildContext context) {
                       const Padding(
                         padding: EdgeInsets.symmetric(horizontal: 20),
                         child: Text(
-                          "You can create shifts for the upcoming weeks in advance with Pro version",
+                          AppStrings.proversion,
                           textAlign: TextAlign.center,
                           style: TextStyle(fontSize: 14.5, color: Colors.black),
                         ),
@@ -2720,7 +2720,7 @@ Widget build(BuildContext context) {
                           ),
                         ),
                         child: const Text(
-                          "Go Pro",
+                          AppStrings.goProButton,
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
@@ -2834,7 +2834,7 @@ Widget build(BuildContext context) {
                       child: Align(
                         alignment: Alignment.centerLeft,
                         child: Text(
-                          'Select Employees',
+                          AppStrings.select,
                           style: TextStyle(fontSize: 24),
                         ),
                       ),
@@ -2927,7 +2927,7 @@ Widget build(BuildContext context) {
                             }
                           },
                           child: const Text(
-                            'Add New', // Button text
+                            AppStrings.addnew, // Button text
                             style: TextStyle(
                               color: Colors.deepPurple,
                               fontSize: 18,
@@ -2959,7 +2959,7 @@ Widget build(BuildContext context) {
                                   if (context.mounted) Navigator.pop(context);
                                 },
                           child: Text(
-                            'Add',
+                            AppStrings.add, // Button text
                             style: TextStyle(
                               color: selectedEmployeeIds.isEmpty
                                   ? Colors.grey

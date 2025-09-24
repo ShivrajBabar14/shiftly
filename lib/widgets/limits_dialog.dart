@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../utils/strings.dart';
 
 class LimitsDialog extends StatefulWidget {
   final VoidCallback onGoPro;
@@ -41,7 +42,7 @@ class _LimitsDialogState extends State<LimitsDialog> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Text(
-              'Unlock premium features with Shiftwise Pro',
+              AppStrings.unlockPremiumTitle,
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w600,
@@ -50,10 +51,10 @@ class _LimitsDialogState extends State<LimitsDialog> {
               ),
             ),
             const SizedBox(height: 20),
-            _buildFeatureItem('Add unlimited employees'),
-            _buildFeatureItem('Auto Backup'),
-            _buildFeatureItem('Access advanced shift scheduling'),
-            _buildFeatureItem('Mark Attendance.'),
+            _buildFeatureItem(AppStrings.featureUnlimitedEmployees),
+            _buildFeatureItem(AppStrings.featureAutoBackup),
+            _buildFeatureItem(AppStrings.featureAdvancedScheduling),
+            _buildFeatureItem(AppStrings.featureMarkAttendance),
             const SizedBox(height: 24),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -64,7 +65,7 @@ class _LimitsDialogState extends State<LimitsDialog> {
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                   ),
                   child: const Text(
-                    'Continue Free',
+                    AppStrings.continueFreeButton,
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
@@ -82,7 +83,7 @@ class _LimitsDialogState extends State<LimitsDialog> {
                     ),
                   ),
                   child: const Text(
-                    'Go Pro',
+                    AppStrings.goProButton,
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w500,

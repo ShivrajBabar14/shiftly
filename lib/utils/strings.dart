@@ -13,8 +13,8 @@ class AppStrings {
   // static const String cancel = "Cancel";
 
   // // Home Screen
-  // static const String allEmployees = "All Employees";
-  // static const String addEmployee = "Add Employee";
+  static const String employee = "Employees";
+  static const String addEmployee = "Add Employee";
 
   // // Login Screen
   // static const String email = "Email";
@@ -25,4 +25,153 @@ class AppStrings {
   // // Error messages
   // static const String somethingWentWrong = "Something went wrong!";
   // static const String enterValidEmail = "Please enter a valid email.";
+
+
+  //Title
+  static const String appTitle = 'Shiftwise';
+
+  // Limits Dialog Strings
+  static const String unlockPremiumTitle = 'Unlock premium features with Shiftwise Pro';
+  static const String featureUnlimitedEmployees = 'Add unlimited employees';
+  static const String featureAutoBackup = 'Auto Backup';
+  static const String featureAdvancedScheduling = 'Access advanced shift scheduling';
+  static const String featureMarkAttendance = 'Mark Attendance';
+  static const String continueFreeButton = 'Continue Free';
+  static const String goProButton = 'Go Pro';
+
+  //success dialog
+  static const String Congratulations = 'Congratulations!';
+  static const String Congratulationstext = 'You have now successfully subscribed to Shiftwise Pro.';
+  static const String Continue = 'Continue';
+
+  //backup  
+  static const String Notfound = 'No backup found';
+  static const String backupDescription = 'Create a backup of your data to prevent loss.';
+  static const String Backuppath = 'Backup Path';
+  static const String restoreBackup = 'Backup & Restore';
+  static const String backupSuccess = 'Backup created successfully!';
+  static const String backupFailed = 'Backup failed. Please try again.';
+  static const String Notselected = 'No file selected.';
+  static const String Invalidfilepath = 'Invalid file path.';
+  static const String restoreSuccess = 'Backup restored successfully.';
+  static const String restoreFailed = 'Failed to restore backup.';
+  static const String restoreData = 'Restore Data';
+
+  //subscription
+  static const String Annually = 'Annually';
+  static const String subscriptionSubtitle = 'Select a subscription plan that suits your needs.';
+  static const String monthly = 'Monthly';
+  static const String service = 'Google Play services not available';
+  static const String ShiftwisePro = 'Shiftwise Pro';
+  static const String featureUnlimitedEmployeesTitle = 'Unlimited Employee Access';
+  static const String featureUnlimitedEmployeesSubtitle = 'Add more than 5 employees to your team with a paid plan';
+  static const String featureAutoBackupTitle = 'Auto Backup';
+  static const String featureAutoBackupSubtitle = 'Keep your data safe with automatic backup feature';
+  static const String featureAdvancedSchedulingTitle = 'Advanced Shift Scheduling';
+  static const String featureAdvancedSchedulingSubtitle = 'Create shifts for the upcoming weeks in advance.';
+  static const String featureMarkAttendanceTitle = 'Mark Attendance';
+  static const String featureMarkAttendanceSubtitle = 'Keep track of daily attendance of your team.';
+  static const String save = 'save';
+
+  //sidebar
+  static const String feedback = 'Write Feedback';
+  static const String rateUs = 'Rate Us';
+  static const String shareApp = 'Share App';
+  static const String noMailApp = 'No mail app found on this device.';
+  static const String noGmailApp = 'Failed to open Gmail app.';
+  static const String noPlayStoreApp = 'Play Store app not found on this device.';
+  static const String privacyPolicy = 'Privacy Policy';
+  static const String termsOfService = 'Terms of Service';
+  static const String about = 'About';
+  static const String version = 'Version';
+  static const String developedBy = 'Developed by Linear Apps';
+  static const String contactEmail = 'Contact';
+  static const String AllEmployees = "All Employees";
+  static const String failplaystore = "Failed to open Play Store.";
+  static const String failshare = 'Failed to share the app.';
+
+  //All Employees
+  static const String update = 'Update';
+  static const String errorupdate = 'Error updating employee:';
+  static const String alredyexist = 'Employee name already exists';
+  static const String alredyexistID = 'Employee ID already exists';
+  static const String cancel = 'Cancel';
+  static const String empname = "Employee Name";
+  static const String empid = "Employee ID";
+  static const String add = "Add";
+
+  //Shift Details
+  static const String shiftDetails = 'Shift Details';
+  static const String monday = 'Monday';
+  static const String tuesday = 'Tuesday';
+  static const String wednesday = 'Wednesday';
+  static const String thursday = 'Thursday';
+  static const String friday = 'Friday';
+  static const String saturday = 'Saturday';
+  static const String sunday = 'Sunday';
+  static const String shareImgtext = 'Employee Shift for';
+  static const String shift = 'shift';
+  static const String shiftshare = 'employee_shift_shared';
+  static const String img = 'image';
+  static const String pdf = 'pdf';
+  static const String shareimg = 'Share Image';
+  static const String sharepdf = 'Share PDF';
+  static const String Date = 'Date';
+
+  //Remove Employee
+  static const String removeEmployee = 'Remove Employee';
+  static const String removeEmployeetext = 'Are you sure you want to remove';
+  static const String removeEmployeetext2 = 'from this week\'s shift table?';
+  static const String remains = '(Employee will remain in your main employee list)';
+  static const String remove = 'Remove';
+
+  //Home Screen
+  static const String mondayAbbrc = 'Mon';
+  static const String tuesdayAbbrc = 'Tue';
+  static const String wednesdayAbbrc = 'Wed';
+  static const String thursdayAbbrc = 'Thu';
+  static const String fridayAbbrc = 'Fri';
+  static const String saturdayAbbrc = 'Sat';
+  static const String sundayAbbrc = 'Sun';
+  static const String mondayAbbr = 'mon';
+  static const String tuesdayAbbr = 'tue';
+  static const String wednesdayAbbr = 'wed';
+  static const String thursdayAbbr = 'thu';
+  static const String fridayAbbr = 'fri';
+  static const String saturdayAbbr = 'sat';
+  static const String sundayAbbr = 'sun';
+
+  //shift dialog
+  static const String addShift = 'Add Shift';
+  static const String startTime = 'Start Time';
+  static const String endTime = 'End Time';
+  static const String shiftname = 'Shift Name';
+  static const String Present = 'Present';
+  static const String Absent = 'Absent';
+  static const String Leave = 'Leave';
+  static const String clear = 'Clear';
+  static const String markAttendancelimit = '(Attendance can only be marked for today and prior dates.)';
+  static const String shiftwarning = 'Please enter a shift name or time range.';
+  static const String emptytable = 'Your shift tracking will appear here.';
+  static const String begin = 'Tap below to begin.';
+  static const String unlock = 'Unlock Advanced Shift Scheduling';
+  static const String proversion = 'You can create shifts for the upcoming or previous weeks with the Pro version.';
+  static const String select = 'Select Employees';
+  static const String addnew = 'Add New';
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
 }

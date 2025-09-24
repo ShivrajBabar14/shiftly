@@ -88,12 +88,35 @@ class _EmployeeShiftScreenState extends State<EmployeeShiftScreen> {
       _isLoading = true;
     });
     final weekStartMillis = _currentWeekStart.millisecondsSinceEpoch;
+    print('DEBUG: Loading shift data for employee ${widget.employee.employeeId} at week start $weekStartMillis');
     final data =
         await _dbHelper.getShiftsForEmployeeWeek(widget.employee.employeeId!, weekStartMillis);
+    print('DEBUG: Fetched shift data: $data');
+
+    // If no data, check if employee is assigned to the week and add if not
+    if (data.isEmpty) {
+      print('DEBUG: No shift data found, checking week assignment');
+      final assignments = await _dbHelper.getEmployeesForWeek(weekStartMillis);
+      final isAssigned = assignments.any((emp) => emp['employee_id'] == widget.employee.employeeId);
+      if (!isAssigned) {
+        print('DEBUG: Employee not assigned to week, adding now');
+        await _dbHelper.addEmployeeToWeek(widget.employee.employeeId!, weekStartMillis);
+        // Reload data after adding
+        final newData = await _dbHelper.getShiftsForEmployeeWeek(widget.employee.employeeId!, weekStartMillis);
+        print('DEBUG: Reloaded shift data after adding: $newData');
+        setState(() {
+          _shiftData = newData;
+          _isLoading = false;
+        });
+        return;
+      }
+    }
+
     setState(() {
       _shiftData = data;
       _isLoading = false;
     });
+    print('DEBUG: _shiftData set to $_shiftData');
   }
 
   void _changeWeek(int days) {
@@ -122,19 +145,23 @@ class _EmployeeShiftScreenState extends State<EmployeeShiftScreen> {
 
   Map<String, dynamic>? _getShiftForDay(String day) {
     final dayMap = {
-      'Monday': 'mon',
-      'Tuesday': 'tue',
-      'Wednesday': 'wed',
-      'Thursday': 'thu',
-      'Friday': 'fri',
-      'Saturday': 'sat',
-      'Sunday': 'sun',
+      AppStrings.monday: AppStrings.mondayAbbr,
+      AppStrings.tuesday: AppStrings.tuesdayAbbr,
+      AppStrings.wednesday: AppStrings.wednesdayAbbr,
+      AppStrings.thursday: AppStrings.thursdayAbbr,
+      AppStrings.friday: AppStrings.fridayAbbr,
+      AppStrings.saturday: AppStrings.saturdayAbbr,
+      AppStrings.sunday: AppStrings.sundayAbbr,
     };
     final dbDay = dayMap[day] ?? day.toLowerCase();
+    print('DEBUG: Looking for day $day mapped to $dbDay in _shiftData');
 
     try {
-      return _shiftData.firstWhere((shift) => shift['day'] == dbDay);
+      final shift = _shiftData.firstWhere((shift) => shift['day'] == dbDay);
+      print('DEBUG: Found shift for $dbDay: $shift');
+      return shift;
     } catch (e) {
+      print('DEBUG: No shift found for $dbDay');
       return null;
     }
   }
@@ -144,11 +171,11 @@ class _EmployeeShiftScreenState extends State<EmployeeShiftScreen> {
     if (image == null) return;
 
     final tempDir = await getTemporaryDirectory();
-    final file = await File('${tempDir.path}/shift.png').writeAsBytes(image);
+    final file = await File('${tempDir.path}/${AppStrings.shift}.png').writeAsBytes(image);
 
     final dateRange = _formatDateRange();
 
-    await Share.shareXFiles([XFile(file.path)], text: 'Employee Shift for $dateRange');
+    await Share.shareXFiles([XFile(file.path)], text: '${AppStrings.shareImgtext} $dateRange');
   }
 
   Future<void> _sharePDF() async {
@@ -172,7 +199,7 @@ class _EmployeeShiftScreenState extends State<EmployeeShiftScreen> {
       ),
     );
 
-    await Printing.sharePdf(bytes: await pdf.save(), filename: 'shift.pdf');
+    await Printing.sharePdf(bytes: await pdf.save(), filename: '${AppStrings.shift}.pdf');
   }
 
   @override
@@ -198,7 +225,7 @@ class _EmployeeShiftScreenState extends State<EmployeeShiftScreen> {
               icon: const Icon(Icons.share, color: Colors.deepPurple),
               onSelected: (value) async {
                 await widget._analytics.logEvent(
-                  name: 'employee_shift_shared',
+                  name: AppStrings.shiftshare,
                   parameters: {
                     'employee_id': widget.employee.employeeId,
                     'employee_name': widget.employee.name,
@@ -206,31 +233,31 @@ class _EmployeeShiftScreenState extends State<EmployeeShiftScreen> {
                   },
                 );
 
-                if (value == 'image') {
+                if (value == AppStrings.img) {
                   await _shareImage();
-                } else if (value == 'pdf') {
+                } else if (value == AppStrings.pdf) {
                   await _sharePDF();
                 }
               },
               itemBuilder: (BuildContext context) {
                 return [
                   PopupMenuItem<String>(
-                    value: 'image',
+                    value: AppStrings.img,
                     child: Row(
                       children: const [
                         Icon(Icons.image, color: Colors.deepPurple),
                         SizedBox(width: 8),
-                        Text('Share Image'),
+                        Text(AppStrings.shareimg),
                       ],
                     ),
                   ),
                   PopupMenuItem<String>(
-                    value: 'pdf',
+                    value: AppStrings.pdf,
                     child: Row(
                       children: const [
                         Icon(Icons.picture_as_pdf, color: Colors.deepPurple),
                         SizedBox(width: 8),
-                        Text('Share PDF'),
+                        Text(AppStrings.sharepdf),
                       ],
                     ),
                   ),
@@ -333,7 +360,7 @@ class _EmployeeShiftScreenState extends State<EmployeeShiftScreen> {
                                       padding: const EdgeInsets.symmetric(vertical: 12),
                                       child: Center(
                                         child: Text(
-                                          'Date',
+                                          AppStrings.Date,
                                           style: TextStyle(
                                             color: Colors.white,
                                             fontWeight: FontWeight.bold,
@@ -345,7 +372,7 @@ class _EmployeeShiftScreenState extends State<EmployeeShiftScreen> {
                                       padding: const EdgeInsets.symmetric(vertical: 12),
                                       child: Center(
                                         child: Text(
-                                          'Shift',
+                                          AppStrings.shift,
                                           style: TextStyle(
                                             color: Colors.white,
                                             fontWeight: FontWeight.bold,
@@ -359,6 +386,7 @@ class _EmployeeShiftScreenState extends State<EmployeeShiftScreen> {
                                   final dayName = _dayLabel(index);
                                   final dateNumber = _dateLabel(index);
                                   final shift = _getShiftForDay(dayName);
+                                  print('DEBUG: Day $dayName, shift: $shift');
 
                                   return TableRow(
                                     decoration: BoxDecoration(
@@ -460,9 +488,9 @@ class _EmployeeShiftScreenState extends State<EmployeeShiftScreen> {
                                                           margin: const EdgeInsets.only(top: 8.0),
                                                           padding: const EdgeInsets.symmetric(horizontal: 4.0, vertical: 2.0),
                                                           decoration: BoxDecoration(
-                                                            color: shift!['status'] == 'Present'
+                                                            color: shift!['status'] == AppStrings.Present
                                                                 ? Colors.green
-                                                                : shift!['status'] == 'Absent'
+                                                                : shift!['status'] == AppStrings.Absent
                                                                     ? Colors.red
                                                                     : Colors.yellow[700],
                                                             borderRadius: BorderRadius.circular(4.0),
