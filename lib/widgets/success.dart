@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import '../utils/strings.dart';
+import '../generated/l10n.dart';
+ 
 
 void showSuccessDialog({
   required BuildContext context,
@@ -74,8 +75,8 @@ class SuccessDialog extends StatelessWidget {
                 ),
               ),
             const SizedBox(height: 20),
-            const Text(
-              AppStrings.Congratulations,
+            Text(
+              S.of(context).Congratulations,
               style: TextStyle(
                 fontSize: 22,
                 fontWeight: FontWeight.bold,
@@ -83,8 +84,8 @@ class SuccessDialog extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 16),
-            const Text(
-              AppStrings.Congratulationstext,
+            Text(
+              S.of(context).Congratulationstext,
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 16,
@@ -107,8 +108,8 @@ class SuccessDialog extends StatelessWidget {
                     borderRadius: BorderRadius.circular(8),
                   ),
                 ),
-                child: const Text(
-                  AppStrings.Continue,
+                child: Text(
+                  S.of(context).Continue,
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,

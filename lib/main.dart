@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'screens/splash_screen.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
-import '../utils/strings.dart';
+import 'generated/l10n.dart';
+import 'package:flutter_localizations/flutter_localizations.dart'; 
 
 
 Future<void> main() async {
@@ -41,7 +42,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: AppStrings.appTitle,
+      title: 'Shiftwise',
       theme: ThemeData(
         primarySwatch: Colors.red,
         appBarTheme: const AppBarTheme(
@@ -52,6 +53,14 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
       navigatorKey: _navigatorKey,
       home: const SplashScreen(),
       debugShowCheckedModeBanner: false,
+      // Localization configuration:
+      localizationsDelegates: [
+        S.delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      supportedLocales: S.delegate.supportedLocales,
     );
   }
 }

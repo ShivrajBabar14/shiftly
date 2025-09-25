@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../utils/strings.dart';
+import '../generated/l10n.dart';
 
 class LimitsDialog extends StatefulWidget {
   final VoidCallback onGoPro;
@@ -41,8 +41,8 @@ class _LimitsDialogState extends State<LimitsDialog> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              AppStrings.unlockPremiumTitle,
+            Text(
+              S.of(context).unlockPremiumTitle,
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w600,
@@ -51,10 +51,10 @@ class _LimitsDialogState extends State<LimitsDialog> {
               ),
             ),
             const SizedBox(height: 20),
-            _buildFeatureItem(AppStrings.featureUnlimitedEmployees),
-            _buildFeatureItem(AppStrings.featureAutoBackup),
-            _buildFeatureItem(AppStrings.featureAdvancedScheduling),
-            _buildFeatureItem(AppStrings.featureMarkAttendance),
+            _buildFeatureItem(S.of(context).featureUnlimitedEmployees),
+            _buildFeatureItem(S.of(context).featureAutoBackup),
+            _buildFeatureItem(S.of(context).featureAdvancedScheduling),
+            _buildFeatureItem(S.of(context).featureMarkAttendance),
             const SizedBox(height: 24),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -64,8 +64,8 @@ class _LimitsDialogState extends State<LimitsDialog> {
                   style: TextButton.styleFrom(
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                   ),
-                  child: const Text(
-                    AppStrings.continueFreeButton,
+                  child: Text(
+                    S.of(context).continueFreeButton,
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
@@ -82,8 +82,8 @@ class _LimitsDialogState extends State<LimitsDialog> {
                       borderRadius: BorderRadius.circular(8),
                     ),
                   ),
-                  child: const Text(
-                    AppStrings.goProButton,
+                  child: Text(
+                    S.of(context).goProButton,
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w500,

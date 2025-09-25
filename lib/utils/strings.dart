@@ -1,36 +1,9 @@
 // lib/utils/strings.dart
 class AppStrings {
-
-  //Test Ad Unit ID
-  // static const String bannerAdUnitID = 'ca-app-pub-3940256099942544/6300978111';
-
-  //Live Ad Unit IDs
   static const String bannerAdUnitID = 'ca-app-pub-4784249065269929/8967261627';
-
-  // General
-  // static const String appName = "Shiftly";
-  // static const String ok = "OK";
-  // static const String cancel = "Cancel";
-
-  // // Home Screen
   static const String employee = "Employees";
   static const String addEmployee = "Add Employee";
-
-  // // Login Screen
-  // static const String email = "Email";
-  // static const String password = "Password";
-  // static const String login = "Login";
-  // static const String forgotPassword = "Forgot Password?";
-
-  // // Error messages
-  // static const String somethingWentWrong = "Something went wrong!";
-  // static const String enterValidEmail = "Please enter a valid email.";
-
-
-  //Title
   static const String appTitle = 'Shiftwise';
-
-  // Limits Dialog Strings
   static const String unlockPremiumTitle = 'Unlock premium features with Shiftwise Pro';
   static const String featureUnlimitedEmployees = 'Add unlimited employees';
   static const String featureAutoBackup = 'Auto Backup';
@@ -38,13 +11,9 @@ class AppStrings {
   static const String featureMarkAttendance = 'Mark Attendance';
   static const String continueFreeButton = 'Continue Free';
   static const String goProButton = 'Go Pro';
-
-  //success dialog
   static const String Congratulations = 'Congratulations!';
   static const String Congratulationstext = 'You have now successfully subscribed to Shiftwise Pro.';
   static const String Continue = 'Continue';
-
-  //backup  
   static const String Notfound = 'No backup found';
   static const String backupDescription = 'Create a backup of your data to prevent loss.';
   static const String Backuppath = 'Backup Path';
@@ -56,8 +25,6 @@ class AppStrings {
   static const String restoreSuccess = 'Backup restored successfully.';
   static const String restoreFailed = 'Failed to restore backup.';
   static const String restoreData = 'Restore Data';
-
-  //subscription
   static const String Annually = 'Annually';
   static const String subscriptionSubtitle = 'Select a subscription plan that suits your needs.';
   static const String monthly = 'Monthly';
@@ -72,8 +39,6 @@ class AppStrings {
   static const String featureMarkAttendanceTitle = 'Mark Attendance';
   static const String featureMarkAttendanceSubtitle = 'Keep track of daily attendance of your team.';
   static const String save = 'save';
-
-  //sidebar
   static const String feedback = 'Write Feedback';
   static const String rateUs = 'Rate Us';
   static const String shareApp = 'Share App';
@@ -89,8 +54,6 @@ class AppStrings {
   static const String AllEmployees = "All Employees";
   static const String failplaystore = "Failed to open Play Store.";
   static const String failshare = 'Failed to share the app.';
-
-  //All Employees
   static const String update = 'Update';
   static const String errorupdate = 'Error updating employee:';
   static const String alredyexist = 'Employee name already exists';
@@ -99,8 +62,6 @@ class AppStrings {
   static const String empname = "Employee Name";
   static const String empid = "Employee ID";
   static const String add = "Add";
-
-  //Shift Details
   static const String shiftDetails = 'Shift Details';
   static const String monday = 'Monday';
   static const String tuesday = 'Tuesday';
@@ -117,15 +78,11 @@ class AppStrings {
   static const String shareimg = 'Share Image';
   static const String sharepdf = 'Share PDF';
   static const String Date = 'Date';
-
-  //Remove Employee
   static const String removeEmployee = 'Remove Employee';
   static const String removeEmployeetext = 'Are you sure you want to remove';
   static const String removeEmployeetext2 = 'from this week\'s shift table?';
   static const String remains = '(Employee will remain in your main employee list)';
   static const String remove = 'Remove';
-
-  //Home Screen
   static const String mondayAbbrc = 'Mon';
   static const String tuesdayAbbrc = 'Tue';
   static const String wednesdayAbbrc = 'Wed';
@@ -140,8 +97,6 @@ class AppStrings {
   static const String fridayAbbr = 'fri';
   static const String saturdayAbbr = 'sat';
   static const String sundayAbbr = 'sun';
-
-  //shift dialog
   static const String addShift = 'Add Shift';
   static const String startTime = 'Start Time';
   static const String endTime = 'End Time';
@@ -157,21 +112,4 @@ class AppStrings {
   static const String unlock = 'Unlock Advanced Shift Scheduling';
   static const String proversion = 'You can create shifts for the upcoming or previous weeks with the Pro version.';
   static const String select = 'Select Employees';
-  static const String addnew = 'Add New';
-
-
-
-
-
-  
-
-
-
-  
-
-
-
-
-
-
-}
+  static const String addnew = 'Add New';}

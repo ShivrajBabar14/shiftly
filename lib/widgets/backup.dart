@@ -4,8 +4,8 @@ import 'package:intl/intl.dart';
 import 'package:Shiftwise/db/database_helper.dart';
 import 'package:Shiftwise/services/backup_refresh_service.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
-import '../utils/strings.dart';
-// import 'package:Shiftwise/screens/home_screen.dart';
+import '../generated/l10n.dart';
+
 
 final FirebaseAnalytics analytics = FirebaseAnalytics.instance;
 
@@ -20,7 +20,7 @@ void showBackupRestoreDialog(
     builder: (context) {
       final lastBackupStr = lastBackupDate != null
           ? DateFormat('dd MMM yyyy HH:mm').format(lastBackupDate)
-          : AppStrings.Notfound;
+          : S.of(context).Notfound;
 
       return Dialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -32,7 +32,7 @@ void showBackupRestoreDialog(
             children: [
               Center(
                 child: Text(
-                  AppStrings.restoreBackup,
+                  S.of(context).restoreBackup,
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 18,
@@ -42,7 +42,7 @@ void showBackupRestoreDialog(
               ),
               const SizedBox(height: 20),
               Text(
-                AppStrings.Backuppath,
+                S.of(context).Backuppath,
                 style: TextStyle(fontWeight: FontWeight.w600),
               ),
               const SizedBox(height: 4),
@@ -68,7 +68,7 @@ void showBackupRestoreDialog(
                       if (result == null || result.files.isEmpty) {
                         if (context.mounted) {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text(AppStrings.Notselected)),
+                            SnackBar(content: Text(S.of(context).Notselected)),
                           );
                         }
 
@@ -83,7 +83,7 @@ void showBackupRestoreDialog(
                       if (filePath == null) {
                         if (context.mounted) {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text(AppStrings.Invalidfilepath)),
+                            SnackBar(content: Text(S.of(context).Invalidfilepath)),
                           );
                         }
 
@@ -100,7 +100,7 @@ void showBackupRestoreDialog(
                         if (success) {
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
-                              content: Text(AppStrings.restoreSuccess),
+                              content: Text(S.of(context).restoreSuccess),
                             ),
                           );
 
@@ -122,7 +122,7 @@ void showBackupRestoreDialog(
                         } else {
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
-                              content: Text(AppStrings.restoreFailed),
+                              content: Text(S.of(context).restoreFailed),
                             ),
                           );
                           // 📊 Log failed restore
@@ -153,8 +153,8 @@ void showBackupRestoreDialog(
                       borderRadius: BorderRadius.circular(10),
                     ),
                   ),
-                  child: const Text(
-                    AppStrings.restoreData,
+                  child: Text(
+                    S.of(context).restoreData,
                     style: TextStyle(fontSize: 16, color: Colors.white),
                   ),
                 ),

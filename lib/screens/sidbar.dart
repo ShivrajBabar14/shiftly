@@ -4,15 +4,15 @@ import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:share_plus/share_plus.dart';
 import 'add_employee_screen.dart';
-import 'home_screen.dart';
 import 'package:Shiftwise/db/database_helper.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../widgets/backup.dart';
 import 'package:Shiftwise/services/subscription_service.dart';
 import '../widgets/limits_dialog.dart';
-import '../utils/strings.dart';
 import 'subscription.dart';
+import '../generated/l10n.dart';
+
 
 class AppDrawer extends StatelessWidget {
   static const platform = MethodChannel('com.shift.schedule.app/mail');
@@ -61,11 +61,11 @@ class AppDrawer extends StatelessWidget {
                     ),
                   ),
                 ),
-                _buildDrawerItem(Icons.group, AppStrings.AllEmployees, context),
+                _buildDrawerItem(Icons.group, S.of(context).AllEmployees, context),
                 ListTile(
                   leading: Icon(Icons.restore, color: Colors.deepPurple),
                   title: Text(
-                    AppStrings.restoreBackup,
+                    S.of(context).restoreBackup,
                     style: TextStyle(color: Colors.black87),
                   ),
                   onTap: () async {
@@ -118,9 +118,9 @@ class AppDrawer extends StatelessWidget {
                     );
                   },
                 ),
-                _buildDrawerItem(Icons.share, AppStrings.shareApp, context),
-                _buildDrawerItem(Icons.star, AppStrings.rateUs, context),
-                _buildDrawerItem(Icons.feedback, AppStrings.feedback, context),
+                _buildDrawerItem(Icons.share, S.of(context).shareApp, context),
+                _buildDrawerItem(Icons.star, S.of(context).rateUs, context),
+                _buildDrawerItem(Icons.feedback, S.of(context).feedback, context),
               ],
             ),
           ),
@@ -137,7 +137,7 @@ class AppDrawer extends StatelessWidget {
                 child: Align(
                   alignment: Alignment.centerLeft,
                   child: Text(
-                    '${AppStrings.version} $version',
+                    '${S.of(context).version} $version',
                     style: TextStyle(color: Colors.black54, fontSize: 14),
                   ),
                 ),
@@ -156,7 +156,7 @@ class AppDrawer extends StatelessWidget {
       onTap: () {
         Navigator.of(context).pop();
 
-                if (title == AppStrings.AllEmployees) {
+                if (title == S.of(context).AllEmployees) {
                   () async {
                     final subscriptionService = SubscriptionService();
                     final isSubscribed = await subscriptionService.isSubscribed;
@@ -167,11 +167,11 @@ class AppDrawer extends StatelessWidget {
                       ),
                     );
                   }();
-                } else if (title == AppStrings.feedback) {
+                } else if (title == S.of(context).feedback) {
           _launchFeedbackMail(context);
-        } else if (title == AppStrings.rateUs) {
+        } else if (title == S.of(context).rateUs) {
           _launchRateUs(context);
-        } else if (title == AppStrings.shareApp) {
+        } else if (title == S.of(context).shareApp) {
           _shareApp(context);
         }
       },
@@ -202,13 +202,13 @@ class AppDrawer extends StatelessWidget {
         await launchUrl(emailLaunchUri, mode: LaunchMode.externalApplication);
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(AppStrings.noMailApp)),
+          SnackBar(content: Text(S.of(context).noMailApp)),
         );
       }
     } on PlatformException catch (e) {
       print("Failed to open Gmail app: $e");
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(AppStrings.noGmailApp)),
+        SnackBar(content: Text(S.of(context).noGmailApp)),
       );
     }
   }
@@ -227,13 +227,13 @@ class AppDrawer extends StatelessWidget {
         await launchUrl(playStoreWebUri);
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(AppStrings.noPlayStoreApp)),
+          SnackBar(content: Text(S.of(context).noPlayStoreApp)),
         );
       }
     } catch (e) {
       print("Failed to open Play Store: $e");
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(AppStrings.failplaystore)),
+        SnackBar(content: Text(S.of(context).failplaystore)),
       );
     }
   }
@@ -247,7 +247,7 @@ class AppDrawer extends StatelessWidget {
     } catch (e) {
       print("Error while sharing: $e");
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(AppStrings.failshare)),
+        SnackBar(content: Text(S.of(context).failshare)),
       );
     }
   }

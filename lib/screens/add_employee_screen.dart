@@ -7,6 +7,8 @@ import 'package:Shiftwise/screens/subscription.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:Shiftwise/utils/strings.dart';
+import '../generated/l10n.dart';
+
 
 class AddEmployeeScreen extends StatefulWidget {
   final bool isFreeUser;
@@ -127,16 +129,16 @@ class _AddEmployeeScreenState extends State<AddEmployeeScreen> {
                 TextField(
                   controller: idController,
                   keyboardType: TextInputType.number,
-                  decoration: const InputDecoration(
-                    labelText: AppStrings.empid,
+                  decoration: InputDecoration(
+                    labelText: S.of(context).empid,
                     labelStyle: TextStyle(color: Color(0xFF9E9E9E)),
                   ),
                 ),
                 const SizedBox(height: 10),
                 TextField(
                   controller: nameController,
-                  decoration: const InputDecoration(
-                    labelText: AppStrings.empname,
+                  decoration: InputDecoration(
+                    labelText: S.of(context).empname,
                     labelStyle: TextStyle(color: Color(0xFF9E9E9E)),
                   ),
                   textCapitalization: TextCapitalization.sentences,
@@ -153,8 +155,8 @@ class _AddEmployeeScreenState extends State<AddEmployeeScreen> {
                         ),
                       ),
                       onPressed: () => Navigator.of(context).pop(),
-                      child: const Text(
-                        AppStrings.cancel,
+                      child: Text(
+                        S.of(context).cancel,
                         style: TextStyle(color: Colors.grey, fontSize: 18),
                       ),
                     ),
@@ -174,8 +176,8 @@ class _AddEmployeeScreenState extends State<AddEmployeeScreen> {
                           final idExists = await _employeeIdExists(id);
                           if (idExists) {
                             ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text(AppStrings.alredyexistID),
+                              SnackBar(
+                                content: Text(S.of(context).alredyexistID),
                                 backgroundColor: Colors.deepPurple,
                               ),
                             );
@@ -185,8 +187,8 @@ class _AddEmployeeScreenState extends State<AddEmployeeScreen> {
                           final nameExists = await _employeeNameExists(name);
                           if (nameExists) {
                             ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text(AppStrings.alredyexist),
+                              SnackBar(
+                                content: Text(S.of(context).alredyexist),
                                 backgroundColor: Colors.red,
                               ),
                             );
@@ -205,8 +207,8 @@ class _AddEmployeeScreenState extends State<AddEmployeeScreen> {
                           await _loadEmployees();
                         }
                       },
-                      child: const Text(
-                        AppStrings.add,
+                      child: Text(
+                        S.of(context).add,
                         style: TextStyle(
                           color: Colors.deepPurple,
                           fontSize: 18,
@@ -249,7 +251,7 @@ class _AddEmployeeScreenState extends State<AddEmployeeScreen> {
                   controller: idController,
                   keyboardType: TextInputType.number,
                   readOnly: true,
-                  decoration: const InputDecoration(labelText: AppStrings.empid),
+                  decoration: InputDecoration(labelText: S.of(context).empid),
                 ),
                 const SizedBox(height: 12),
                 TextField(
@@ -269,7 +271,7 @@ class _AddEmployeeScreenState extends State<AddEmployeeScreen> {
                       return newValue.copyWith(text: newText);
                     }),
                   ],
-                  decoration: const InputDecoration(labelText: AppStrings.empname),
+                  decoration: InputDecoration(labelText: S.of(context).empname),
                 ),
                 const SizedBox(height: 20),
                 Row(
@@ -283,8 +285,8 @@ class _AddEmployeeScreenState extends State<AddEmployeeScreen> {
                           vertical: 12,
                         ),
                       ),
-                      child: const Text(
-                        AppStrings.cancel,
+                      child: Text(
+                        S.of(context).cancel,
                         style: TextStyle(color: Colors.grey, fontSize: 18),
                       ),
                     ),
@@ -306,8 +308,8 @@ class _AddEmployeeScreenState extends State<AddEmployeeScreen> {
                             );
                             if (nameExists) {
                               ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text(AppStrings.alredyexist),
+                                SnackBar(
+                                  content: Text(S.of(context).alredyexist),
                                   backgroundColor: Colors.red,
                                 ),
                               );
@@ -337,14 +339,14 @@ class _AddEmployeeScreenState extends State<AddEmployeeScreen> {
                             Navigator.of(context, rootNavigator: true).pop();
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
-                                content: Text('${AppStrings.errorupdate} $e'),
+                                content: Text('${S.of(context).errorupdate} $e'),
                               ),
                             );
                           }
                         }
                       },
-                      child: const Text(
-                        AppStrings.update,
+                      child: Text(
+                        S.of(context).update,
                         style: TextStyle(
                           color: Colors.deepPurple,
                           fontSize: 18,
@@ -370,12 +372,12 @@ class _AddEmployeeScreenState extends State<AddEmployeeScreen> {
         titleSpacing: 0,
         leadingWidth: 40,
         iconTheme: const IconThemeData(color: Colors.deepPurple),
-        title: const Padding(
+        title: Padding(
           padding: EdgeInsets.only(left: 20.0),
           child: Align(
             alignment: Alignment.centerLeft,
             child: Text(
-              AppStrings.AllEmployees,
+              S.of(context).AllEmployees,
               style: TextStyle(
                 color: Colors.deepPurple,
                 fontWeight: FontWeight.bold,

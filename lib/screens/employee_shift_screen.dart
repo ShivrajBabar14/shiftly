@@ -11,6 +11,8 @@ import 'package:share_plus/share_plus.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:Shiftwise/utils/strings.dart';
+import '../generated/l10n.dart';
+
 
 
 class EmployeeShiftScreen extends StatefulWidget {
@@ -145,13 +147,13 @@ class _EmployeeShiftScreenState extends State<EmployeeShiftScreen> {
 
   Map<String, dynamic>? _getShiftForDay(String day) {
     final dayMap = {
-      AppStrings.monday: AppStrings.mondayAbbr,
-      AppStrings.tuesday: AppStrings.tuesdayAbbr,
-      AppStrings.wednesday: AppStrings.wednesdayAbbr,
-      AppStrings.thursday: AppStrings.thursdayAbbr,
-      AppStrings.friday: AppStrings.fridayAbbr,
-      AppStrings.saturday: AppStrings.saturdayAbbr,
-      AppStrings.sunday: AppStrings.sundayAbbr,
+      S.of(context).monday: S.of(context).mondayAbbr,
+      S.of(context).tuesday: S.of(context).tuesdayAbbr,
+      S.of(context).wednesday: S.of(context).wednesdayAbbr,
+      S.of(context).thursday: S.of(context).thursdayAbbr,
+      S.of(context).friday: S.of(context).fridayAbbr,
+      S.of(context).saturday: S.of(context).saturdayAbbr,
+      S.of(context).sunday: S.of(context).sundayAbbr,
     };
     final dbDay = dayMap[day] ?? day.toLowerCase();
     print('DEBUG: Looking for day $day mapped to $dbDay in _shiftData');
@@ -171,11 +173,11 @@ class _EmployeeShiftScreenState extends State<EmployeeShiftScreen> {
     if (image == null) return;
 
     final tempDir = await getTemporaryDirectory();
-    final file = await File('${tempDir.path}/${AppStrings.shift}.png').writeAsBytes(image);
+    final file = await File('${tempDir.path}/${S.of(context).shift}.png').writeAsBytes(image);
 
     final dateRange = _formatDateRange();
 
-    await Share.shareXFiles([XFile(file.path)], text: '${AppStrings.shareImgtext} $dateRange');
+    await Share.shareXFiles([XFile(file.path)], text: '${S.of(context).shareImgtext} $dateRange');
   }
 
   Future<void> _sharePDF() async {
@@ -199,7 +201,7 @@ class _EmployeeShiftScreenState extends State<EmployeeShiftScreen> {
       ),
     );
 
-    await Printing.sharePdf(bytes: await pdf.save(), filename: '${AppStrings.shift}.pdf');
+    await Printing.sharePdf(bytes: await pdf.save(), filename: '${S.of(context).shift}.pdf');
   }
 
   @override
@@ -225,7 +227,7 @@ class _EmployeeShiftScreenState extends State<EmployeeShiftScreen> {
               icon: const Icon(Icons.share, color: Colors.deepPurple),
               onSelected: (value) async {
                 await widget._analytics.logEvent(
-                  name: AppStrings.shiftshare,
+                  name: S.of(context).shiftshare,
                   parameters: {
                     'employee_id': widget.employee.employeeId,
                     'employee_name': widget.employee.name,
@@ -233,31 +235,31 @@ class _EmployeeShiftScreenState extends State<EmployeeShiftScreen> {
                   },
                 );
 
-                if (value == AppStrings.img) {
+                if (value == S.of(context).img) {
                   await _shareImage();
-                } else if (value == AppStrings.pdf) {
+                } else if (value == S.of(context).pdf) {
                   await _sharePDF();
                 }
               },
               itemBuilder: (BuildContext context) {
                 return [
                   PopupMenuItem<String>(
-                    value: AppStrings.img,
+                    value: S.of(context).img,
                     child: Row(
-                      children: const [
+                      children: [
                         Icon(Icons.image, color: Colors.deepPurple),
                         SizedBox(width: 8),
-                        Text(AppStrings.shareimg),
+                        Text(S.of(context).shareimg),
                       ],
                     ),
                   ),
                   PopupMenuItem<String>(
-                    value: AppStrings.pdf,
+                    value: S.of(context).pdf,
                     child: Row(
-                      children: const [
+                      children: [
                         Icon(Icons.picture_as_pdf, color: Colors.deepPurple),
                         SizedBox(width: 8),
-                        Text(AppStrings.sharepdf),
+                        Text(S.of(context).sharepdf),
                       ],
                     ),
                   ),
@@ -360,7 +362,7 @@ class _EmployeeShiftScreenState extends State<EmployeeShiftScreen> {
                                       padding: const EdgeInsets.symmetric(vertical: 12),
                                       child: Center(
                                         child: Text(
-                                          AppStrings.Date,
+                                          S.of(context).Date,
                                           style: TextStyle(
                                             color: Colors.white,
                                             fontWeight: FontWeight.bold,
@@ -372,7 +374,7 @@ class _EmployeeShiftScreenState extends State<EmployeeShiftScreen> {
                                       padding: const EdgeInsets.symmetric(vertical: 12),
                                       child: Center(
                                         child: Text(
-                                          AppStrings.shift,
+                                          S.of(context).shift,
                                           style: TextStyle(
                                             color: Colors.white,
                                             fontWeight: FontWeight.bold,
@@ -488,9 +490,9 @@ class _EmployeeShiftScreenState extends State<EmployeeShiftScreen> {
                                                           margin: const EdgeInsets.only(top: 8.0),
                                                           padding: const EdgeInsets.symmetric(horizontal: 4.0, vertical: 2.0),
                                                           decoration: BoxDecoration(
-                                                            color: shift!['status'] == AppStrings.Present
+                                                            color: shift!['status'] == S.of(context).Present
                                                                 ? Colors.green
-                                                                : shift!['status'] == AppStrings.Absent
+                                                                : shift!['status'] == S.of(context).Absent
                                                                     ? Colors.red
                                                                     : Colors.yellow[700],
                                                             borderRadius: BorderRadius.circular(4.0),
