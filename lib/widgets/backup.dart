@@ -20,7 +20,7 @@ void showBackupRestoreDialog(
     builder: (context) {
       final lastBackupStr = lastBackupDate != null
           ? DateFormat('dd MMM yyyy HH:mm').format(lastBackupDate)
-          : S.of(context).Notfound;
+          : S.of(context)!.notFound;
 
       return Dialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -32,7 +32,7 @@ void showBackupRestoreDialog(
             children: [
               Center(
                 child: Text(
-                  S.of(context).restoreBackup,
+                  S.of(context)!.restoreBackup,
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 18,
@@ -42,7 +42,7 @@ void showBackupRestoreDialog(
               ),
               const SizedBox(height: 20),
               Text(
-                S.of(context).Backuppath,
+                S.of(context)!.backupPath,
                 style: TextStyle(fontWeight: FontWeight.w600),
               ),
               const SizedBox(height: 4),
@@ -68,7 +68,7 @@ void showBackupRestoreDialog(
                       if (result == null || result.files.isEmpty) {
                         if (context.mounted) {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text(S.of(context).Notselected)),
+                            SnackBar(content: Text(S.of(context)!.notSelected)),
                           );
                         }
 
@@ -83,7 +83,7 @@ void showBackupRestoreDialog(
                       if (filePath == null) {
                         if (context.mounted) {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text(S.of(context).Invalidfilepath)),
+                            SnackBar(content: Text(S.of(context)!.invalidFilePath)),
                           );
                         }
 
@@ -100,7 +100,7 @@ void showBackupRestoreDialog(
                         if (success) {
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
-                              content: Text(S.of(context).restoreSuccess),
+                              content: Text(S.of(context)!.restoreSuccess),
                             ),
                           );
 
@@ -122,7 +122,7 @@ void showBackupRestoreDialog(
                         } else {
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
-                              content: Text(S.of(context).restoreFailed),
+                              content: Text(S.of(context)!.restoreFailed),
                             ),
                           );
                           // 📊 Log failed restore
@@ -154,7 +154,7 @@ void showBackupRestoreDialog(
                     ),
                   ),
                   child: Text(
-                    S.of(context).restoreData,
+                    S.of(context)!.restoreData,
                     style: TextStyle(fontSize: 16, color: Colors.white),
                   ),
                 ),

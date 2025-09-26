@@ -76,7 +76,7 @@ class SuccessDialog extends StatelessWidget {
               ),
             const SizedBox(height: 20),
             Text(
-              S.of(context).Congratulations,
+              S.of(context)!.congratulations,
               style: TextStyle(
                 fontSize: 22,
                 fontWeight: FontWeight.bold,
@@ -85,7 +85,7 @@ class SuccessDialog extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             Text(
-              S.of(context).Congratulationstext,
+              S.of(context)!.congratulationsText,
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 16,
@@ -109,7 +109,7 @@ class SuccessDialog extends StatelessWidget {
                   ),
                 ),
                 child: Text(
-                  S.of(context).Continue,
+                  S.of(context)!.continueButton,
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,

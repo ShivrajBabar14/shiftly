@@ -1,12 +1,8 @@
-# TODO: Update Shift Cell Design for Attendance Status
+# Localization Fix TODO
 
-## Tasks
-- [ ] Update shift cell widget in _buildShiftTable method to add attendance square in top right corner
-- [ ] Remove current attendance text display below shift info
-- [ ] Test the UI changes to verify attendance square appears correctly
-
-## Details
-- Add a small colored square (e.g., 20x20) in top right corner of each shift cell
-- Square shows letter P (green), A (red), L (yellow) based on attendance status
-- Hide square if attendance is 'None' or null
-- Replace the existing Text widget for attendance status
+- [ ] Delete lib/l10n/en.arb (redundant duplicate of intl_en.arb)
+- [ ] Run `flutter gen-l10n` to regenerate localization files based on l10n.yaml
+- [ ] Update lib/main.dart: change import to 'generated/app_localizations.dart' and replace 'S' with 'AppLocalizations'
+- [ ] Search codebase for usages of 'S.' and update to 'AppLocalizations.of(context).'
+- [ ] Verify new lib/generated/app_localizations.dart has all locales and keys
+- [ ] Run `flutter pub get` and build app to test localization

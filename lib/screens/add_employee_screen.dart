@@ -130,7 +130,7 @@ class _AddEmployeeScreenState extends State<AddEmployeeScreen> {
                   controller: idController,
                   keyboardType: TextInputType.number,
                   decoration: InputDecoration(
-                    labelText: S.of(context).empid,
+                    labelText: S.of(context)!.empId,
                     labelStyle: TextStyle(color: Color(0xFF9E9E9E)),
                   ),
                 ),
@@ -138,7 +138,7 @@ class _AddEmployeeScreenState extends State<AddEmployeeScreen> {
                 TextField(
                   controller: nameController,
                   decoration: InputDecoration(
-                    labelText: S.of(context).empname,
+                    labelText: S.of(context)!.empName,
                     labelStyle: TextStyle(color: Color(0xFF9E9E9E)),
                   ),
                   textCapitalization: TextCapitalization.sentences,
@@ -156,7 +156,7 @@ class _AddEmployeeScreenState extends State<AddEmployeeScreen> {
                       ),
                       onPressed: () => Navigator.of(context).pop(),
                       child: Text(
-                        S.of(context).cancel,
+                        S.of(context)!.cancel,
                         style: TextStyle(color: Colors.grey, fontSize: 18),
                       ),
                     ),
@@ -177,7 +177,7 @@ class _AddEmployeeScreenState extends State<AddEmployeeScreen> {
                           if (idExists) {
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
-                                content: Text(S.of(context).alredyexistID),
+                                content: Text(S.of(context)!.alreadyExistId),
                                 backgroundColor: Colors.deepPurple,
                               ),
                             );
@@ -188,7 +188,7 @@ class _AddEmployeeScreenState extends State<AddEmployeeScreen> {
                           if (nameExists) {
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
-                                content: Text(S.of(context).alredyexist),
+                                content: Text(S.of(context)!.alreadyExist),
                                 backgroundColor: Colors.red,
                               ),
                             );
@@ -208,7 +208,7 @@ class _AddEmployeeScreenState extends State<AddEmployeeScreen> {
                         }
                       },
                       child: Text(
-                        S.of(context).add,
+                        S.of(context)!.add,
                         style: TextStyle(
                           color: Colors.deepPurple,
                           fontSize: 18,
@@ -251,7 +251,7 @@ class _AddEmployeeScreenState extends State<AddEmployeeScreen> {
                   controller: idController,
                   keyboardType: TextInputType.number,
                   readOnly: true,
-                  decoration: InputDecoration(labelText: S.of(context).empid),
+                  decoration: InputDecoration(labelText: S.of(context)!.empId),
                 ),
                 const SizedBox(height: 12),
                 TextField(
@@ -271,7 +271,7 @@ class _AddEmployeeScreenState extends State<AddEmployeeScreen> {
                       return newValue.copyWith(text: newText);
                     }),
                   ],
-                  decoration: InputDecoration(labelText: S.of(context).empname),
+                  decoration: InputDecoration(labelText: S.of(context)!.empName),
                 ),
                 const SizedBox(height: 20),
                 Row(
@@ -286,7 +286,7 @@ class _AddEmployeeScreenState extends State<AddEmployeeScreen> {
                         ),
                       ),
                       child: Text(
-                        S.of(context).cancel,
+                        S.of(context)!.cancel,
                         style: TextStyle(color: Colors.grey, fontSize: 18),
                       ),
                     ),
@@ -309,7 +309,7 @@ class _AddEmployeeScreenState extends State<AddEmployeeScreen> {
                             if (nameExists) {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(
-                                  content: Text(S.of(context).alredyexist),
+                                  content: Text(S.of(context)!.alreadyExist),
                                   backgroundColor: Colors.red,
                                 ),
                               );
@@ -339,14 +339,14 @@ class _AddEmployeeScreenState extends State<AddEmployeeScreen> {
                             Navigator.of(context, rootNavigator: true).pop();
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
-                                content: Text('${S.of(context).errorupdate} $e'),
+                                content: Text('${S.of(context)!.errorUpdate} $e'),
                               ),
                             );
                           }
                         }
                       },
                       child: Text(
-                        S.of(context).update,
+                        S.of(context)!.update,
                         style: TextStyle(
                           color: Colors.deepPurple,
                           fontSize: 18,
@@ -377,7 +377,7 @@ class _AddEmployeeScreenState extends State<AddEmployeeScreen> {
           child: Align(
             alignment: Alignment.centerLeft,
             child: Text(
-              S.of(context).AllEmployees,
+              S.of(context)!.allEmployees,
               style: TextStyle(
                 color: Colors.deepPurple,
                 fontWeight: FontWeight.bold,

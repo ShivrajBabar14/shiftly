@@ -411,7 +411,7 @@ class _HomeScreenState extends State<HomeScreen>
                   controller: idController,
                   keyboardType: TextInputType.number,
                   decoration: InputDecoration(
-                    labelText: S.of(context).empid,
+                    labelText: S.of(context)!.empId,
                     labelStyle: TextStyle(color: Color(0xFF9E9E9E)),
                   ),
                 ),
@@ -420,7 +420,7 @@ class _HomeScreenState extends State<HomeScreen>
                 TextField(
                   controller: nameController,
                   decoration: InputDecoration(
-                    labelText: S.of(context).empname,
+                    labelText: S.of(context)!.empName,
                     labelStyle: TextStyle(color: Color(0xFF9E9E9E)),
                   ),
                   textCapitalization: TextCapitalization.sentences,
@@ -460,7 +460,7 @@ class _HomeScreenState extends State<HomeScreen>
                         Navigator.of(context).pop();
                       },
                       child: Text(
-                        S.of(context).cancel,
+                        S.of(context)!.cancel,
                         style: TextStyle(color: Colors.grey, fontSize: 18),
                       ),
                     ),
@@ -482,7 +482,7 @@ class _HomeScreenState extends State<HomeScreen>
                           if (idExists) {
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
-                                content: Text(S.of(context).alredyexistID),
+                                content: Text(S.of(context)!.alreadyExistId),
                                 backgroundColor: Colors.deepPurple,
                               ),
                             );
@@ -493,7 +493,7 @@ class _HomeScreenState extends State<HomeScreen>
                           if (existingNames.contains(name.toLowerCase())) {
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
-                                content: Text(S.of(context).alredyexist),
+                                content: Text(S.of(context)!.alreadyExist),
                                 backgroundColor: Colors.red,
                               ),
                             );
@@ -528,7 +528,7 @@ class _HomeScreenState extends State<HomeScreen>
                         }
                       },
                       child: Text(
-                        S.of(context).add,
+                        S.of(context)!.add,
                         style: TextStyle(
                           color: Colors.deepPurple,
                           fontSize: 18,
@@ -741,7 +741,7 @@ class _HomeScreenState extends State<HomeScreen>
               children: <Widget>[
                 Center(
                   child: Text(
-                    S.of(context).removeEmployee,
+                    S.of(context)!.removeEmployee,
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
@@ -751,12 +751,12 @@ class _HomeScreenState extends State<HomeScreen>
                 ),
                 const SizedBox(height: 16),
                 Text(
-                  '${S.of(context).removeEmployeetext} ${employee.name} ${S.of(context).removeEmployeetext2}',
+                  '${S.of(context)!.removeEmployeeText} ${employee.name} ${S.of(context)!.removeEmployeeText2}',
                   style: const TextStyle(fontSize: 16),
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  S.of(context).remains,
+                  S.of(context)!.remains,
                   style: TextStyle(fontSize: 14, color: Colors.grey),
                 ),
                 const SizedBox(height: 16),
@@ -768,7 +768,7 @@ class _HomeScreenState extends State<HomeScreen>
                         Navigator.of(dialogContext).pop(false); // No refresh
                       },
                       child: Text(
-                        S.of(context).cancel,
+                        S.of(context)!.cancel,
                         style: TextStyle(fontSize: 18, color: Colors.grey),
                       ),
                     ),
@@ -792,7 +792,7 @@ class _HomeScreenState extends State<HomeScreen>
                         Navigator.of(dialogContext).pop(true); // <-- Important
                       },
                       child: Text(
-                        S.of(context).remove,
+                        S.of(context)!.remove,
                         style: TextStyle(
                           color: Colors.deepPurple,
                           fontSize: 18,
@@ -818,7 +818,7 @@ class _HomeScreenState extends State<HomeScreen>
   void _showShiftDialog(int employeeId, String day) async {
     final selectedDate = _currentWeekStart.add(
       Duration(
-        days: [S.of(context).mondayAbbr, S.of(context).tuesdayAbbr, S.of(context).wednesdayAbbr, S.of(context).thursdayAbbr, S.of(context).thursdayAbbr, S.of(context).saturdayAbbr, S.of(context).sundayAbbr].indexOf(day),
+        days: [S.of(context)!.mondayAbbr, S.of(context)!.tuesdayAbbr, S.of(context)!.wednesdayAbbr, S.of(context)!.thursdayAbbr, S.of(context)!.thursdayAbbr, S.of(context)!.saturdayAbbr, S.of(context)!.sundayAbbr].indexOf(day),
       ),
     );
 
@@ -951,7 +951,7 @@ class _HomeScreenState extends State<HomeScreen>
                       ),
                     ),
                     const SizedBox(height: 24),
-                    Text(S.of(context).shiftname, style: TextStyle(fontSize: 16)),
+                    Text(S.of(context)!.shiftName, style: TextStyle(fontSize: 16)),
                     RawAutocomplete<String>(
                       optionsBuilder: (TextEditingValue textEditingValue) async {
                         // Check if a suggestion was already selected
@@ -1141,7 +1141,7 @@ class _HomeScreenState extends State<HomeScreen>
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(S.of(context).startTime),
+                              Text(S.of(context)!.startTime),
                               const SizedBox(height: 8),
                               InkWell(
                                 onTap: () async {
@@ -1186,7 +1186,7 @@ class _HomeScreenState extends State<HomeScreen>
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(S.of(context).endTime),
+                              Text(S.of(context)!.endTime),
                               const SizedBox(height: 8),
                               InkWell(
                                 onTap: () async {
@@ -1230,7 +1230,7 @@ class _HomeScreenState extends State<HomeScreen>
                     ),
                     const SizedBox(height: 24),
                     Text(
-                      S.of(context).featureMarkAttendance,
+                      S.of(context)!.featureMarkAttendance,
                       style: TextStyle(fontSize: 16),
                     ),
                     const SizedBox(height: 8),
@@ -1265,7 +1265,7 @@ class _HomeScreenState extends State<HomeScreen>
                                 );
                               } else if (!isFutureDay) {
                                 setState(() {
-                                  attendance = S.of(context).Present;
+                                  attendance = S.of(context)!.present;
                                 });
                               }
                             },
@@ -1273,7 +1273,7 @@ class _HomeScreenState extends State<HomeScreen>
                               mainAxisSize: MainAxisSize.min,
                               children: [
                                 Radio<String>(
-                                  value: S.of(context).Present,
+                                  value: S.of(context)!.present,
                                   groupValue: attendance,
                                   onChanged: isFutureDay
                                       ? null
@@ -1315,7 +1315,7 @@ class _HomeScreenState extends State<HomeScreen>
                                 ),
                                 const SizedBox(width: 4), // minimal gap
                                 Text(
-                                  S.of(context).Present,
+                                  S.of(context)!.present,
                                   style: TextStyle(fontSize: 15),
                                 ),
                               ],
@@ -1352,7 +1352,7 @@ class _HomeScreenState extends State<HomeScreen>
                                       );
                                     } else {
                                       setState(() {
-                                        attendance = S.of(context).Absent;
+                                        attendance = S.of(context)!.absent;
                                       });
                                     }
                                   },
@@ -1360,7 +1360,7 @@ class _HomeScreenState extends State<HomeScreen>
                               mainAxisSize: MainAxisSize.min,
                               children: [
                                 Radio<String>(
-                                  value: S.of(context).Absent,
+                                  value: S.of(context)!.absent,
                                   groupValue: attendance,
                                   onChanged: isFutureDay
                                       ? null
@@ -1381,7 +1381,7 @@ class _HomeScreenState extends State<HomeScreen>
                                 ),
                                 const SizedBox(width: 4), // minimal gap
                                 Text(
-                                  S.of(context).Absent,
+                                  S.of(context)!.absent,
                                   style: TextStyle(fontSize: 15),
                                 ),
                               ],
@@ -1417,7 +1417,7 @@ class _HomeScreenState extends State<HomeScreen>
                                       );
                                     } else {
                                       setState(() {
-                                        attendance = S.of(context).Leave;
+                                        attendance = S.of(context)!.leave;
                                       });
                                     }
                                   },
@@ -1425,7 +1425,7 @@ class _HomeScreenState extends State<HomeScreen>
                               mainAxisSize: MainAxisSize.min,
                               children: [
                                 Radio<String>(
-                                  value: S.of(context).Leave,
+                                  value: S.of(context)!.leave,
                                   groupValue: attendance,
                                   onChanged: isFutureDay
                                       ? null
@@ -1447,7 +1447,7 @@ class _HomeScreenState extends State<HomeScreen>
                                 ),
                                 const SizedBox(width: 4),
                                 Text(
-                                  S.of(context).Leave,
+                                  S.of(context)!.leave,
                                   style: TextStyle(fontSize: 15),
                                 ),
                               ],
@@ -1460,7 +1460,7 @@ class _HomeScreenState extends State<HomeScreen>
                     if (isFutureDay) ...[
                       const SizedBox(height: 8),
                       Text(
-                        S.of(context).markAttendancelimit,
+                        S.of(context)!.markAttendanceLimit,
                         style: TextStyle(fontSize: 12, color: Colors.grey),
                         textAlign: TextAlign.center,
                       ),
@@ -1483,7 +1483,7 @@ class _HomeScreenState extends State<HomeScreen>
                             });
                           },
                           child: Text(
-                            S.of(context).clear, // <-- change text if needed
+                            S.of(context)!.clear, // <-- change text if needed
                             style: TextStyle(
                               color: Colors.deepPurple,
                               fontSize: 18,
@@ -1498,7 +1498,7 @@ class _HomeScreenState extends State<HomeScreen>
                             TextButton(
                               onPressed: () => Navigator.pop(context),
                               child: Text(
-                                S.of(context).cancel,
+                                S.of(context)!.cancel,
                                 style: TextStyle(
                                   color: Colors.grey,
                                   fontSize: 18,
@@ -1576,7 +1576,7 @@ class _HomeScreenState extends State<HomeScreen>
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     SnackBar(
                                       content: Text(
-                                        S.of(context).shiftwarning,
+                                        S.of(context)!.shiftWarning,
                                       ),
                                       backgroundColor: Colors.redAccent,
                                     ),
@@ -1584,7 +1584,7 @@ class _HomeScreenState extends State<HomeScreen>
                                 }
                               },
                               child: Text(
-                                S.of(context).save,
+                                S.of(context)!.save,
                                 style: TextStyle(
                                   color: Colors.deepPurple,
                                   fontSize: 18,
@@ -1749,7 +1749,7 @@ Widget build(BuildContext context) {
         mainAxisAlignment: MainAxisAlignment.start,
         children: [
           Text(
-            S.of(context).appTitle,
+            S.of(context)!.appTitle,
             style: TextStyle(
               color: Colors.deepPurple,
               fontWeight: FontWeight.bold,
@@ -1814,7 +1814,7 @@ Widget build(BuildContext context) {
                   borderRadius: BorderRadius.circular(6),
                 ),
               ),
-              child: Text(S.of(context).goProButton),
+              child: Text(S.of(context)!.goProButton),
             ),
           ),
       ],
@@ -1901,11 +1901,11 @@ Widget build(BuildContext context) {
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
                                     Text(
-                                      S.of(context).emptytable,
+                                      S.of(context)!.emptyTable,
                                       style: TextStyle(fontSize: 15),
                                     ),
                                     Text(
-                                      S.of(context).begin,
+                                      S.of(context)!.begin,
                                       style: TextStyle(fontSize: 15),
                                     ),
                                     const SizedBox(height: 20),
@@ -1919,7 +1919,7 @@ Widget build(BuildContext context) {
                                       ),
                                       onPressed: _handleAddEmployeePressed,
                                       child: Text(
-                                        S.of(context).addEmployee,
+                                        S.of(context)!.addEmployee,
                                         style: TextStyle(
                                           color: Colors.white,
                                           fontSize: 14,
@@ -1959,7 +1959,7 @@ Widget build(BuildContext context) {
 
 
   Widget _buildEmptyShiftTable() {
-    List<String> days = [S.of(context).mondayAbbrc, S.of(context).tuesdayAbbrc, S.of(context).wednesdayAbbrc, S.of(context).thursdayAbbrc, S.of(context).thursdayAbbrc, S.of(context).saturdayAbbrc, S.of(context).sundayAbbrc];
+    List<String> days = [S.of(context)!.mondayAbbrc, S.of(context)!.tuesdayAbbrc, S.of(context)!.wednesdayAbbrc, S.of(context)!.thursdayAbbrc, S.of(context)!.thursdayAbbrc, S.of(context)!.saturdayAbbrc, S.of(context)!.sundayAbbrc];
     final dateFormat = DateFormat('d');
     const double cellWidth = 75.0;
     const double rowHeight = 40.0;
@@ -2001,7 +2001,7 @@ Widget build(BuildContext context) {
                         ),
                       ),
                       child: Text(
-                        S.of(context).employee,
+                        S.of(context)!.employee,
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
                           color: Colors.white,
@@ -2095,7 +2095,7 @@ Widget build(BuildContext context) {
                   Padding(
                     padding: EdgeInsets.symmetric(horizontal: 20),
                     child: Text(
-                      S.of(context).unlock,
+                      S.of(context)!.unlock,
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         fontSize: 18,
@@ -2108,7 +2108,7 @@ Widget build(BuildContext context) {
                   Padding(
                     padding: EdgeInsets.symmetric(horizontal: 20),
                     child: Text(
-                      S.of(context).proversion,
+                      S.of(context)!.proVersion,
                       textAlign: TextAlign.center,
                       style: TextStyle(fontSize: 14.5, color: Colors.black),
                     ),
@@ -2133,7 +2133,7 @@ Widget build(BuildContext context) {
                       ),
                     ),
                     child: Text(
-                      S.of(context).goProButton,
+                      S.of(context)!.goProButton,
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
@@ -2149,7 +2149,7 @@ Widget build(BuildContext context) {
   }
 
   Widget _buildShiftTable() {
-    List<String> days = [S.of(context).mondayAbbrc, S.of(context).tuesdayAbbrc, S.of(context).wednesdayAbbrc, S.of(context).thursdayAbbrc, S.of(context).thursdayAbbrc, S.of(context).saturdayAbbrc, S.of(context).sundayAbbrc];
+    List<String> days = [S.of(context)!.mondayAbbrc, S.of(context)!.tuesdayAbbrc, S.of(context)!.wednesdayAbbrc, S.of(context)!.thursdayAbbrc, S.of(context)!.thursdayAbbrc, S.of(context)!.saturdayAbbrc, S.of(context)!.sundayAbbrc];
     final dateFormat = DateFormat('d');
     const double cellWidth = 75.0;
     const double rowHeight = 80.0;
@@ -2202,7 +2202,7 @@ Widget build(BuildContext context) {
                             ),
                           ),
                           child: Text(
-                            S.of(context).employee,
+                            S.of(context)!.employee,
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
                               color: Colors.white,
@@ -2586,11 +2586,11 @@ Widget build(BuildContext context) {
                                                                 decoration: BoxDecoration(
                                                                   color:
                                                                       shift['status'] ==
-                                                                          S.of(context).Present
+                                                                          S.of(context)!.present
                                                                       ? Colors
                                                                             .green
                                                                       : shift['status'] ==
-                                                                            S.of(context).Absent
+                                                                            S.of(context)!.absent
                                                                       ? Colors
                                                                             .red
                                                                       : Colors
@@ -2606,10 +2606,10 @@ Widget build(BuildContext context) {
                                                                 child: Center(
                                                                   child: Text(
                                                                     shift['status'] ==
-                                                                            S.of(context).Present
+                                                                            S.of(context)!.present
                                                                         ? 'P'
                                                                         : shift['status'] ==
-                                                                              S.of(context).Absent
+                                                                              S.of(context)!.present
                                                                         ? 'A'
                                                                         : 'L',
                                                                     textAlign:
@@ -2682,7 +2682,7 @@ Widget build(BuildContext context) {
                       Padding(
                         padding: EdgeInsets.symmetric(horizontal: 20),
                         child: Text(
-                          S.of(context).unlock,
+                          S.of(context)!.unlock,
                           textAlign: TextAlign.center,
                           style: TextStyle(
                             fontSize: 18,
@@ -2695,7 +2695,7 @@ Widget build(BuildContext context) {
                       Padding(
                         padding: EdgeInsets.symmetric(horizontal: 20),
                         child: Text(
-                          S.of(context).proversion,
+                          S.of(context)!.proVersion,
                           textAlign: TextAlign.center,
                           style: TextStyle(fontSize: 14.5, color: Colors.black),
                         ),
@@ -2722,7 +2722,7 @@ Widget build(BuildContext context) {
                           ),
                         ),
                         child: Text(
-                          S.of(context).goProButton,
+                          S.of(context)!.goProButton,
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
@@ -2836,7 +2836,7 @@ Widget build(BuildContext context) {
                       child: Align(
                         alignment: Alignment.centerLeft,
                         child: Text(
-                          S.of(context).select,
+                          S.of(context)!.select,
                           style: TextStyle(fontSize: 24),
                         ),
                       ),
@@ -2929,7 +2929,7 @@ Widget build(BuildContext context) {
                             }
                           },
                           child: Text(
-                            S.of(context).addnew, // Button text
+                            S.of(context)!.addNew, // Button text
                             style: TextStyle(
                               color: Colors.deepPurple,
                               fontSize: 18,
@@ -2961,7 +2961,7 @@ Widget build(BuildContext context) {
                                   if (context.mounted) Navigator.pop(context);
                                 },
                           child: Text(
-                            S.of(context).add, // Button text
+                            S.of(context)!.add, // Button text
                             style: TextStyle(
                               color: selectedEmployeeIds.isEmpty
                                   ? Colors.grey

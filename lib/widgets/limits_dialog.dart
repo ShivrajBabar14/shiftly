@@ -42,7 +42,7 @@ class _LimitsDialogState extends State<LimitsDialog> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              S.of(context).unlockPremiumTitle,
+              S.of(context)!.unlockPremiumTitle,
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w600,
@@ -51,10 +51,10 @@ class _LimitsDialogState extends State<LimitsDialog> {
               ),
             ),
             const SizedBox(height: 20),
-            _buildFeatureItem(S.of(context).featureUnlimitedEmployees),
-            _buildFeatureItem(S.of(context).featureAutoBackup),
-            _buildFeatureItem(S.of(context).featureAdvancedScheduling),
-            _buildFeatureItem(S.of(context).featureMarkAttendance),
+            _buildFeatureItem(S.of(context)!.featureUnlimitedEmployees),
+            _buildFeatureItem(S.of(context)!.featureAutoBackup),
+            _buildFeatureItem(S.of(context)!.featureAdvancedScheduling),
+            _buildFeatureItem(S.of(context)!.featureMarkAttendance),
             const SizedBox(height: 24),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -65,7 +65,7 @@ class _LimitsDialogState extends State<LimitsDialog> {
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                   ),
                   child: Text(
-                    S.of(context).continueFreeButton,
+                    S.of(context)!.continueFreeButton,
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
@@ -83,7 +83,7 @@ class _LimitsDialogState extends State<LimitsDialog> {
                     ),
                   ),
                   child: Text(
-                    S.of(context).goProButton,
+                    S.of(context)!.goProButton,
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w500,

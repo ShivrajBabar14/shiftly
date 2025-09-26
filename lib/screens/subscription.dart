@@ -28,7 +28,7 @@ class _ShiftlyProScreenState extends State<ShiftlyProScreen> {
   @override
   void initState() {
     super.initState();
-    selectedPlan = S.current.Annually;
+    selectedPlan = 'Annually';
     _inAppPurchase = InAppPurchase.instance;
     _initializePurchaseStream();
     _loadProducts();
@@ -63,19 +63,23 @@ class _ShiftlyProScreenState extends State<ShiftlyProScreen> {
   Future<void> _refreshSubscriptionStatus() async {
     final bool available = await InAppPurchase.instance.isAvailable();
     if (!available) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(S.of(context).service)),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Google Play services not available')),
+        );
+      }
       return;
     }
 
     try {
       // Show loading indicator
-      showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (context) => const Center(child: CircularProgressIndicator()),
-      );
+      if (mounted) {
+        showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (context) => const Center(child: CircularProgressIndicator()),
+        );
+      }
 
       // Restore purchases to get latest subscription status
       await InAppPurchase.instance.restorePurchases();
@@ -261,7 +265,7 @@ class _ShiftlyProScreenState extends State<ShiftlyProScreen> {
               const SizedBox(height: 20),
               Center(
                 child: Text(
-                  S.of(context).ShiftwisePro,
+                  S.of(context)!.shiftwisePro,
                   style: GoogleFonts.questrial(
                     fontSize: 24,
                     fontWeight: FontWeight.bold,
@@ -271,26 +275,26 @@ class _ShiftlyProScreenState extends State<ShiftlyProScreen> {
               const SizedBox(height: 40),
               buildFeature(
                 assetPath: 'assets/users.png',
-                title: S.of(context).featureUnlimitedEmployeesTitle,
-                subtitle:S.of(context).featureUnlimitedEmployeesSubtitle,
+                title: S.of(context)!.featureUnlimitedEmployeesTitle,
+                subtitle:S.of(context)!.featureUnlimitedEmployeesSubtitle,
               ),
               const SizedBox(height: 15),
               buildFeature(
                 assetPath: 'assets/backup.png',
-                title: S.of(context).featureAutoBackupTitle,
-                subtitle: S.of(context).featureAutoBackupSubtitle,
+                title: S.of(context)!.featureAutoBackupTitle,
+                subtitle: S.of(context)!.featureAutoBackupSubtitle,
               ),
               const SizedBox(height: 15),
               buildFeature(
                 assetPath: 'assets/schedule.png',
-                title: S.of(context).featureAdvancedSchedulingTitle,
-                subtitle: S.of(context).featureAdvancedSchedulingSubtitle,
+                title: S.of(context)!.featureAdvancedSchedulingTitle,
+                subtitle: S.of(context)!.featureAdvancedSchedulingSubtitle,
               ),
               const SizedBox(height: 15),
               buildFeature(
                 assetPath: 'assets/check.png',
-                title: S.of(context).featureMarkAttendanceTitle,
-                subtitle: S.of(context).featureMarkAttendanceSubtitle,
+                title: S.of(context)!.featureMarkAttendanceTitle,
+                subtitle: S.of(context)!.featureMarkAttendanceSubtitle,
               ),
               const SizedBox(height: 70),
               Row(
@@ -298,13 +302,13 @@ class _ShiftlyProScreenState extends State<ShiftlyProScreen> {
                 children: [
                   buildPriceCard(
                     price: _getPriceForProduct('shiftwise_monthly'),
-                    label: S.of(context).monthly,
+                    label: S.of(context)!.monthly,
                     isSelected: selectedPlan == 'Monthly',
                     onTap: () => setState(() => selectedPlan = 'Monthly'),
                   ),
                   buildPriceCard(
                     price: _getPriceForProduct('shiftwise_yearly'),
-                    label: S.of(context).Annually,
+                    label: S.of(context)!.annually,
                     isSelected: selectedPlan == 'Annually',
                     onTap: () => setState(() => selectedPlan = 'Annually'),
                     badge: discount != null
@@ -325,7 +329,7 @@ class _ShiftlyProScreenState extends State<ShiftlyProScreen> {
                               ],
                             ),
                             child: Text(
-                              '${S.of(context).save} ${discount!.toStringAsFixed(0)}%',
+                              '${S.of(context)!.save} ${discount!.toStringAsFixed(0)}%',
                               style: const TextStyle(
                                 color: Colors.white,
                                 fontSize: 12,
@@ -356,7 +360,7 @@ class _ShiftlyProScreenState extends State<ShiftlyProScreen> {
                     }
                   },
                   child: Text(
-                    S.of(context).goProButton,
+                    S.of(context)!.goProButton,
                     style: GoogleFonts.questrial(
                       fontSize: 16,
                       color: Colors.white,

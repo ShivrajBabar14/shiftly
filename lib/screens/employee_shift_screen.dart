@@ -147,13 +147,13 @@ class _EmployeeShiftScreenState extends State<EmployeeShiftScreen> {
 
   Map<String, dynamic>? _getShiftForDay(String day) {
     final dayMap = {
-      S.of(context).monday: S.of(context).mondayAbbr,
-      S.of(context).tuesday: S.of(context).tuesdayAbbr,
-      S.of(context).wednesday: S.of(context).wednesdayAbbr,
-      S.of(context).thursday: S.of(context).thursdayAbbr,
-      S.of(context).friday: S.of(context).fridayAbbr,
-      S.of(context).saturday: S.of(context).saturdayAbbr,
-      S.of(context).sunday: S.of(context).sundayAbbr,
+      S.of(context)!.monday: S.of(context)!.mondayAbbr,
+      S.of(context)!.tuesday: S.of(context)!.tuesdayAbbr,
+      S.of(context)!.wednesday: S.of(context)!.wednesdayAbbr,
+      S.of(context)!.thursday: S.of(context)!.thursdayAbbr,
+      S.of(context)!.friday: S.of(context)!.fridayAbbr,
+      S.of(context)!.saturday: S.of(context)!.saturdayAbbr,
+      S.of(context)!.sunday: S.of(context)!.sundayAbbr,
     };
     final dbDay = dayMap[day] ?? day.toLowerCase();
     print('DEBUG: Looking for day $day mapped to $dbDay in _shiftData');
@@ -173,11 +173,11 @@ class _EmployeeShiftScreenState extends State<EmployeeShiftScreen> {
     if (image == null) return;
 
     final tempDir = await getTemporaryDirectory();
-    final file = await File('${tempDir.path}/${S.of(context).shift}.png').writeAsBytes(image);
+    final file = await File('${tempDir.path}/${S.of(context)!.shift}.png').writeAsBytes(image);
 
     final dateRange = _formatDateRange();
 
-    await Share.shareXFiles([XFile(file.path)], text: '${S.of(context).shareImgtext} $dateRange');
+    await Share.shareXFiles([XFile(file.path)], text: '${S.of(context)!.shareImgText} $dateRange');
   }
 
   Future<void> _sharePDF() async {
@@ -201,7 +201,7 @@ class _EmployeeShiftScreenState extends State<EmployeeShiftScreen> {
       ),
     );
 
-    await Printing.sharePdf(bytes: await pdf.save(), filename: '${S.of(context).shift}.pdf');
+    await Printing.sharePdf(bytes: await pdf.save(), filename: '${S.of(context)!.shift}.pdf');
   }
 
   @override
@@ -227,7 +227,7 @@ class _EmployeeShiftScreenState extends State<EmployeeShiftScreen> {
               icon: const Icon(Icons.share, color: Colors.deepPurple),
               onSelected: (value) async {
                 await widget._analytics.logEvent(
-                  name: S.of(context).shiftshare,
+                  name: S.of(context)!.shiftShare,
                   parameters: {
                     'employee_id': widget.employee.employeeId,
                     'employee_name': widget.employee.name,
@@ -235,31 +235,31 @@ class _EmployeeShiftScreenState extends State<EmployeeShiftScreen> {
                   },
                 );
 
-                if (value == S.of(context).img) {
+                if (value == S.of(context)!.img) {
                   await _shareImage();
-                } else if (value == S.of(context).pdf) {
+                } else if (value == S.of(context)!.pdf) {
                   await _sharePDF();
                 }
               },
               itemBuilder: (BuildContext context) {
                 return [
                   PopupMenuItem<String>(
-                    value: S.of(context).img,
+                    value: S.of(context)!.img,
                     child: Row(
                       children: [
                         Icon(Icons.image, color: Colors.deepPurple),
                         SizedBox(width: 8),
-                        Text(S.of(context).shareimg),
+                        Text(S.of(context)!.shareImg),
                       ],
                     ),
                   ),
                   PopupMenuItem<String>(
-                    value: S.of(context).pdf,
+                    value: S.of(context)!.pdf,
                     child: Row(
                       children: [
                         Icon(Icons.picture_as_pdf, color: Colors.deepPurple),
                         SizedBox(width: 8),
-                        Text(S.of(context).sharepdf),
+                        Text(S.of(context)!.sharePdf),
                       ],
                     ),
                   ),
@@ -362,7 +362,7 @@ class _EmployeeShiftScreenState extends State<EmployeeShiftScreen> {
                                       padding: const EdgeInsets.symmetric(vertical: 12),
                                       child: Center(
                                         child: Text(
-                                          S.of(context).Date,
+                                          S.of(context)!.date,
                                           style: TextStyle(
                                             color: Colors.white,
                                             fontWeight: FontWeight.bold,
@@ -374,7 +374,7 @@ class _EmployeeShiftScreenState extends State<EmployeeShiftScreen> {
                                       padding: const EdgeInsets.symmetric(vertical: 12),
                                       child: Center(
                                         child: Text(
-                                          S.of(context).shift,
+                                          S.of(context)!.shift,
                                           style: TextStyle(
                                             color: Colors.white,
                                             fontWeight: FontWeight.bold,
@@ -490,9 +490,9 @@ class _EmployeeShiftScreenState extends State<EmployeeShiftScreen> {
                                                           margin: const EdgeInsets.only(top: 8.0),
                                                           padding: const EdgeInsets.symmetric(horizontal: 4.0, vertical: 2.0),
                                                           decoration: BoxDecoration(
-                                                            color: shift!['status'] == S.of(context).Present
+                                                            color: shift!['status'] == S.of(context)!.present
                                                                 ? Colors.green
-                                                                : shift!['status'] == S.of(context).Absent
+                                                                : shift!['status'] == S.of(context)!.absent
                                                                     ? Colors.red
                                                                     : Colors.yellow[700],
                                                             borderRadius: BorderRadius.circular(4.0),

@@ -61,11 +61,11 @@ class AppDrawer extends StatelessWidget {
                     ),
                   ),
                 ),
-                _buildDrawerItem(Icons.group, S.of(context).AllEmployees, context),
+                _buildDrawerItem(Icons.group, S.of(context)!.allEmployees, context),
                 ListTile(
                   leading: Icon(Icons.restore, color: Colors.deepPurple),
                   title: Text(
-                    S.of(context).restoreBackup,
+                    S.of(context)!.restoreBackup,
                     style: TextStyle(color: Colors.black87),
                   ),
                   onTap: () async {
@@ -118,9 +118,9 @@ class AppDrawer extends StatelessWidget {
                     );
                   },
                 ),
-                _buildDrawerItem(Icons.share, S.of(context).shareApp, context),
-                _buildDrawerItem(Icons.star, S.of(context).rateUs, context),
-                _buildDrawerItem(Icons.feedback, S.of(context).feedback, context),
+                _buildDrawerItem(Icons.share, S.of(context)!.shareApp, context),
+                _buildDrawerItem(Icons.star, S.of(context)!.rateUs, context),
+                _buildDrawerItem(Icons.feedback, S.of(context)!.feedback, context),
               ],
             ),
           ),
@@ -137,7 +137,7 @@ class AppDrawer extends StatelessWidget {
                 child: Align(
                   alignment: Alignment.centerLeft,
                   child: Text(
-                    '${S.of(context).version} $version',
+                    '${S.of(context)!.version} $version',
                     style: TextStyle(color: Colors.black54, fontSize: 14),
                   ),
                 ),
@@ -156,7 +156,7 @@ class AppDrawer extends StatelessWidget {
       onTap: () {
         Navigator.of(context).pop();
 
-                if (title == S.of(context).AllEmployees) {
+                if (title == S.of(context)!.allEmployees) {
                   () async {
                     final subscriptionService = SubscriptionService();
                     final isSubscribed = await subscriptionService.isSubscribed;
@@ -167,11 +167,11 @@ class AppDrawer extends StatelessWidget {
                       ),
                     );
                   }();
-                } else if (title == S.of(context).feedback) {
+                } else if (title == S.of(context)!.feedback) {
           _launchFeedbackMail(context);
-        } else if (title == S.of(context).rateUs) {
+        } else if (title == S.of(context)!.rateUs) {
           _launchRateUs(context);
-        } else if (title == S.of(context).shareApp) {
+        } else if (title == S.of(context)!.shareApp) {
           _shareApp(context);
         }
       },
@@ -202,13 +202,13 @@ class AppDrawer extends StatelessWidget {
         await launchUrl(emailLaunchUri, mode: LaunchMode.externalApplication);
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(S.of(context).noMailApp)),
+          SnackBar(content: Text(S.of(context)!.noMailApp)),
         );
       }
     } on PlatformException catch (e) {
       print("Failed to open Gmail app: $e");
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(S.of(context).noGmailApp)),
+        SnackBar(content: Text(S.of(context)!.noGmailApp)),
       );
     }
   }
@@ -227,13 +227,13 @@ class AppDrawer extends StatelessWidget {
         await launchUrl(playStoreWebUri);
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(S.of(context).noPlayStoreApp)),
+          SnackBar(content: Text(S.of(context)!.noPlayStoreApp)),
         );
       }
     } catch (e) {
       print("Failed to open Play Store: $e");
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(S.of(context).failplaystore)),
+        SnackBar(content: Text(S.of(context)!.failPlaystore)),
       );
     }
   }
@@ -247,7 +247,7 @@ class AppDrawer extends StatelessWidget {
     } catch (e) {
       print("Error while sharing: $e");
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(S.of(context).failshare)),
+        SnackBar(content: Text(S.of(context)!.failshare)),
       );
     }
   }
