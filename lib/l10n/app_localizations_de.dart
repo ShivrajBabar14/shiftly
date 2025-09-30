@@ -39,10 +39,10 @@ class AppLocalizationsDe extends AppLocalizations {
   String get goProButton => 'Zu Pro wechseln';
 
   @override
-  String get congratulations => 'Congratulations!';
+  String get congratulations => 'Glückwunsch!';
 
   @override
-  String get congratulationsText => 'You have now successfully subscribed to Shiftwise Pro.';
+  String get congratulationsText => 'Sie haben Shiftwise Pro erfolgreich abonniert.';
 
   @override
   String get continueButton => 'Fortfahren';
@@ -159,7 +159,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get contactEmail => 'Kontakt';
 
   @override
-  String get allEmployees => 'All Employees';
+  String get allEmployees => 'Alle Mitarbeiter';
 
   @override
   String get failPlaystore => 'Failed to open Play Store.';
@@ -183,10 +183,10 @@ class AppLocalizationsDe extends AppLocalizations {
   String get cancel => 'Abbrechen';
 
   @override
-  String get empName => 'Employee Name';
+  String get empName => 'Mitarbeitername';
 
   @override
-  String get empId => 'Employee ID';
+  String get empId => 'Mitarbeiter-ID';
 
   @override
   String get add => 'Hinzufügen';
@@ -306,16 +306,16 @@ class AppLocalizationsDe extends AppLocalizations {
   String get endTime => 'Endzeit';
 
   @override
-  String get shiftName => 'Shift Name';
+  String get shiftName => 'Schichtname';
 
   @override
-  String get present => 'Present';
+  String get present => 'Anwesend';
 
   @override
-  String get absent => 'Absent';
+  String get absent => 'Abwesend';
 
   @override
-  String get leave => 'Leave';
+  String get leave => 'Urlaub';
 
   @override
   String get clear => 'Löschen';

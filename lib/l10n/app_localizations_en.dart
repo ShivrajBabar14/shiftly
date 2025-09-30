@@ -276,25 +276,25 @@ class AppLocalizationsEn extends AppLocalizations {
   String get sundayAbbrc => 'Sun';
 
   @override
-  String get mondayAbbr => 'Mon';
+  String get mondayAbbr => 'mon';
 
   @override
-  String get tuesdayAbbr => 'Tue';
+  String get tuesdayAbbr => 'tue';
 
   @override
-  String get wednesdayAbbr => 'Wed';
+  String get wednesdayAbbr => 'wed';
 
   @override
-  String get thursdayAbbr => 'Thu';
+  String get thursdayAbbr => 'thu';
 
   @override
-  String get fridayAbbr => 'Fri';
+  String get fridayAbbr => 'fri';
 
   @override
-  String get saturdayAbbr => 'Sat';
+  String get saturdayAbbr => 'sat';
 
   @override
-  String get sundayAbbr => 'Sun';
+  String get sundayAbbr => 'sun';
 
   @override
   String get addShift => 'Add Shift';
