@@ -482,15 +482,15 @@ class _EmployeeShiftScreenState extends State<EmployeeShiftScreen> {
                                                           margin: const EdgeInsets.only(top: 8.0),
                                                           padding: const EdgeInsets.symmetric(horizontal: 4.0, vertical: 2.0),
                                                           decoration: BoxDecoration(
-                                                            color: shift!['status'] == S.of(context)!.present
+                                                            color: shift!['status'] == 'Present'
                                                                 ? Colors.green
-                                                                : shift!['status'] == S.of(context)!.absent
+                                                                : shift!['status'] == 'Absent'
                                                                     ? Colors.red
                                                                     : Colors.yellow[700],
                                                             borderRadius: BorderRadius.circular(4.0),
                                                           ),
                                                           child: Text(
-                                                            shift!['status'] == S.of(context)!.present ? 'Present' : shift!['status'] == S.of(context)!.absent ? 'Absent' : 'Leave',
+                                                            shift!['status'] == 'Present' ? 'Present' : shift!['status'] == 'Absent' ? 'Absent' : 'Leave',
                                                             style: const TextStyle(
                                                               color: Colors.white,
                                                               fontSize: 10,

@@ -2614,11 +2614,11 @@ Widget build(BuildContext context) {
                                                                 decoration: BoxDecoration(
                                                                   color:
                                                                       shift['status'] ==
-                                                                          S.of(context)!.present
+                                                                          'Present'
                                                                       ? Colors
                                                                             .green
                                                                       : shift['status'] ==
-                                                                            S.of(context)!.absent
+                                                                            'Absent'
                                                                       ? Colors
                                                                             .red
                                                                       : Colors
@@ -2634,10 +2634,10 @@ Widget build(BuildContext context) {
                                                                 child: Center(
                                                                   child: Text(
                                                                     shift['status'] ==
-                                                                            S.of(context)!.present
+                                                                            'Present'
                                                                         ? 'P'
                                                                         : shift['status'] ==
-                                                                              S.of(context)!.absent
+                                                                              'Absent'
                                                                         ? 'A'
                                                                         : 'L',
                                                                     textAlign:
