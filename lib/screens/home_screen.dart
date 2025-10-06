@@ -878,7 +878,7 @@ class _HomeScreenState extends State<HomeScreen>
     final existingShift = _shiftTimings.firstWhere(
       (st) =>
           st['employee_id'] == employeeId &&
-          st['day'] == day.toLowerCase() &&
+          st['day'] == dbDay &&
           st['week_start'] == weekStart,
       orElse: () => {},
     );
