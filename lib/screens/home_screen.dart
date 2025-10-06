@@ -1289,7 +1289,7 @@ class _HomeScreenState extends State<HomeScreen>
                               mainAxisSize: MainAxisSize.min,
                               children: [
                                 Radio<String>(
-                                  value: S.of(context)!.present,
+                                  value: 'Present',
                                   groupValue: attendance,
                                   onChanged: isFutureDay
                                       ? null
@@ -1376,7 +1376,7 @@ class _HomeScreenState extends State<HomeScreen>
                               mainAxisSize: MainAxisSize.min,
                               children: [
                                 Radio<String>(
-                                  value: S.of(context)!.absent,
+                                  value: 'Absent',
                                   groupValue: attendance,
                                   onChanged: isFutureDay
                                       ? null
@@ -1441,7 +1441,7 @@ class _HomeScreenState extends State<HomeScreen>
                               mainAxisSize: MainAxisSize.min,
                               children: [
                                 Radio<String>(
-                                  value: S.of(context)!.leave,
+                                  value: 'Leave',
                                   groupValue: attendance,
                                   onChanged: isFutureDay
                                       ? null
