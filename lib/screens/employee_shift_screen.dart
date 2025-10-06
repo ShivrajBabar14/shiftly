@@ -145,18 +145,10 @@ class _EmployeeShiftScreenState extends State<EmployeeShiftScreen> {
     return DateFormat('d').format(date);
   }
 
-  Map<String, dynamic>? _getShiftForDay(String day) {
-    final dayMap = {
-      S.of(context)!.monday: S.of(context)!.mondayAbbr,
-      S.of(context)!.tuesday: S.of(context)!.tuesdayAbbr,
-      S.of(context)!.wednesday: S.of(context)!.wednesdayAbbr,
-      S.of(context)!.thursday: S.of(context)!.thursdayAbbr,
-      S.of(context)!.friday: S.of(context)!.fridayAbbr,
-      S.of(context)!.saturday: S.of(context)!.saturdayAbbr,
-      S.of(context)!.sunday: S.of(context)!.sundayAbbr,
-    };
-    final dbDay = dayMap[day] ?? day.toLowerCase();
-    print('DEBUG: Looking for day $day mapped to $dbDay in _shiftData');
+  Map<String, dynamic>? _getShiftForDay(int index) {
+    const dbDays = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
+    final dbDay = dbDays[index];
+    print('DEBUG: Looking for shift at index $index mapped to $dbDay in _shiftData');
 
     try {
       final shift = _shiftData.firstWhere((shift) => shift['day'] == dbDay);
@@ -387,8 +379,8 @@ class _EmployeeShiftScreenState extends State<EmployeeShiftScreen> {
                                 ...List.generate(7, (index) {
                                   final dayName = _dayLabel(index);
                                   final dateNumber = _dateLabel(index);
-                                  final shift = _getShiftForDay(dayName);
-                                  print('DEBUG: Day $dayName, shift: $shift');
+                                  final shift = _getShiftForDay(index);
+                                  print('DEBUG: Index $index, day $dayName, shift: $shift');
 
                                   return TableRow(
                                     decoration: BoxDecoration(
@@ -498,7 +490,7 @@ class _EmployeeShiftScreenState extends State<EmployeeShiftScreen> {
                                                             borderRadius: BorderRadius.circular(4.0),
                                                           ),
                                                           child: Text(
-                                                            shift!['status'],
+                                                            shift!['status'] == S.of(context)!.present ? 'Present' : shift!['status'] == S.of(context)!.absent ? 'Absent' : 'Leave',
                                                             style: const TextStyle(
                                                               color: Colors.white,
                                                               fontSize: 10,

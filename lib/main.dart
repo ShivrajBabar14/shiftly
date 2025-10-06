@@ -3,7 +3,8 @@ import 'package:firebase_core/firebase_core.dart';
 import 'screens/splash_screen.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'generated/l10n.dart';
-import 'package:flutter_localizations/flutter_localizations.dart'; 
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:intl/intl.dart';
 
 
 Future<void> main() async {
@@ -61,6 +62,14 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
         GlobalCupertinoLocalizations.delegate,
       ],
       supportedLocales: S.supportedLocales,
+      localeResolutionCallback: (locale, supportedLocales) {
+        final resolvedLocale = supportedLocales.firstWhere(
+          (supportedLocale) => supportedLocale.languageCode == locale?.languageCode,
+          orElse: () => supportedLocales.first,
+        );
+        Intl.defaultLocale = resolvedLocale.toString();
+        return resolvedLocale;
+      },
     );
   }
 }

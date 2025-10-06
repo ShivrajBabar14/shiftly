@@ -21,6 +21,11 @@ import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:Shiftwise/utils/strings.dart';
 import '../generated/l10n.dart';
 
+class AttendanceStatus {
+  static const String present = 'present';
+  static const String absent = 'absent';
+  static const String leave = 'leave';
+}
 
 final GlobalKey<_HomeScreenState> homeScreenKey = GlobalKey<_HomeScreenState>();
 
@@ -816,6 +821,17 @@ class _HomeScreenState extends State<HomeScreen>
   }
 
   void _showShiftDialog(int employeeId, String day) async {
+    final dayMap = {
+      S.of(context)!.mondayAbbr: 'mon',
+      S.of(context)!.tuesdayAbbr: 'tue',
+      S.of(context)!.wednesdayAbbr: 'wed',
+      S.of(context)!.thursdayAbbr: 'thu',
+      S.of(context)!.fridayAbbr: 'fri',
+      S.of(context)!.saturdayAbbr: 'sat',
+      S.of(context)!.sundayAbbr: 'sun',
+    };
+    final dbDay = dayMap[day] ?? day.toLowerCase();
+
     final selectedDate = _currentWeekStart.add(
       Duration(
         days: [S.of(context)!.mondayAbbr, S.of(context)!.tuesdayAbbr, S.of(context)!.wednesdayAbbr, S.of(context)!.thursdayAbbr, S.of(context)!.thursdayAbbr, S.of(context)!.saturdayAbbr, S.of(context)!.sundayAbbr].indexOf(day),
@@ -1542,7 +1558,7 @@ class _HomeScreenState extends State<HomeScreen>
 
                                   await _dbHelper.insertOrUpdateShift(
                                     employeeId: employeeId,
-                                    day: day.toLowerCase(),
+                                    day: dbDay,
                                     weekStart: weekStart,
                                     shiftName: hasName ? shiftName : null,
                                     startTime: startTimeMillis,
@@ -1959,11 +1975,12 @@ Widget build(BuildContext context) {
 
 
   Widget _buildEmptyShiftTable() {
-    List<String> days = [S.of(context)!.mondayAbbrc, S.of(context)!.tuesdayAbbrc, S.of(context)!.wednesdayAbbrc, S.of(context)!.thursdayAbbrc, S.of(context)!.thursdayAbbrc, S.of(context)!.saturdayAbbrc, S.of(context)!.sundayAbbrc];
+    List<String> dayKeys = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
+    List<String> dayLabels = [S.of(context)!.mondayAbbr, S.of(context)!.tuesdayAbbr, S.of(context)!.wednesdayAbbr, S.of(context)!.thursdayAbbr, S.of(context)!.fridayAbbr, S.of(context)!.saturdayAbbr, S.of(context)!.sundayAbbr];
     final dateFormat = DateFormat('d');
     const double cellWidth = 75.0;
     const double rowHeight = 40.0;
-    final double tableWidth = cellWidth * days.length;
+    final double tableWidth = cellWidth * dayKeys.length;
 
     // Week check logic
     bool isFutureWeek() {
@@ -2030,7 +2047,7 @@ Widget build(BuildContext context) {
                           SizedBox(
                             height: rowHeight,
                             child: Row(
-                              children: List.generate(days.length, (index) {
+                              children: List.generate(dayLabels.length, (index) {
                                 final dayDate = _currentWeekStart.add(
                                   Duration(days: index),
                                 );
@@ -2052,7 +2069,7 @@ Widget build(BuildContext context) {
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
                                       Text(
-                                        days[index],
+                                        dayLabels[index],
                                         style: const TextStyle(
                                           color: Colors.white,
                                           fontWeight: FontWeight.bold,
@@ -2149,7 +2166,7 @@ Widget build(BuildContext context) {
   }
 
   Widget _buildShiftTable() {
-    List<String> days = [S.of(context)!.mondayAbbrc, S.of(context)!.tuesdayAbbrc, S.of(context)!.wednesdayAbbrc, S.of(context)!.thursdayAbbrc, S.of(context)!.thursdayAbbrc, S.of(context)!.saturdayAbbrc, S.of(context)!.sundayAbbrc];
+    List<String> days = [S.of(context)!.mondayAbbr, S.of(context)!.tuesdayAbbr, S.of(context)!.wednesdayAbbr, S.of(context)!.thursdayAbbr, S.of(context)!.fridayAbbr, S.of(context)!.saturdayAbbr, S.of(context)!.sundayAbbr];
     final dateFormat = DateFormat('d');
     const double cellWidth = 75.0;
     const double rowHeight = 80.0;
@@ -2170,6 +2187,20 @@ Widget build(BuildContext context) {
     }
 
     final bool showOverlay = isFreeUser && isFutureWeek();
+
+    final dayMap = {
+      S.of(context)!.mondayAbbr: 'mon',
+      S.of(context)!.tuesdayAbbr: 'tue',
+      S.of(context)!.wednesdayAbbr: 'wed',
+      S.of(context)!.thursdayAbbr: 'thu',
+      S.of(context)!.fridayAbbr: 'fri',
+      S.of(context)!.saturdayAbbr: 'sat',
+      S.of(context)!.sundayAbbr: 'sun',
+    };
+
+    final dbDayMap = {
+      for (var entry in dayMap.entries) entry.value: entry.key
+    };
 
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -2410,10 +2441,7 @@ Widget build(BuildContext context) {
                                                 (st) =>
                                                     st['employee_id'] ==
                                                         employee.employeeId &&
-                                                    st['day']
-                                                            .toString()
-                                                            .toLowerCase() ==
-                                                        day.toLowerCase(),
+                                                    st['day'] == dayMap[day],
                                                 orElse: () => {},
                                               );
 
@@ -2609,7 +2637,7 @@ Widget build(BuildContext context) {
                                                                             S.of(context)!.present
                                                                         ? 'P'
                                                                         : shift['status'] ==
-                                                                              S.of(context)!.present
+                                                                              S.of(context)!.absent
                                                                         ? 'A'
                                                                         : 'L',
                                                                     textAlign:
