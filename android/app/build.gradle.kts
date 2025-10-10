@@ -30,8 +30,8 @@ android {
         applicationId = "com.shift.schedule.app"
         minSdk = flutter.minSdkVersion  // Set minimum SDK version directly
         targetSdk = 35
-        versionCode = 19  // Set version code directly
-        versionName = "1.8.0"  // Set version name directly
+        versionCode = 20  // Set version code directly
+        versionName = "1.9.0"  // Set version name directly
         multiDexEnabled = true
     }
 

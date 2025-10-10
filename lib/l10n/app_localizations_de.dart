@@ -39,10 +39,10 @@ class AppLocalizationsDe extends AppLocalizations {
   String get goProButton => 'Zu Pro wechseln';
 
   @override
-  String get congratulations => 'Glückwunsch!';
+  String get congratulations => 'Congratulations!';
 
   @override
-  String get congratulationsText => 'Sie haben Shiftwise Pro erfolgreich abonniert.';
+  String get congratulationsText => 'You have now successfully subscribed to Shiftwise Pro.';
 
   @override
   String get continueButton => 'Fortfahren';
@@ -88,6 +88,9 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get monthly => 'Monatlich';
+
+  @override
+  String get weekly => 'Weekly';
 
   @override
   String get service => 'Google Play-Dienste nicht verfügbar';

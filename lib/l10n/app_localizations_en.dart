@@ -90,6 +90,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get monthly => 'Monthly';
 
   @override
+  String get weekly => 'Weekly';
+
+  @override
   String get service => 'Google Play services not available';
 
   @override

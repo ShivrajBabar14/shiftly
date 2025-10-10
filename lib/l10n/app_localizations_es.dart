@@ -90,6 +90,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get monthly => 'Mensual';
 
   @override
+  String get weekly => 'Weekly';
+
+  @override
   String get service => 'Servicios de Google Play no disponibles';
 
   @override

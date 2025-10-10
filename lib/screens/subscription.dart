@@ -121,12 +121,12 @@ class _ShiftlyProScreenState extends State<ShiftlyProScreen> {
       // Check for active subscriptions (purchased/restored)
       if (purchaseDetails.status == PurchaseStatus.purchased ||
           purchaseDetails.status == PurchaseStatus.restored) {
-        if (purchaseDetails.productID == 'shiftwise_monthly' ||
+        if (purchaseDetails.productID == 'shiftwise_weekly' ||
             purchaseDetails.productID == 'shiftwise_yearly') {
           // Check if this is a valid, active subscription
           activeSubscriptionFound = true;
-          subscriptionType = purchaseDetails.productID == 'shiftwise_monthly'
-              ? 'Monthly'
+          subscriptionType = purchaseDetails.productID == 'shiftwise_weekly'
+              ? 'Weekly'
               : 'Yearly';
           orderId = purchaseDetails.purchaseID ?? '';
           purchaseToken =
@@ -190,7 +190,7 @@ class _ShiftlyProScreenState extends State<ShiftlyProScreen> {
   }
 
   Future<void> _loadProducts() async {
-    const Set<String> _kIds = {'shiftwise_monthly', 'shiftwise_yearly'};
+    const Set<String> _kIds = {'shiftwise_weekly', 'shiftwise_yearly'};
     ProductDetailsResponse response = await _inAppPurchase.queryProductDetails(
       _kIds,
     );
@@ -224,11 +224,11 @@ class _ShiftlyProScreenState extends State<ShiftlyProScreen> {
 
   double? _calculateDiscountPercentage() {
     try {
-      final monthly = _products.firstWhere((p) => p.id == 'shiftwise_monthly');
+      final weekly = _products.firstWhere((p) => p.id == 'shiftwise_weekly');
       final yearly = _products.firstWhere((p) => p.id == 'shiftwise_yearly');
-      final monthlyPrice = double.parse(monthly.rawPrice.toString());
+      final weeklyPrice = double.parse(weekly.rawPrice.toString());
       final yearlyPrice = double.parse(yearly.rawPrice.toString());
-      final fullYearPrice = monthlyPrice * 12;
+      final fullYearPrice = weeklyPrice * 52;
       final discount = 100 - ((yearlyPrice / fullYearPrice) * 100);
       return discount;
     } catch (e) {
@@ -239,6 +239,15 @@ class _ShiftlyProScreenState extends State<ShiftlyProScreen> {
   @override
   Widget build(BuildContext context) {
     final discount = _calculateDiscountPercentage();
+
+    if (_products.isEmpty) {
+      return Scaffold(
+        backgroundColor: Colors.white,
+        body: Center(
+          child: CircularProgressIndicator(),
+        ),
+      );
+    }
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -301,10 +310,10 @@ class _ShiftlyProScreenState extends State<ShiftlyProScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
                   buildPriceCard(
-                    price: _getPriceForProduct('shiftwise_monthly'),
-                    label: S.of(context)!.monthly,
-                    isSelected: selectedPlan == 'Monthly',
-                    onTap: () => setState(() => selectedPlan = 'Monthly'),
+                    price: _getPriceForProduct('shiftwise_weekly'),
+                    label: S.of(context)!.weekly,
+                    isSelected: selectedPlan == 'Weekly',
+                    onTap: () => setState(() => selectedPlan = 'Weekly'),
                   ),
                   buildPriceCard(
                     price: _getPriceForProduct('shiftwise_yearly'),
@@ -353,8 +362,8 @@ class _ShiftlyProScreenState extends State<ShiftlyProScreen> {
                     padding: const EdgeInsets.symmetric(vertical: 12),
                   ),
                   onPressed: () {
-                    if (selectedPlan == 'Monthly') {
-                      _startPurchase('shiftwise_monthly');
+                    if (selectedPlan == 'Weekly') {
+                      _startPurchase('shiftwise_weekly');
                     } else if (selectedPlan == 'Annually') {
                       _startPurchase('shiftwise_yearly');
                     }

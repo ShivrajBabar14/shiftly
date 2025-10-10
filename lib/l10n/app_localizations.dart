@@ -265,6 +265,12 @@ abstract class AppLocalizations {
   /// **'Monthly'**
   String get monthly;
 
+  /// No description provided for @weekly.
+  ///
+  /// In en, this message translates to:
+  /// **'Weekly'**
+  String get weekly;
+
   /// No description provided for @service.
   ///
   /// In en, this message translates to:
@@ -640,43 +646,43 @@ abstract class AppLocalizations {
   /// No description provided for @mondayAbbr.
   ///
   /// In en, this message translates to:
-  /// **'Mon'**
+  /// **'mon'**
   String get mondayAbbr;
 
   /// No description provided for @tuesdayAbbr.
   ///
   /// In en, this message translates to:
-  /// **'Tue'**
+  /// **'tue'**
   String get tuesdayAbbr;
 
   /// No description provided for @wednesdayAbbr.
   ///
   /// In en, this message translates to:
-  /// **'Wed'**
+  /// **'wed'**
   String get wednesdayAbbr;
 
   /// No description provided for @thursdayAbbr.
   ///
   /// In en, this message translates to:
-  /// **'Thu'**
+  /// **'thu'**
   String get thursdayAbbr;
 
   /// No description provided for @fridayAbbr.
   ///
   /// In en, this message translates to:
-  /// **'Fri'**
+  /// **'fri'**
   String get fridayAbbr;
 
   /// No description provided for @saturdayAbbr.
   ///
   /// In en, this message translates to:
-  /// **'Sat'**
+  /// **'sat'**
   String get saturdayAbbr;
 
   /// No description provided for @sundayAbbr.
   ///
   /// In en, this message translates to:
-  /// **'Sun'**
+  /// **'sun'**
   String get sundayAbbr;
 
   /// No description provided for @addShift.

@@ -90,6 +90,9 @@ class AppLocalizationsKo extends AppLocalizations {
   String get monthly => '월간';
 
   @override
+  String get weekly => 'Weekly';
+
+  @override
   String get service => 'Google Play 서비스를 사용할 수 없습니다';
 
   @override
