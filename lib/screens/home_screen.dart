@@ -27,10 +27,8 @@ class AttendanceStatus {
   static const String leave = 'leave';
 }
 
-final GlobalKey<_HomeScreenState> homeScreenKey = GlobalKey<_HomeScreenState>();
-
 class HomeScreen extends StatefulWidget {
-  HomeScreen({Key? key}) : super(key: homeScreenKey);
+  HomeScreen();
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();

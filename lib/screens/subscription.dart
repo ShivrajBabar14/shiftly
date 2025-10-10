@@ -106,6 +106,7 @@ class _ShiftlyProScreenState extends State<ShiftlyProScreen> {
   ) async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     bool activeSubscriptionFound = false;
+    bool newPurchaseFound = false;
     String subscriptionType = '';
     String orderId = '';
     String purchaseToken = '';
@@ -125,6 +126,9 @@ class _ShiftlyProScreenState extends State<ShiftlyProScreen> {
             purchaseDetails.productID == 'shiftwise_yearly') {
           // Check if this is a valid, active subscription
           activeSubscriptionFound = true;
+          if (purchaseDetails.status == PurchaseStatus.purchased) {
+            newPurchaseFound = true;
+          }
           subscriptionType = purchaseDetails.productID == 'shiftwise_weekly'
               ? 'Weekly'
               : 'Yearly';
@@ -165,19 +169,26 @@ class _ShiftlyProScreenState extends State<ShiftlyProScreen> {
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => HomeScreen()),
-      ).then((_) {
+      ).then((_) async {
         if (!mounted) return;
-        showDialog(
-          context: context,
-          barrierDismissible: false,
-          builder: (_) => SuccessDialog(
-            onContinue: () {
-              if (!mounted) return;
-              Navigator.pop(context);
-            },
-            logoImage: const AssetImage('assets/app_logo.png'),
-          ),
-        );
+        // Show success dialog only for new purchases, not restores
+        if (newPurchaseFound) {
+          final bool alreadyShown = prefs.getBool('subscription_success_shown') ?? false;
+          if (!alreadyShown) {
+            showDialog(
+              context: context,
+              barrierDismissible: false,
+              builder: (_) => SuccessDialog(
+                onContinue: () {
+                  if (!mounted) return;
+                  Navigator.pop(context);
+                },
+                logoImage: const AssetImage('assets/app_logo.png'),
+              ),
+            );
+            await prefs.setBool('subscription_success_shown', true);
+          }
+        }
       });
     }
   }
